@@ -1,0 +1,909 @@
+<?php
+
+use Livewire\Attributes\Computed;
+use Livewire\Attributes\Validate;
+use Livewire\Attributes\Title;
+use Livewire\Component;
+use Livewire\WithPagination;
+use Livewire\WithFileUploads;
+use App\Models\Transaction;
+use App\Models\Category;
+use App\Actions\CreateTransactionAction;
+use App\Actions\UpdateTransactionAction;
+use App\Actions\DeleteTransactionAction;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+
+new #[Title('Manage Your Transactions')] class extends Component {
+    use WithPagination;
+    use WithFileUploads;
+
+    public bool $showModal = false;
+    public string $mode = 'create';
+    public ?int $editId = null;
+
+    public bool $showDeleteModal = false;
+    public ?int $deleteId = null;
+    public string $deleteDescription = '';
+
+    #[Validate('required|min:2')]
+    public string $description = '';
+
+    #[Validate('required|numeric|min:0.01')]
+    public string $amount = '';
+
+    #[Validate('required|in:income,expense')]
+    public string $type = 'expense';
+
+    #[Validate('nullable|exists:categories,id')]
+    public ?int $category_id = null;
+
+    #[Validate('required|date')]
+    public string $date = '';
+
+    #[Validate('nullable|file|mimes:jpg,jpeg,png,pdf|max:5120')]
+    public $attachment = null;
+
+    public string $search = '';
+    public string $filterType = '';
+    public string $filterCategory = '';
+
+    public string $sortBy = 'date';
+    public string $sortDir = 'desc';
+
+    public string $dateFrom = '';
+    public string $dateTo = '';
+
+    public bool $removeExistingAttachment = false;
+
+    public function boot(): void
+    {
+        if (! in_array($this->sortBy, ['date', 'amount', 'description'])) {
+            $this->sortBy = 'date';
+        }
+        if (! in_array($this->sortDir, ['asc', 'desc'])) {
+            $this->sortDir = 'desc';
+        }
+    }
+
+    public function mount(): void
+    {
+        $this->date = now()->format('Y-m-d');
+
+        if (request()->query('create') === '1') {
+            $this->showModal = true;
+        }
+    }
+
+    // ─── Computed Properties ──────────────────────────────────────────
+
+    #[Computed]
+    public function currentAttachment()
+    {
+        if (! $this->editId) {
+            return null;
+        }
+
+        $transaction = Transaction::query()
+            ->with('attachments')
+            ->where('user_id', auth()->id())
+            ->find($this->editId);
+
+        return $transaction?->attachments->first();
+    }
+
+    #[Computed]
+    public function transactions()
+    {
+        $query = Transaction::query()
+            ->with(['category', 'attachments'])
+            ->where('user_id', auth()->id())
+            ->when($this->search, fn($q) => $q->where('description', 'like', "%{$this->search}%"))
+            ->when($this->filterType, fn($q) => $q->where('type', $this->filterType))
+            ->when($this->filterCategory, fn($q) => $q->where('category_id', $this->filterCategory))
+            // FIX: dateFrom & dateTo sekarang dipakai dalam query
+            ->when($this->dateFrom, fn($q) => $q->whereDate('date', '>=', $this->dateFrom))
+            ->when($this->dateTo, fn($q) => $q->whereDate('date', '<=', $this->dateTo));
+
+        if ($this->sortBy === 'date') {
+            $query->orderBy('date', $this->sortDir)
+                ->orderBy('updated_at', $this->sortDir)
+                ->orderBy('id', $this->sortDir);
+        } else {
+            $query->orderBy($this->sortBy, $this->sortDir)
+                ->orderBy('id', 'desc');
+        }
+
+        return $query->paginate(10);
+    }
+
+    #[Computed(cache: true, seconds: 300)]
+    public function summary(): array
+    {
+        $rows = Transaction::query()
+            ->where('user_id', auth()->id())
+            ->selectRaw('type, SUM(amount) as total')
+            ->whereIn('type', ['income', 'expense'])
+            ->groupBy('type')
+            ->pluck('total', 'type');
+
+        return [
+            'income'  => (float) ($rows['income'] ?? 0),
+            'expense' => (float) ($rows['expense'] ?? 0),
+            'balance' => (float) ($rows['income'] ?? 0) - (float) ($rows['expense'] ?? 0),
+        ];
+    }
+
+    #[Computed]
+    public function income()
+    {
+        return $this->summary['income'];
+    }
+
+    #[Computed]
+    public function expenses()
+    {
+        return $this->summary['expense'];
+    }
+
+    #[Computed]
+    public function isFiltering(): bool
+    {
+        return filled($this->search)
+            || filled($this->filterType)
+            || filled($this->filterCategory)
+            || filled($this->dateFrom)
+            || filled($this->dateTo);
+    }
+
+    #[Computed]
+    public function categories(): array
+    {
+        return Category::orderBy('name')
+            ->get()
+            ->groupBy('type')
+            ->map(fn($group) => $group->pluck('name', 'id')->toArray())
+            ->toArray();
+    }
+
+    // ─── Updated Hooks ────────────────────────────────────────────────
+
+    public function updatedType(): void
+    {
+        $this->category_id = null;
+    }
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedFilterType(): void
+    {
+        $this->filterCategory = '';
+        $this->resetPage();
+    }
+
+    public function updatedFilterCategory(): void
+    {
+        $this->resetPage();
+    }
+
+    // FIX: dateFrom & dateTo reset pagination bila berubah
+    public function updatedDateFrom(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedDateTo(): void
+    {
+        $this->resetPage();
+    }
+
+    // ─── Sorting ──────────────────────────────────────────────────────
+
+    // FIX: Method sort() untuk dipakai dari transactions-table component
+    public function sort(string $column): void
+    {
+        if ($this->sortBy === $column) {
+            $this->sortDir = $this->sortDir === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortBy = $column;
+            $this->sortDir = 'asc';
+        }
+
+        $this->resetPage();
+    }
+
+    // ─── Modal ────────────────────────────────────────────────────────
+
+    public function openCreate(): void
+    {
+        $this->resetForm();
+        $this->mode = 'create';
+        $this->showModal = true;
+    }
+
+    private function formData(): array
+    {
+        return [
+            'user_id'     => auth()->id(),
+            'description' => $this->description,
+            'amount'      => $this->amount,
+            'type'        => $this->type,
+            'category_id' => $this->category_id,
+            'date'        => $this->date,
+        ];
+    }
+
+    protected function clearChartCache(): void
+    {
+        $year = now()->year;
+
+        Cache::forget("chart_data_{$year}_");
+        for ($m = 1; $m <= 12; $m++) {
+            Cache::forget("chart_data_{$year}_{$m}");
+        }
+
+        if ($this->date) {
+            $txYear = \Carbon\Carbon::parse($this->date)->year;
+            if ($txYear !== $year) {
+                Cache::forget("chart_data_{$txYear}_");
+                for ($m = 1; $m <= 12; $m++) {
+                    Cache::forget("chart_data_{$txYear}_{$m}");
+                }
+            }
+        }
+    }
+
+    // ─── CRUD ─────────────────────────────────────────────────────────
+
+    public function save(CreateTransactionAction $action): void
+    {
+        $this->validate();
+
+        $transaction = $action->handle($this->formData());
+
+        if ($this->attachment) {
+            $path = $this->attachment->store('transactions/attachments', 'public');
+
+            $transaction->attachments()->create([
+                'original_name' => $this->attachment->getClientOriginalName(),
+                'stored_name'   => basename($path),
+                'path'          => $path,
+                'disk'          => 'public',
+                'mime_type'     => $this->attachment->getMimeType(),
+                'size'          => $this->attachment->getSize(),
+                'uploaded_by'   => auth()->id(),
+            ]);
+        }
+
+        unset($this->summary, $this->transactions, $this->income, $this->expenses);
+
+        $wasIncome = $this->type === 'income';
+
+        $this->resetForm();
+        $this->clearChartCache();
+        $this->dispatch('transaction-updated');
+
+        if ($wasIncome) {
+            $this->dispatch('income-saved');
+        }
+
+        $this->dispatch('toast', ['type' => 'success', 'description' => 'Transaction added successfully!']);
+    }
+
+    public function openEdit(int $id): void
+    {
+        $transaction = Transaction::query()
+            ->with('attachments')
+            ->where('user_id', auth()->id())
+            ->findOrFail($id);
+
+        $this->editId          = $transaction->id;
+        $this->description     = $transaction->description;
+        $this->amount          = (string) $transaction->amount;
+        $this->type            = $transaction->type;
+        $this->category_id     = $transaction->category_id;
+        $this->date            = $transaction->date?->format('Y-m-d') ?? '';
+
+        $this->attachment                = null;
+        $this->removeExistingAttachment  = false;
+
+        $this->resetValidation();
+        $this->mode      = 'edit';
+        $this->showModal = true;
+    }
+
+    public function update(UpdateTransactionAction $action): void
+    {
+        $this->validate();
+
+        $transaction = $action->handle($this->editId, $this->formData());
+        $transaction->load('attachments');
+
+        if ($this->removeExistingAttachment) {
+            foreach ($transaction->attachments as $oldAttachment) {
+                Storage::disk($oldAttachment->disk)->delete($oldAttachment->path);
+                $oldAttachment->delete();
+            }
+            $transaction->load('attachments');
+        }
+
+        if ($this->attachment) {
+            foreach ($transaction->attachments as $oldAttachment) {
+                Storage::disk($oldAttachment->disk)->delete($oldAttachment->path);
+                $oldAttachment->delete();
+            }
+
+            $path = $this->attachment->store('transactions/attachments', 'public');
+
+            $transaction->attachments()->create([
+                'original_name' => $this->attachment->getClientOriginalName(),
+                'stored_name'   => basename($path),
+                'path'          => $path,
+                'disk'          => 'public',
+                'mime_type'     => $this->attachment->getMimeType(),
+                'size'          => $this->attachment->getSize(),
+                'uploaded_by'   => auth()->id(),
+            ]);
+        }
+
+        unset($this->summary, $this->transactions, $this->income, $this->expenses);
+
+        $this->resetForm();
+        $this->clearChartCache();
+        $this->dispatch('transaction-updated');
+
+        $this->dispatch('toast', ['type' => 'success', 'description' => 'Transaction updated successfully!']);
+    }
+
+    public function confirmDelete(int $id, string $description): void
+    {
+        $this->deleteId          = $id;
+        $this->deleteDescription = $description;
+        $this->showDeleteModal   = true;
+    }
+
+    public function delete(DeleteTransactionAction $action): void
+    {
+        if (! $this->deleteId) {
+            return;
+        }
+
+        $action->handle($this->deleteId);
+
+        unset($this->summary, $this->transactions, $this->income, $this->expenses);
+
+        $this->deleteId          = null;
+        $this->deleteDescription = '';
+        $this->showDeleteModal   = false;
+
+        $this->clearChartCache();
+        $this->dispatch('transaction-updated');
+
+        $this->dispatch('toast', ['type' => 'error', 'description' => 'Transaction deleted!']);
+    }
+
+    public function cancelDelete(): void
+    {
+        $this->deleteId          = null;
+        $this->deleteDescription = '';
+        $this->showDeleteModal   = false;
+    }
+
+    // ─── Attachment Helpers ───────────────────────────────────────────
+
+    // FIX: Method ini wujud tapi tiada dalam code asal
+    public function removeSelectedAttachment(): void
+    {
+        $this->attachment = null;
+    }
+
+    // FIX: Method ini wujud tapi tiada dalam code asal
+    public function removeCurrentAttachment(): void
+    {
+        $this->removeExistingAttachment = true;
+    }
+
+    // ─── Export ───────────────────────────────────────────────────────
+
+    // FIX: Method exportCsv() yang dipanggil dalam Blade
+    public function exportCsv(): StreamedResponse
+    {
+        $transactions = Transaction::query()
+            ->with('category')
+            ->where('user_id', auth()->id())
+            ->when($this->search, fn($q) => $q->where('description', 'like', "%{$this->search}%"))
+            ->when($this->filterType, fn($q) => $q->where('type', $this->filterType))
+            ->when($this->filterCategory, fn($q) => $q->where('category_id', $this->filterCategory))
+            ->when($this->dateFrom, fn($q) => $q->whereDate('date', '>=', $this->dateFrom))
+            ->when($this->dateTo, fn($q) => $q->whereDate('date', '<=', $this->dateTo))
+            ->orderBy('date', 'desc')
+            ->get();
+
+        $filename = 'transactions-' . now()->format('Y-m-d') . '.csv';
+
+        return response()->streamDownload(function () use ($transactions) {
+            $handle = fopen('php://output', 'w');
+
+            fputcsv($handle, ['Date', 'Description', 'Type', 'Category', 'Amount (RM)']);
+
+            foreach ($transactions as $tx) {
+                fputcsv($handle, [
+                    $tx->date?->format('Y-m-d') ?? '',
+                    $tx->description,
+                    $tx->type,
+                    $tx->category?->name ?? '—',
+                    number_format($tx->amount, 2, '.', ''),
+                ]);
+            }
+
+            fclose($handle);
+        }, $filename, ['Content-Type' => 'text/csv']);
+    }
+
+    // ─── Reset Form ───────────────────────────────────────────────────
+
+    public function resetForm(): void
+    {
+        $this->reset([
+            'description',
+            'amount',
+            'category_id',
+            'editId',
+            'attachment',
+            'removeExistingAttachment',
+        ]);
+
+        $this->date      = now()->format('Y-m-d');
+        $this->type      = 'expense';
+        $this->mode      = 'create';
+        $this->showModal = false;
+        $this->resetValidation();
+    }
+};
+?>
+
+<div
+    class="p-6 space-y-6"
+    x-data
+    x-on:income-saved.window="new Audio('/sounds/cha-ching.mp3').play()"
+>
+    {{-- ─── Page Header ─── --}}
+    <div class="flex items-start justify-between flex-wrap gap-4 mb-7 animate-slide-up" style="animation-delay: 0s">
+        <div>
+            <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-400 mb-1">Finance</p>
+            <h1 class="text-xl font-bold text-white">Transactions</h1>
+        </div>
+
+        <div class="flex items-center gap-3 flex-wrap">
+            <x-ui.field>
+                <x-ui.label>From</x-ui.label>
+                <x-ui.input type="date" wire:model.live="dateFrom" />
+            </x-ui.field>
+            <span class="text-zinc-500 self-center">→</span>
+            <x-ui.field>
+                <x-ui.label>To</x-ui.label>
+                <x-ui.input type="date" wire:model.live="dateTo" />
+            </x-ui.field>
+
+            <x-ui.button wire:click="exportCsv" variant="ghost">
+                <x-slot name="before">
+                    <x-lucide-download class="size-4" />
+                </x-slot>
+                Export CSV
+            </x-ui.button>
+
+            <x-ui.button wire:click="openCreate()" variant="primary">
+                <x-slot name="before">
+                    <x-lucide-plus class="size-4" />
+                </x-slot>
+                Add Transaction
+            </x-ui.button>
+        </div>
+    </div>
+
+    {{-- ─── Summary Stat Cards ─── --}}
+    @island('summary-card', always:true)
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full mb-6">
+        {{-- Income --}}
+        <div class="group relative bg-zinc-900 border border-zinc-800/80 rounded-2xl p-5 overflow-hidden animate-slide-up hover:border-zinc-700 transition-colors duration-200" style="animation-delay: 0.04s">
+            <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-500/60 to-transparent"></div>
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-9 h-9 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
+                    </svg>
+                </div>
+                <span class="text-[10px] font-semibold uppercase tracking-[0.15em] text-zinc-400">Income</span>
+            </div>
+            <p class="text-2xl font-bold text-white tabular-nums leading-none">
+                <span class="text-sm font-semibold text-zinc-400 mr-0.5">RM</span>{{ number_format($this->summary['income'], 2) }}
+            </p>
+            <p class="text-xs text-zinc-400 mt-2">All time</p>
+        </div>
+
+        {{-- Expense --}}
+        <div class="group relative bg-zinc-900 border border-zinc-800/80 rounded-2xl p-5 overflow-hidden animate-slide-up hover:border-zinc-700 transition-colors duration-200" style="animation-delay: 0.08s">
+            <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-rose-500/60 to-transparent"></div>
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-9 h-9 rounded-xl bg-rose-500/10 flex items-center justify-center shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-rose-400" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6L9 12.75l4.306-4.307a11.95 11.95 0 015.814 5.519l2.74 1.22m0 0l-5.94 2.28m5.94-2.28l-2.28-5.941" />
+                    </svg>
+                </div>
+                <span class="text-[10px] font-semibold uppercase tracking-[0.15em] text-zinc-400">Expense</span>
+            </div>
+            <p class="text-2xl font-bold text-white tabular-nums leading-none">
+                <span class="text-sm font-semibold text-zinc-400 mr-0.5">RM</span>{{ number_format($this->summary['expense'], 2) }}
+            </p>
+            <p class="text-xs text-zinc-400 mt-2">All time</p>
+        </div>
+
+        {{-- Balance --}}
+        <div class="group relative bg-zinc-900 border border-zinc-800/80 rounded-2xl p-5 overflow-hidden animate-slide-up hover:border-zinc-700 transition-colors duration-200" style="animation-delay: 0.12s">
+            <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent {{ $this->summary['balance'] >= 0 ? 'via-violet-500/60' : 'via-amber-500/60' }} to-transparent"></div>
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-9 h-9 rounded-xl {{ $this->summary['balance'] >= 0 ? 'bg-violet-500/10' : 'bg-amber-500/10' }} flex items-center justify-center shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 {{ $this->summary['balance'] >= 0 ? 'text-violet-400' : 'text-amber-400' }}" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v17.25m0 0c-1.472 0-2.882.265-4.185.75M12 20.25c1.472 0 2.882.265 4.185.75M18.75 4.97A48.416 48.416 0 0012 4.5c-2.291 0-4.545.16-6.75.47m13.5 0c1.01.143 2.01.317 3 .52m-3-.52l2.62 10.726c.122.499-.106 1.028-.589 1.202a5.988 5.988 0 01-2.031.352 5.988 5.988 0 01-2.031-.352c-.483-.174-.711-.703-.59-1.202L18.75 4.971zm-16.5.52c.99-.203 1.99-.377 3-.52m0 0l2.62 10.726c.122.499-.106 1.028-.589 1.202a5.989 5.989 0 01-2.031.352 5.989 5.989 0 01-2.031-.352c-.483-.174-.711-.703-.59-1.202L5.25 4.971z" />
+                    </svg>
+                </div>
+                <span class="text-[10px] font-semibold uppercase tracking-[0.15em] text-zinc-400">Balance</span>
+            </div>
+            <p class="text-2xl font-bold text-white tabular-nums leading-none">
+                <span class="text-sm font-semibold text-zinc-400 mr-0.5">RM</span>{{ number_format($this->summary['balance'], 2) }}
+            </p>
+            <p class="text-xs text-zinc-400 mt-2">Net position</p>
+        </div>
+    </div>
+    @endisland
+
+    <livewire:transaction-chart
+        :income="$this->income"
+        :expenses="$this->expenses"
+        :key="'transaction-chart-'.$this->income.'-'.$this->expenses"
+    />
+
+    {{-- ─── Filter Bar ─── --}}
+    <div class="relative bg-zinc-900 border border-zinc-800/80 rounded-2xl p-4 mb-5 overflow-hidden animate-slide-up" style="animation-delay: 0.12s">
+        <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-zinc-600/40 to-transparent"></div>
+        <div class="grid gap-4" style="grid-template-columns: repeat(3, minmax(0, 1fr));">
+            <x-ui.input
+                wire:model.live.debounce.300ms="search"
+                placeholder="Search transactions..."
+            >
+                <x-slot name="leading">
+                    <x-lucide-search class="size-4 text-muted-foreground" />
+                </x-slot>
+            </x-ui.input>
+
+            <x-ui.select
+                wire:model.live="filterType"
+                placeholder="All Types"
+                :options="['' => 'All Types', 'income' => 'Income', 'expense' => 'Expense']"
+            />
+
+            <x-ui.select wire:model.live="filterCategory" placeholder="All Categories">
+                <x-ui.select-trigger class="w-full">
+                    <x-ui.select-value placeholder="All Categories" />
+                </x-ui.select-trigger>
+                <x-ui.select-content>
+                    <x-ui.select-item value="">All Categories</x-ui.select-item>
+
+                    @if(!empty($this->categories['income']))
+                        <x-ui.select-group>
+                            <x-ui.select-label>── Income ──</x-ui.select-label>
+                            @foreach($this->categories['income'] as $id => $name)
+                                <x-ui.select-item value="{{ $id }}">{{ $name }}</x-ui.select-item>
+                            @endforeach
+                        </x-ui.select-group>
+                    @endif
+
+                    @if(!empty($this->categories['expense']))
+                        <x-ui.select-group>
+                            <x-ui.select-label>── Expense ──</x-ui.select-label>
+                            @foreach($this->categories['expense'] as $id => $name)
+                                <x-ui.select-item value="{{ $id }}">{{ $name }}</x-ui.select-item>
+                            @endforeach
+                        </x-ui.select-group>
+                    @endif
+                </x-ui.select-content>
+            </x-ui.select>
+        </div>
+    </div>
+
+    {{-- ─── Transaction Table ─── --}}
+    <div class="relative bg-zinc-900 border border-zinc-800/80 rounded-2xl overflow-hidden animate-slide-up" style="animation-delay: 0.16s">
+        <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-zinc-600/40 to-transparent"></div>
+        <x-transactions.transactions-table
+            :transactions="$this->transactions"
+            :sort-by="$sortBy"
+            :sort-dir="$sortDir"
+            :is-filtering="$this->isFiltering"
+        />
+    </div>
+
+    {{-- ─── Create / Edit Modal ─── --}}
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <x-ui.dialog wire:model="showModal">
+            <x-ui.dialog-content class="max-w-2xl">
+                <div class="space-y-6">
+                <x-ui.heading size="lg">
+                    {{ $mode === 'create' ? 'Add Transaction' : 'Edit Transaction' }}
+                </x-ui.heading>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2">
+                        <x-ui.field>
+                            <x-ui.label>Description</x-ui.label>
+                            <x-ui.input
+                                wire:model="description"
+                                placeholder="e.g. Zus Coffee"
+                            />
+                        </x-ui.field>
+                        <x-ui.field-error :messages="$errors->get('description')" />
+                    </div>
+
+                    <div>
+                        <x-ui.field>
+                            <x-ui.label>Amount (RM)</x-ui.label>
+                            <x-ui.input
+                                type="number"
+                                wire:model="amount"
+                                placeholder="0.00"
+                                step="0.01"
+                            />
+                        </x-ui.field>
+                        <x-ui.field-error :messages="$errors->get('amount')" />
+                    </div>
+
+                    <div>
+                        <x-ui.field>
+                            <x-ui.label>Type</x-ui.label>
+                            <x-ui.select wire:model.live="type">
+                                <x-ui.select-trigger class="w-full">
+                                    <x-ui.select-value />
+                                </x-ui.select-trigger>
+                                <x-ui.select-content>
+                                    <x-ui.select-item value="expense">Expense</x-ui.select-item>
+                                    <x-ui.select-item value="income">Income</x-ui.select-item>
+                                </x-ui.select-content>
+                            </x-ui.select>
+                        </x-ui.field>
+                        <x-ui.field-error :messages="$errors->get('type')" />
+                    </div>
+
+                    <div>
+                        <x-ui.field>
+                            <x-ui.label>Category</x-ui.label>
+                            <x-ui.select wire:model="category_id">
+                                <x-ui.select-trigger class="w-full">
+                                    <x-ui.select-value placeholder="— No Category —" />
+                                </x-ui.select-trigger>
+                                <x-ui.select-content>
+                                    <x-ui.select-item value="">— No Category —</x-ui.select-item>
+
+                                    @if($type === 'income' || $type === 'both')
+                                        <x-ui.select-group>
+                                            <x-ui.select-label>Income</x-ui.select-label>
+                                            @foreach($this->categories['income'] ?? [] as $id => $name)
+                                                <x-ui.select-item value="{{ $id }}">{{ $name }}</x-ui.select-item>
+                                            @endforeach
+                                        </x-ui.select-group>
+                                    @endif
+
+                                    @if($type === 'expense' || $type === 'both')
+                                        <x-ui.select-group>
+                                            <x-ui.select-label>Expense</x-ui.select-label>
+                                            @foreach($this->categories['expense'] ?? [] as $id => $name)
+                                                <x-ui.select-item value="{{ $id }}">{{ $name }}</x-ui.select-item>
+                                            @endforeach
+                                        </x-ui.select-group>
+                                    @endif
+                                </x-ui.select-content>
+                            </x-ui.select>
+                            <x-ui.field-error :messages="$errors->get('category_id')" />
+                        </x-ui.field>
+                    </div>
+
+                    <div>
+                        <x-ui.field>
+                            <x-ui.label>Date</x-ui.label>
+                            <x-ui.input
+                                type="date"
+                                wire:model="date"
+                            />
+                        </x-ui.field>
+                        <x-ui.field-error :messages="$errors->get('date')" />
+                    </div>
+
+                    <div class="col-span-2 space-y-3">
+                        <x-ui.field>
+                            <x-ui.label>
+                                {{ $type === 'expense' ? 'Receipt' : 'Invoice / Proof' }}
+                                <span class="text-zinc-400">(Optional)</span>
+                            </x-ui.label>
+
+                            <div
+                                x-data="{ dragging: false }"
+                                x-on:dragenter.prevent="dragging = true"
+                                x-on:dragover.prevent="dragging = true"
+                                x-on:dragleave.prevent="dragging = false"
+                                x-on:drop.prevent="
+                                    dragging = false;
+                                    const files = $event.dataTransfer.files;
+                                    if (files.length) {
+                                        $refs.attachment.files = files;
+                                        $refs.attachment.dispatchEvent(new Event('change', { bubbles: true }));
+                                    }
+                                "
+                                class="space-y-3"
+                            >
+                                <div
+                                    x-on:click="$refs.attachment.click()"
+                                    x-on:keydown.enter.prevent="$refs.attachment.click()"
+                                    x-on:keydown.space.prevent="$refs.attachment.click()"
+                                    tabindex="0"
+                                    role="button"
+                                    class="flex min-h-36 cursor-pointer items-center justify-center rounded-2xl border border-dashed border-zinc-300 bg-zinc-50 p-6 text-center transition hover:border-zinc-400 hover:bg-zinc-100/70 dark:border-zinc-700 dark:bg-zinc-900/40 dark:hover:border-zinc-600 dark:hover:bg-zinc-900"
+                                    :class="dragging ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/10' : ''"
+                                >
+                                    <div class="space-y-1">
+                                        <div class="text-sm font-medium text-gray-500 dark:text-zinc-400">
+                                            Drop file here or click to browse
+                                        </div>
+                                        <div class="text-sm font-medium text-gray-400 dark:text-zinc-400">
+                                            JPG, PNG, or PDF up to 5MB
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <input
+                                    x-ref="attachment"
+                                    type="file"
+                                    wire:model="attachment"
+                                    accept=".jpg,.jpeg,.png,.pdf"
+                                    class="hidden"
+                                />
+                            </div>
+
+                            <x-ui.field-error :messages="$errors->get('attachment')" />
+                        </x-ui.field>
+
+                        <div wire:loading wire:target="attachment" class="text-sm text-zinc-500">
+                            Uploading file...
+                        </div>
+
+                        @if ($attachment)
+                            <x-ui.callout variant="secondary" icon="paper-clip">
+                                <x-ui.callout.heading>
+                                    Selected: {{ $attachment->getClientOriginalName() }}
+                                </x-ui.callout.heading>
+
+                                <x-slot name="actions">
+                                    <x-ui.button
+                                        type="button"
+                                        size="sm"
+                                        variant="ghost"
+                                        wire:click="removeSelectedAttachment"
+                                    >
+                                        Remove file
+                                    </x-ui.button>
+                                </x-slot>
+                            </x-ui.callout>
+                        @endif
+
+                        @if ($mode === 'edit' && $this->currentAttachment && !$removeExistingAttachment && !$attachment)
+                            <x-ui.callout variant="warning" icon="paper-clip">
+                                <x-ui.callout.heading>
+                                    Current attachment: {{ $this->currentAttachment->original_name }}
+                                </x-ui.callout.heading>
+
+                                <x-slot name="actions">
+                                    <a
+                                        href="{{ $this->currentAttachment->url }}"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="text-sm text-blue-600 underline"
+                                    >
+                                        View
+                                    </a>
+
+                                    <x-ui.button
+                                        type="button"
+                                        size="sm"
+                                        variant="ghost"
+                                        wire:click="removeCurrentAttachment"
+                                    >
+                                        Remove current file
+                                    </x-ui.button>
+                                </x-slot>
+                            </x-ui.callout>
+                        @endif
+
+                        @if ($mode === 'edit' && $removeExistingAttachment && !$attachment)
+                            <x-ui.callout variant="warning" icon="exclamation-triangle">
+                                <x-ui.callout.heading>
+                                    Current attachment akan dibuang apabila anda tekan Update.
+                                </x-ui.callout.heading>
+                            </x-ui.callout>
+                        @endif
+                    </div>
+                </div>
+
+                <div class="flex gap-3 justify-end">
+                    <x-ui.button wire:click="resetForm" variant="ghost">
+                        Cancel
+                    </x-ui.button>
+
+                    @if($mode === 'create')
+                        <x-ui.button
+                            wire:click="save"
+                            variant="primary"
+                            wire:loading.attr="disabled"
+                            wire:target="save,attachment"
+                        >
+                            <span wire:loading.remove wire:target="save,attachment">Add Transaction 2</span>
+                            <span wire:loading wire:target="save,attachment">Saving...</span>
+                        </x-ui.button>
+                    @else
+                        <x-ui.button
+                            wire:click="update"
+                            variant="primary"
+                            wire:loading.attr="disabled"
+                            wire:target="update,attachment"
+                        >
+                            <span wire:loading.remove wire:target="update,attachment">Update</span>
+                            <span wire:loading wire:target="update,attachment">Updating...</span>
+                        </x-ui.button>
+                    @endif
+                </div>
+            </div>
+            </x-ui.dialog-content>
+        </x-ui.dialog>
+    </div>
+
+    {{-- ─── Delete Confirmation Modal ─── --}}
+    <x-ui.dialog wire:model="showDeleteModal">
+        <x-ui.dialog-content class="max-w-sm">
+            <div class="space-y-6">
+            <div class="flex flex-col items-center text-center gap-3">
+                <div class="w-14 h-14 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                    <x-lucide-trash class="w-7 h-7 text-red-500" />
+                </div>
+
+                <div>
+                    <x-ui.heading size="lg">Delete Transaction?</x-ui.heading>
+                    <x-ui.subheading class="mt-1">
+                        Are you sure you want to delete
+                        <span class="font-semibold text-gray-700 dark:text-zinc-300">
+                            "{{ $deleteDescription }}"
+                        </span>?
+                        This action cannot be undone.
+                    </x-ui.subheading>
+                </div>
+            </div>
+
+            <div class="flex gap-3 justify-center">
+                <x-ui.button wire:click="cancelDelete" variant="ghost" class="flex-1">
+                    Cancel
+                </x-ui.button>
+
+                <x-ui.button
+                    wire:click="delete"
+                    variant="danger"
+                    wire:loading.attr="disabled"
+                    wire:target="delete"
+                    class="flex-1"
+                >
+                    <span wire:loading.remove wire:target="delete">Delete</span>
+                    <span wire:loading wire:target="delete">Deleting...</span>
+                </x-ui.button>
+            </div>
+        </div>
+        </x-ui.dialog-content>
+    </x-ui.dialog>
+</div>

@@ -1,0 +1,207 @@
+{
+    "name": "contacto Template",
+    "description": "",
+    "thumbnail": null,
+    "content": {
+        "rows": [
+            {
+                "id": "row_uhRJfHpj",
+                "order": 0,
+                "columns": [
+                    {
+                        "id": "col_c2fQAkUl",
+                        "span": {
+                            "lg": 6,
+                            "md": 6,
+                            "sm": 12,
+                            "xl": 6
+                        },
+                        "widgets": [
+                            {
+                                "id": "widget_UjglTizH",
+                                "data": {
+                                    "content": ""
+                                },
+                                "type": "rich-text"
+                            }
+                        ],
+                        "settings": {
+                            "padding": "p-4",
+                            "background": "transparent"
+                        }
+                    },
+                    {
+                        "id": "col_IpDBrhgI",
+                        "span": {
+                            "lg": 6,
+                            "md": 6,
+                            "sm": 12,
+                            "xl": 6
+                        },
+                        "widgets": [
+                            {
+                                "id": "widget_SFgaz8JA",
+                                "data": {
+                                    "id": null,
+                                    "class": null,
+                                    "action": "/contact",
+                                    "fields": [
+                                        {
+                                            "name": "name",
+                                            "type": "text",
+                                            "label": "Name",
+                                            "required": true,
+                                            "placeholder": "Your name"
+                                        },
+                                        {
+                                            "name": "email",
+                                            "type": "email",
+                                            "label": "Email",
+                                            "required": true,
+                                            "placeholder": "your@email.com"
+                                        },
+                                        {
+                                            "name": "message",
+                                            "type": "textarea",
+                                            "label": "Message",
+                                            "required": true,
+                                            "placeholder": "How can we help?"
+                                        },
+                                        {
+                                            "name": "Enviar",
+                                            "type": "text",
+                                            "label": "Enviar",
+                                            "required": true,
+                                            "placeholder": null
+                                        }
+                                    ],
+                                    "margin": {
+                                        "top": null,
+                                        "left": null,
+                                        "unit": null,
+                                        "right": null,
+                                        "bottom": null
+                                    },
+                                    "hide_on": [],
+                                    "opacity": null,
+                                    "padding": {
+                                        "top": null,
+                                        "left": null,
+                                        "unit": null,
+                                        "right": null,
+                                        "bottom": null
+                                    },
+                                    "animation": null,
+                                    "font_size": null,
+                                    "box_shadow": null,
+                                    "inline_css": null,
+                                    "text_align": null,
+                                    "text_color": null,
+                                    "submit_text": "Send Message",
+                                    "border_color": null,
+                                    "border_style": null,
+                                    "border_width": null,
+                                    "border_radius": null,
+                                    "success_message": "Thank you! Your message has been sent.",
+                                    "background_color": null
+                                },
+                                "type": "contact-form"
+                            }
+                        ],
+                        "settings": {
+                            "padding": "p-4",
+                            "background": "transparent"
+                        }
+                    }
+                ],
+                "settings": {
+                    "wrap": "wrap",
+                    "align": "stretch",
+                    "justify": "start",
+                    "direction": "row",
+                    "full_width": false
+                }
+            },
+            {
+                "id": "row_PS03eoxt",
+                "order": 1,
+                "columns": [
+                    {
+                        "id": "col_H01lvkOo",
+                        "span": {
+                            "lg": 12,
+                            "md": 12,
+                            "sm": 12,
+                            "xl": 12
+                        },
+                        "widgets": [
+                            {
+                                "id": "widget_zuM2WouJ",
+                                "data": {
+                                    "id": null,
+                                    "class": null,
+                                    "margin": {
+                                        "top": null,
+                                        "left": null,
+                                        "unit": null,
+                                        "right": null,
+                                        "bottom": null
+                                    },
+                                    "skills": [
+                                        {
+                                            "name": "PHP",
+                                            "color": "#3b82f6",
+                                            "percent": 90
+                                        },
+                                        {
+                                            "name": "JavaScript",
+                                            "color": "#f59e0b",
+                                            "percent": 75
+                                        },
+                                        {
+                                            "name": "Laravel",
+                                            "color": "#ef4444",
+                                            "percent": 95
+                                        }
+                                    ],
+                                    "hide_on": [],
+                                    "opacity": null,
+                                    "padding": {
+                                        "top": null,
+                                        "left": null,
+                                        "unit": null,
+                                        "right": null,
+                                        "bottom": null
+                                    },
+                                    "animation": null,
+                                    "font_size": null,
+                                    "box_shadow": null,
+                                    "inline_css": null,
+                                    "text_align": null,
+                                    "text_color": null,
+                                    "border_color": null,
+                                    "border_style": null,
+                                    "border_width": null,
+                                    "border_radius": null,
+                                    "background_color": null
+                                },
+                                "type": "skill-bar"
+                            }
+                        ],
+                        "settings": {
+                            "padding": "p-4",
+                            "background": "transparent"
+                        }
+                    }
+                ],
+                "settings": {
+                    "wrap": "wrap",
+                    "align": "stretch",
+                    "justify": "start",
+                    "direction": "row",
+                    "full_width": false
+                }
+            }
+        ]
+    }
+}

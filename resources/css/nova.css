@@ -1,0 +1,78 @@
+@import "tailwindcss";
+
+:root {
+    color-scheme: dark;
+    --nova-black: #000000;
+    --nova-900: #171717;
+    --nova-800: #262626;
+    --nova-700: #404040;
+    --nova-orange: #f97316;
+}
+
+.nova-workspace {
+    background: var(--nova-black);
+}
+
+/*
+ * Nova workspace contract:
+ * conversation owns the primary reading path; planner output follows it;
+ * contextual files and activity remain in the inspector.
+ */
+.nova-workspace > .grid {
+    grid-template-columns: minmax(0, 1fr) 320px;
+}
+
+.nova-workspace > .grid > div:first-child {
+    display: flex;
+    min-height: 100vh;
+    min-width: 0;
+    flex-direction: column;
+}
+
+.nova-workspace > .grid > div:first-child > header {
+    order: 1;
+}
+
+.nova-workspace > .grid > div:first-child > main {
+    order: 2;
+    flex: 1;
+}
+
+.nova-workspace > .grid > div:first-child > section {
+    order: 3;
+    margin-top: 1.5rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.nova-workspace #nova-conversation {
+    min-height: 70vh;
+    border: 0;
+    border-radius: 0;
+    background: var(--nova-black);
+    box-shadow: none;
+}
+
+.nova-workspace #nova-capabilities {
+    padding-top: 2rem;
+    border-top: 1px solid var(--nova-800);
+}
+
+.nova-workspace * {
+    scrollbar-color: var(--nova-700) var(--nova-900);
+    scrollbar-width: thin;
+}
+
+.nova-workspace ::selection {
+    background: var(--nova-orange);
+    color: var(--nova-black);
+}
+
+@media (max-width: 1180px) {
+    .nova-workspace {
+        min-width: 900px;
+    }
+
+    .nova-workspace > .grid {
+        grid-template-columns: minmax(0, 1fr) 288px;
+    }
+}

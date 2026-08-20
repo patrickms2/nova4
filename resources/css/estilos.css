@@ -1,0 +1,13 @@
+        body { font-family: DejaVu Sans, sans-serif; font-size: 11px; }
+        .emisor { font-size: 11px; line-height: 1.4; }
+        .emisor-strong { font-weight: bold; font-size: 12px; }
+        .titulo-factura { font-size: 20px; font-weight: bold; text-align: right; margin-top: -10px; }
+        .meta { margin-top: 15px; font-size: 11px; }
+        .meta div { margin-bottom: 2px; }
+        .tabla-lineas { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        .tabla-lineas th, .tabla-lineas td { border: 1px solid #000; padding: 4px 3px; }
+        .right { text-align: right; }
+        .center { text-align: center; }
+        .totales { margin-top: 12px; width: 50%; margin-left: auto; font-size: 11px; }
+        .totales div { display: flex; justify-content: space-between; margin-bottom: 2px; }
+        .nota { margin-top: 10px; font-size: 10px; }

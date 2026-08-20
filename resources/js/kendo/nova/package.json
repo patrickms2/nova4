@@ -1,0 +1,31 @@
+{
+  "name": "kendo-jquery-application",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "webpack --mode development",
+    "serve": "webpack-dev-server --open",
+    "start": "webpack --mode development && webpack-dev-server --open"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@progress/kendo-licensing": "^1.10.1",
+    "@progress/kendo-ui": "latest",
+    "jquery": "3.6.0"
+  },
+  "devDependencies": {
+    "compression-webpack-plugin": "^12.0.0",
+    "copy-webpack-plugin": "^14.0.0",
+    "css-loader": "^7.1.4",
+    "html-webpack-plugin": "^5.6.6",
+    "style-loader": "^4.0.0",
+    "webpack": "^5.105.4",
+    "webpack-cli": "^7.0.0",
+    "webpack-dev-server": "^5.2.3"
+  },
+  "overrides": {
+    "tar": "^7.5.11"
+  }
+}

@@ -78,7 +78,6 @@
         "spatie/laravel-package-tools": "^1.14.0",
         "squareetlabs/laravel-verifactu": "^1.0",
         "unnathianalytics/laragrid": "^1.6",
-        "upscalewp/laravel-revolut-payments": "dev-main",
         "vaslv/filament-topbar-menu": "^1.4",
         "voodflow/voodflow": "^0.1.0",
         "wezlo/filament-search-spotlight": "^1.0",

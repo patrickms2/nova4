@@ -1,0 +1,7 @@
+/* Shared vendor @source declarations — imported by all Filament panel themes.
+   Centralising here prevents the same vendor directories being scanned
+   multiple times (once per panel) by @tailwindcss/vite. */
+
+@source '../../../../plugins/adultdate/filament-wirechat/resources/**/*.blade.php';
+@source '../../../../plugins/wallacemartinss/filament-icon-picker/resources/views/**/*';
+@source '../../../../plugins/bezhansalleh/filament-panel-switch/resources/views/**/*.blade.php';

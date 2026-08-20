@@ -1,0 +1,1245 @@
+/*
+ * Filament panel theme entrypoint.
+ * Keep this file self-contained so `PortalPanelProvider` can point `->viteTheme()` at it.
+ */
+
+@import "../../vendor/filament/filament/resources/css/theme.css";
+
+/* Filament / Portal sources */
+@source "../../app/Filament/Portal/**/*";
+@source "../../app/Filament/App/Resources/Taxista*/**/*";
+@source "../views/filament/portal/**/*";
+@source "../views/filament/app/logo.blade.php";
+@source "../views/filament/app/resources/taxista*/**/*";
+@source "../views/components/**/*";
+
+/* Portal-pro Livewire UI sources */
+@source "../views/livewire/**/*.blade.php";
+@source "../views/portal/**/*.blade.php";
+@source "../views/pages/**/*.blade.php";
+@source "../js/**/*.js";
+
+/* Vendor blade sources */
+@source "../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php";
+
+
+/* Fix user menu dropdown stacking relative to topbar. */
+/* Topbar must stay above the dropdown menu so it does not overlay the fixed header. */
+.fi-topbar-ctn,
+.fi-topbar {
+    z-index: 11000 !important;
+    position: relative !important;
+}
+
+/* Ensure dropdown is rendered below the topbar when topbar is fixed at page top. */
+.fi-dropdown-panel,
+.fi-topbar .fi-dropdown-panel,
+.fi-user-menu .fi-dropdown-panel,
+.fi-topbar .fi-user-menu .fi-dropdown-panel {
+    z-index: 10999 !important;
+}
+
+/* ======================================
+   PORTAL CARD — FLOAT LUXURY
+   ====================================== */
+
+.portal-card {
+    position: relative;
+    background: rgba(255, 255, 255, 0.045);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 1.5rem;
+
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+
+    box-shadow:
+        0 18px 40px rgba(0, 0, 0, .45),
+        inset 0 1px rgba(255, 255, 255, .08);
+
+    transition: transform .25s ease, box-shadow .25s ease;
+}
+
+.portal-card:hover {
+    transform: translateY(-3px);
+    box-shadow:
+        0 28px 60px rgba(0, 0, 0, .55),
+        inset 0 1px rgba(255, 255, 255, .1);
+}
+
+.portal-subcard {
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 1.25rem;
+    padding: 1.25rem;
+
+    backdrop-filter: blur(18px);
+}
+
+/* ======================================================
+   TAXILANZ PORTAL — SURFACE SYSTEM (S1 / S2 / S3)
+   Solo para Portal Livewire (NO Filament core)
+   ====================================================== */
+
+:root {
+
+    --tl-bg: #07090d;
+
+    /* Surface scale */
+    --tl-s1-bg: rgba(255, 255, 255, 0.05);
+    --tl-s2-bg: rgba(255, 255, 255, 0.055);
+    --tl-s3-bg: rgba(255, 255, 255, 0.082);
+
+    /* Borders */
+    --tl-border-soft: rgba(255, 255, 255, 0.08);
+    --tl-border-strong: rgba(255, 255, 255, 0.14);
+
+    /* Blur */
+    --tl-blur-s1: blur(22px);
+    --tl-blur-s2: blur(16px);
+    --tl-blur-s3: blur(40px);
+
+    /* Shadows */
+    --tl-shadow-s1: 0 20px 50px rgba(0, 0, 0, .45);
+    --tl-shadow-s2: 0 12px 30px rgba(0, 0, 0, .35);
+    --tl-shadow-s3: 0 35px 90px rgba(0, 0, 0, .65);
+}
+
+.tl-s1 {
+    position: relative;
+
+    background: var(--tl-s1-bg);
+    border: 1px solid var(--tl-border-strong);
+    border-radius: 1.5rem;
+
+    backdrop-filter: var(--tl-blur-s1);
+    -webkit-backdrop-filter: var(--tl-blur-s1);
+
+    box-shadow:
+        var(--tl-shadow-s1),
+        inset 0 1px rgba(255, 255, 255, .08);
+
+    transition: transform .25s ease, box-shadow .25s ease;
+}
+
+.tl-s1 {
+    border-radius: 1.75rem;
+}
+
+.tl-s1:hover {
+    transform: translateY(-3px);
+}
+
+.tl-s2 {
+    background: rgba(255, 255, 255, 0.055);
+    border: 1px solid var(--tl-border-soft);
+    border-radius: 1.25rem;
+
+    backdrop-filter: var(--tl-blur-s2);
+    -webkit-backdrop-filter: var(--tl-blur-s2);
+
+    box-shadow:
+        var(--tl-shadow-s2),
+        inset 0 1px rgba(255, 255, 255, .05);
+}
+
+.tl-s2 {
+    background: rgba(255, 255, 255, 0.055);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.tl-s2:hover {
+    transform: translateY(-3px);
+}
+
+.tl-s3 {
+    background: rgba(8, 9, 9, 0.82);
+    backdrop-filter: blur(40px);
+    border: 1px solid var(--tl-border-strong);
+    border-radius: 15px;
+
+    backdrop-filter: var(--tl-blur-s3);
+    -webkit-backdrop-filter: var(--tl-blur-s3);
+
+    box-shadow:
+        var(--tl-shadow-s3),
+        inset 0 1px rgba(255, 255, 255, .12);
+}
+
+/* =========================================================
+   NOVA CALENDAR — tema glass oscuro
+   ========================================================= */
+.nova-calendar {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--nova-border);
+    border-radius: 1rem;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    overflow: hidden;
+}
+
+/* Navegación mes */
+.nova-calendar__nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 2.5rem;
+    padding: 0 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.nova-calendar__month {
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--nova-text);
+    text-transform: capitalize;
+}
+
+.nova-calendar__nav-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.5rem;
+    color: var(--nova-muted);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: background-color 160ms ease, color 160ms ease;
+}
+
+.nova-calendar__nav-btn:hover {
+    background: rgba(255, 255, 255, 0.07);
+    color: var(--nova-text);
+}
+
+.nova-calendar__nav-btn:disabled {
+    opacity: 0.25;
+    cursor: not-allowed;
+}
+
+.nova-calendar__nav-btn:disabled:hover {
+    background: transparent;
+}
+
+/* Grid wrapper */
+.nova-calendar__grid-wrap {
+    border-radius: 0.75rem;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Cabecera días de la semana */
+.nova-calendar__weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    background: rgba(255, 255, 255, 0.04);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.nova-calendar__weekday {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 2.25rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--nova-muted);
+}
+
+/* Filas semanas */
+.nova-calendar__weeks {
+    background: transparent;
+}
+
+.nova-calendar__week {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+/* Celda día */
+.nova-calendar__cell {
+    position: relative;
+}
+
+.nova-calendar__cell--other-month .nova-calendar__day-btn {
+    opacity: 0.25;
+}
+
+.nova-calendar__cell--disabled .nova-calendar__day-btn {
+    opacity: 0.2;
+}
+
+/* Botón día */
+.nova-calendar__day-btn {
+    width: 100%;
+    height: 2.75rem;
+    color: var(--nova-text);
+    cursor: pointer;
+    background: 0 0;
+    border: none;
+    border-radius: 0;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 2px;
+    font-size: 18px !important;
+    font-weight: 600;
+    transition: background-color .12s, color .12s;
+    display: flex;
+    position: relative
+}
+
+
+.nova-calendar__day-btn:hover:not(:disabled) {
+    background: rgba(239, 68, 68, 0.08);
+    color: #fff;
+}
+
+.nova-calendar__day-btn:disabled {
+    cursor: default;
+    pointer-events: none;
+}
+
+/* Estado: hoy */
+.nova-calendar__day-btn--today {
+    color: #ef4444;
+    font-weight: 700;
+}
+
+/* Estado: seleccionado */
+.nova-calendar__day-btn--selected {
+    background: #ef4444 !important;
+    color: #fff !important;
+    font-weight: 700;
+    box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.4), 0 4px 16px rgba(239, 68, 68, 0.3);
+}
+
+.nova-calendar__day-btn--selected:hover {
+    background: #dc2626 !important;
+}
+
+/* Estado: no seleccionable */
+.nova-calendar__day-btn--disabled {
+    color: rgba(255, 255, 255, 0.18) !important;
+    cursor: default;
+}
+
+/* Punto indicador de hoy */
+.nova-calendar__today-dot {
+    display: block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #ef4444;
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.nova-calendar__summary {
+    display: none;
+    margin-top: 0.75rem;
+    padding: 0.75rem 0.875rem;
+    border: 1px solid var(--nova-border);
+    border-radius: 0.75rem;
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.nova-calendar__summary-text {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--nova-text);
+}
+
+.nova-calendar__summary-btn {
+    margin-top: 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.625rem;
+    border: 1px solid var(--nova-border);
+    color: var(--nova-text);
+    background: rgba(255, 255, 255, 0.02);
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+@media (max-width: 768px) {
+    .nova-calendar__summary {
+        display: block;
+    }
+}
+
+/* =========================================================
+   MOBILE-FIRST: form fields más cómodos
+   ========================================================= */
+
+/* Inputs, selects, textareas más altos y legibles */
+.fi-panel-portal .fi-fo-field-wrp input,
+.fi-panel-portal .fi-fo-field-wrp select,
+.fi-panel-portal .fi-fo-field-wrp textarea {
+    min-height: 3rem !important;
+    padding: 0.75rem 1rem !important;
+    font-size: 1rem !important;
+    border-radius: 0.75rem !important;
+    line-height: 1.5 !important;
+}
+
+.fi-panel-portal .fi-header {
+    display: none !important;
+}
+
+/* Select de Filament (fi-select) */
+.fi-panel-portal .fi-select-input {
+    min-height: 3rem !important;
+    padding: 0.75rem 1rem !important;
+    font-size: 1rem !important;
+    border-radius: 0.75rem !important;
+}
+
+/* Select nativo wrapper */
+.fi-panel-portal .fi-fo-field-wrp .fi-input-wrapper {
+    border-radius: 0.75rem !important;
+}
+
+/* Labels más grandes y legibles */
+.fi-panel-portal .fi-fo-field-wrp .fi-fo-field-label {
+    font-size: 0.9375rem !important;
+    font-weight: 600 !important;
+    margin-bottom: 0.4rem !important;
+    color: var(--nova-text) !important;
+}
+
+/* Botones de wizard step más altos */
+.fi-panel-portal .fi-btn {
+    min-height: 1rem !important;
+    padding: 0.75rem !important;
+    font-size: 1rem !important;
+    border-radius: 0.75rem !important;
+}
+
+/* Dropdown del select (lista opciones) por encima de todo */
+.fi-panel-portal .fi-select-option-list,
+.fi-panel-portal [data-headlessui-state] [role="listbox"],
+.fi-panel-portal .choices__list--dropdown {
+    z-index: 9999 !important;
+    position: fixed !important;
+}
+
+/* Filament select options panel */
+.fi-panel-portal .fi-fo-select .choices {
+    z-index: 9999 !important;
+}
+
+/* Separacion entre campos en mobile */
+@media (max-width: 768px) {
+    .fi-panel-portal .fi-fo-field-wrp {
+        margin-bottom: 1rem !important;
+    }
+
+    .fi-panel-portal .fi-fo-field-wrp input,
+    .fi-panel-portal .fi-fo-field-wrp select,
+    .fi-panel-portal .fi-fo-field-wrp textarea,
+    .fi-panel-portal .fi-select-input {
+        font-size: 1.0625rem !important;
+        min-height: 3.25rem !important;
+    }
+
+    /* Wizard nav steps texto mas pequeno en mobile */
+    .fi-panel-portal .fi-wizard-header-step-label {
+        font-size: 0.75rem !important;
+    }
+
+    /* Botones wizard en mobile full width */
+    .fi-panel-portal .fi-wizard-footer {
+        padding: 1rem !important;
+        gap: 0.75rem !important;
+    }
+}
+
+.tl-pill {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 999px;
+    padding: .4rem .9rem;
+    font-size: 12px;
+    color: rgba(255, 255, 255, .75);
+    transition: all .2s ease;
+}
+
+.tl-pill:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.logo-before {
+    display: none !important;
+}
+
+.pill-red {
+    background-color: rgba(239, 68, 68, 0.10);
+    color: rgb(252, 165, 165);
+    box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.20);
+}
+
+.pill-blue {
+    background-color: rgba(59, 130, 246, 0.10);
+    color: rgb(147, 197, 253);
+    box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.20);
+}
+
+.pill-emerald {
+    background-color: rgba(16, 185, 129, 0.10);
+    color: rgb(110, 231, 183);
+    box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.20);
+}
+
+.pill-amber {
+    background-color: rgba(245, 158, 11, 0.10);
+    color: rgb(252, 211, 77);
+    box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.20);
+}
+
+.pill-violet {
+    background-color: rgba(139, 92, 246, 0.10);
+    color: rgb(196, 181, 253);
+    box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.20);
+}
+
+.pill-zinc {
+    background-color: rgba(113, 113, 122, 0.10);
+    color: rgb(212, 212, 216);
+    box-shadow: 0 0 0 1px rgba(113, 113, 122, 0.20);
+}
+
+.tl-s1-horizontal {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    backdrop-filter: blur(18px);
+}
+
+.tl-badge {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.tl-bottom-nav {
+    box-shadow:
+        0 -10px 40px rgba(0, 0, 0, .6),
+        inset 0 1px rgba(255, 255, 255, .08);
+}
+
+.tl-folder-card {
+    background: rgba(255, 255, 255, 0.045);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+@media (max-width: 768px) {
+    .nova-calendar__summary {
+        display: block;
+    }
+}
+
+/* =========================================================
+   MOBILE-FIRST: form fields más cómodos
+   ========================================================= */
+
+/* Inputs, selects, textareas más altos y legibles */
+.fi-panel-portal .fi-fo-field-wrp input,
+.fi-panel-portal .fi-fo-field-wrp select,
+.fi-panel-portal .fi-fo-field-wrp textarea {
+    min-height: 3rem !important;
+    padding: 0.75rem 1rem !important;
+    font-size: 1rem !important;
+    border-radius: 0.75rem !important;
+    line-height: 1.5 !important;
+}
+
+.fi-panel-portal .fi-header {
+    display: none !important;
+}
+
+/* Select de Filament (fi-select) */
+.fi-panel-portal .fi-select-input {
+    min-height: 3rem !important;
+    padding: 0.75rem 1rem !important;
+    font-size: 1rem !important;
+    border-radius: 0.75rem !important;
+}
+
+/* Select nativo wrapper */
+.fi-panel-portal .fi-fo-field-wrp .fi-input-wrapper {
+    border-radius: 0.75rem !important;
+}
+
+/* Labels más grandes y legibles */
+.fi-panel-portal .fi-fo-field-wrp .fi-fo-field-label {
+    font-size: 0.9375rem !important;
+    font-weight: 600 !important;
+    margin-bottom: 0.4rem !important;
+    color: var(--nova-text) !important;
+}
+
+/* Botones de wizard step más altos */
+.fi-panel-portal .fi-btn {
+    min-height: 1rem !important;
+    padding: 0.75rem !important;
+    font-size: 1rem !important;
+    border-radius: 0.75rem !important;
+}
+
+/* Dropdown del select (lista opciones) por encima de todo */
+.fi-panel-portal .fi-select-option-list,
+.fi-panel-portal [data-headlessui-state] [role="listbox"],
+.fi-panel-portal .choices__list--dropdown {
+    z-index: 9999 !important;
+    position: fixed !important;
+}
+
+/* Filament select options panel */
+.fi-panel-portal .fi-fo-select .choices {
+    z-index: 9999 !important;
+}
+
+/* Separacion entre campos en mobile */
+@media (max-width: 768px) {
+    .fi-panel-portal .fi-fo-field-wrp {
+        margin-bottom: 1rem !important;
+    }
+
+    .fi-panel-portal .fi-fo-field-wrp input,
+    .fi-panel-portal .fi-fo-field-wrp select,
+    .fi-panel-portal .fi-fo-field-wrp textarea,
+    .fi-panel-portal .fi-select-input {
+        font-size: 1.0625rem !important;
+        min-height: 3.25rem !important;
+    }
+
+    /* Wizard nav steps texto mas pequeno en mobile */
+    .fi-panel-portal .fi-wizard-header-step-label {
+        font-size: 0.75rem !important;
+    }
+
+    /* Botones wizard en mobile full width */
+    .fi-panel-portal .fi-wizard-footer {
+        padding: 1rem !important;
+        gap: 0.75rem !important;
+    }
+}
+
+.tl-pill {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 999px;
+    padding: .4rem .9rem;
+    font-size: 12px;
+    color: rgba(255, 255, 255, .75);
+    transition: all .2s ease;
+}
+
+.tl-pill:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.logo-before {
+    display: none !important;
+}
+
+.pill-red {
+    background-color: rgba(239, 68, 68, 0.10);
+    color: rgb(252, 165, 165);
+    box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.20);
+}
+
+.pill-blue {
+    background-color: rgba(59, 130, 246, 0.10);
+    color: rgb(147, 197, 253);
+    box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.20);
+}
+
+.pill-emerald {
+    background-color: rgba(16, 185, 129, 0.10);
+    color: rgb(110, 231, 183);
+    box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.20);
+}
+
+.pill-amber {
+    background-color: rgba(245, 158, 11, 0.10);
+    color: rgb(252, 211, 77);
+    box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.20);
+}
+
+.pill-violet {
+    background-color: rgba(139, 92, 246, 0.10);
+    color: rgb(196, 181, 253);
+    box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.20);
+}
+
+.pill-zinc {
+    background-color: rgba(113, 113, 122, 0.10);
+    color: rgb(212, 212, 216);
+    box-shadow: 0 0 0 1px rgba(113, 113, 122, 0.20);
+}
+
+.tl-s1-horizontal {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    backdrop-filter: blur(18px);
+}
+
+.tl-badge {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.tl-s1-horizontal {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    backdrop-filter: blur(18px);
+}
+
+.tl-badge {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.tl-inner-surface {
+    background: linear-gradient(180deg,
+            rgba(255, 255, 255, 0.06),
+            rgba(255, 255, 255, 0.035));
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow:
+        inset 0 1px rgba(255, 255, 255, 0.06),
+        0 10px 40px rgba(0, 0, 0, .5);
+}
+
+.tl-doc-featured {
+    margin: 5px;
+    background: rgba(255, 255, 255, 0.065);
+    box-shadow:
+        0 8px 30px rgba(0, 0, 0, .45),
+        inset 0 1px rgba(255, 255, 255, .08);
+}
+
+.tl-doc {
+    background: rgba(255, 255, 255, 0.045);
+}
+
+/* Folder card – ligeramente más sólida que documento */
+.tl-folder {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.tl-stat {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+/* =========================================================
+   TAXILANZ MOTION SYSTEM v1.0
+   Precision • Subtle • Premium
+========================================================= */
+
+/* ==============================
+   1. Motion Tokens
+============================== */
+
+:root {
+    --tl-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+    --tl-duration-fast: 90ms;
+    --tl-duration-base: 160ms;
+    --tl-duration-slow: 240ms;
+    --tl-duration-stack: 300ms;
+}
+
+
+/* ==============================
+   2. Base Interactive Layer
+============================== */
+
+.tl-interactive {
+    transition:
+        transform var(--tl-duration-base) var(--tl-ease),
+        background var(--tl-duration-base) var(--tl-ease),
+        box-shadow var(--tl-duration-base) var(--tl-ease),
+        backdrop-filter var(--tl-duration-base) var(--tl-ease),
+        opacity var(--tl-duration-base) var(--tl-ease);
+    will-change: transform;
+}
+
+.tl-interactive:hover {
+    transform: translateY(-2px) scale(1.005);
+}
+
+.tl-interactive:active {
+    transform: scale(0.985);
+    transition-duration: var(--tl-duration-fast);
+}
+
+
+/* ==============================
+   3. Blur Shift (Glass Premium Effect)
+============================== */
+
+.tl-blur-shift {
+    backdrop-filter: blur(22px);
+    transition: backdrop-filter var(--tl-duration-base) var(--tl-ease);
+}
+
+.tl-blur-shift:hover {
+    backdrop-filter: blur(28px);
+}
+
+
+/* ==============================
+   4. Stack Navigation (Folders / Internal Views)
+============================== */
+
+.tl-stack-enter {
+    animation: tl-slide-in var(--tl-duration-stack) var(--tl-ease);
+}
+
+.tl-stack-exit {
+    animation: tl-slide-out var(--tl-duration-stack) var(--tl-ease);
+}
+
+@keyframes tl-slide-in {
+    from {
+        transform: translateX(30px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes tl-slide-out {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    to {
+        transform: translateX(-30px);
+        opacity: 0;
+    }
+}
+
+
+/* ==============================
+   5. Modal Entrance
+============================== */
+
+.tl-modal {
+    animation: tl-modal-in 280ms var(--tl-ease);
+}
+
+@keyframes tl-modal-in {
+    from {
+        transform: translateY(20px) scale(0.98);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+
+
+/* ==============================
+   6. Icon Micro Pop (Favorite, Toggle)
+============================== */
+
+.tl-pop {
+    animation: tl-pop 220ms var(--tl-ease);
+}
+
+@keyframes tl-pop {
+    0% {
+        transform: scale(1);
+    }
+
+    40% {
+        transform: scale(1.2);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+
+/* ==============================
+   7. Bottom Navigation Motion
+============================== */
+
+.tl-nav-item {
+    transition:
+        transform var(--tl-duration-base) var(--tl-ease),
+        opacity var(--tl-duration-base) var(--tl-ease),
+        color var(--tl-duration-base) var(--tl-ease);
+}
+
+.tl-nav-item svg {
+    transition: transform var(--tl-duration-base) var(--tl-ease);
+}
+
+.tl-nav-active svg {
+    transform: translateY(-2px);
+}
+
+.tl-nav-active span {
+    opacity: 1;
+}
+
+
+/* ==============================
+   8. Reduced Motion Accessibility
+============================== */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .tl-interactive,
+    .tl-blur-shift,
+    .tl-nav-item,
+    .tl-modal {
+        transition: none !important;
+        animation: none !important;
+        transform: none !important;
+    }
+}
+
+/* ==============================
+   9. Depth Elevation System
+============================== */
+
+.tl-elevated {
+    box-shadow:
+        0 4px 20px rgba(0, 0, 0, .35),
+        inset 0 1px rgba(255, 255, 255, .05);
+    transition:
+        box-shadow var(--tl-duration-base) var(--tl-ease),
+        transform var(--tl-duration-base) var(--tl-ease);
+}
+
+.tl-elevated:hover {
+    box-shadow:
+        0 12px 40px rgba(0, 0, 0, .55),
+        inset 0 1px rgba(255, 255, 255, .08);
+}
+
+/* ==============================
+   10. Light Sweep Effect
+============================== */
+
+.tl-light-sweep {
+    position: relative;
+    overflow: hidden;
+}
+
+.tl-light-sweep::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg,
+            transparent 40%,
+            rgba(255, 255, 255, 0.08),
+            transparent 60%);
+    transform: translateX(-120%);
+    transition: transform 600ms var(--tl-ease);
+}
+
+.tl-light-sweep:hover::after {
+    transform: translateX(120%);
+}
+
+/* ==============================
+   11. Subtle Parallax (Desktop)
+============================== */
+
+@media (min-width: 1024px) {
+    .tl-parallax {
+        transition: transform 400ms var(--tl-ease);
+    }
+
+    .tl-parallax:hover {
+        transform: translateY(-4px);
+    }
+}
+
+/* ==============================
+   12. Vision Glass
+============================== */
+
+.tl-vision-glass {
+    background: rgba(20, 25, 35, 0.75);
+    backdrop-filter: blur(40px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* ==============================
+   13. Attention Pulse
+============================== */
+
+@keyframes tl-attention {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 200, 0, 0.4);
+    }
+
+    100% {
+        box-shadow: 0 0 0 12px rgba(255, 200, 0, 0);
+    }
+}
+
+.tl-attention {
+    animation: tl-attention 1.4s ease-out;
+}
+
+/* =========================================================
+   14. Cursor Reactive Depth (Desktop Only)
+========================================================= */
+
+@media (min-width: 1024px) {
+
+    .tl-cursor-react {
+        transform-style: preserve-3d;
+        transition: transform 120ms linear;
+    }
+
+}
+
+/* =========================================================
+   15. Adaptive Glass System
+========================================================= */
+
+.tl-glass-dynamic {
+    background: linear-gradient(180deg,
+            rgba(30, 35, 45, 0.75),
+            rgba(20, 25, 35, 0.65));
+    backdrop-filter: blur(28px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.tl-glass-dynamic.light-context {
+    background: linear-gradient(180deg,
+            rgba(255, 255, 255, 0.65),
+            rgba(240, 240, 240, 0.55));
+    border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* =========================================================
+   16. Stagger Reveal System
+========================================================= */
+
+.tl-reveal {
+    opacity: 0;
+    transform: translateY(12px);
+    animation: tl-reveal-in 600ms var(--tl-ease) forwards;
+}
+
+.tl-reveal:nth-child(1) {
+    animation-delay: 40ms;
+}
+
+.tl-reveal:nth-child(2) {
+    animation-delay: 80ms;
+}
+
+.tl-reveal:nth-child(3) {
+    animation-delay: 120ms;
+}
+
+.tl-reveal:nth-child(4) {
+    animation-delay: 160ms;
+}
+
+.tl-reveal:nth-child(5) {
+    animation-delay: 200ms;
+}
+
+.tl-reveal:nth-child(6) {
+    animation-delay: 240ms;
+}
+
+.tl-reveal:nth-child(7) {
+    animation-delay: 280ms;
+}
+
+.tl-reveal:nth-child(8) {
+    animation-delay: 320ms;
+}
+
+@keyframes tl-reveal-in {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* =========================================================
+   17. Smooth Scroll Refinement
+========================================================= */
+
+html {
+    scroll-behavior: smooth;
+}
+
+* {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* =========================================================
+   18. Mode Tokens
+========================================================= */
+
+:root {
+    --tl-mode: "portal";
+}
+
+.tl-pro-admin {
+    --tl-surface-1: rgba(255, 255, 255, 0.04);
+    --tl-surface-2: rgba(255, 255, 255, 0.03);
+    --tl-surface-3: rgba(255, 255, 255, 0.02);
+}
+
+/* =========================================================
+   Breadcrumb Premium Capsule
+========================================================= */
+
+.tl-breadcrumb {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 999px;
+
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(20px);
+
+    border: 1px solid rgba(255, 255, 255, 0.12);
+
+    font-size: 12px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.tl-breadcrumb span {
+    opacity: .6;
+}
+
+.tl-breadcrumb strong {
+    opacity: .95;
+    font-weight: 600;
+}
+
+/* =========================================================
+   Segment Control Premium
+========================================================= */
+
+/* ===============================
+   TAXILANZ SEGMENT CONTROL v2
+================================= */
+
+.tl-segment-group {
+    display: inline-flex;
+    gap: 6px;
+    padding: 4px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.tl-segment {
+    position: relative;
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.6);
+    transition: all 220ms cubic-bezier(.22, .61, .36, 1);
+}
+
+.tl-segment:hover {
+    color: rgba(255, 255, 255, 0.85);
+    transform: translateY(-1px);
+}
+
+.tl-segment-active {
+    color: white;
+    background: linear-gradient(180deg,
+            rgba(255, 255, 255, 0.14),
+            rgba(255, 255, 255, 0.06));
+    box-shadow:
+        0 4px 20px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.tl-segment-active {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    opacity: 1;
+}
+
+/* ===============================
+   TAXILANZ BREADCRUMB
+================================= */
+
+.tl-breadcrumb {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(16px);
+    font-size: 12px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.tl-breadcrumb span:last-child {
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 600;
+}
+
+.tl-s2:hover {
+    transform: translateY(-2px) scale(1.01);
+    box-shadow:
+        0 10px 40px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+button.fi-btn.fi-outlined.fi-size-md.fi-ac-btn-action.nova-appointment-choice-pill {
+    font-size: 10px !important;
+    padding: 8px !important;
+    background: #c42121;
+}
+
+.bg-primary-600 {
+    background-color: oklch(0.54 0.17 23.6);
+}
+
+bg-primary {
+    background-color: oklch(0.54 0.21 26.03 / 0.56) !important;
+}
+
+.tl-glass-dynamic {
+    -webkit-backdrop-filter: blur(28px);
+    backdrop-filter: blur(28px);
+    background: linear-gradient(#2627287a, #0c0d0da8);
+    border: 1px solid #ffffff1f
+}

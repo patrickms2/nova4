@@ -1,0 +1,736 @@
+@import '../../../../vendor/filament/filament/resources/css/theme.css';
+@import '../../../../vendor/archilex/filament-filter-sets/resources/css/plugin.css';
+@import '../../../../vendor/saade/filament-fullcalendar/resources/css/filament-fullcalendar.css';
+@import '../../../../vendor/guava/calendar/resources/css/theme.css';
+@import '../../../../vendor/emuniq/filament-collapsible-subnav/resources/css/plugin.css';
+@source '../../../../vendor/guava/calendar/resources/**/*';
+@plugin "@tailwindcss/typography";
+@source '../../../../vendor/guava/filament-knowledge-base/src/**/*';
+@source '../../../../vendor/guava/filament-knowledge-base/resources/views/**/*';
+
+@source '../../../../vendor/heiner/filament-agentic-chatbot/resources';
+@source '../../../../vendor/wezlo/filament-search-spotlight/resources/views/**/*';
+@source '../../../../vendor/saade/filament-fullcalendar/resources/views/**/*.blade.php';
+@source '../../../../app/Filament/**/*';
+@source '../../../../resources/views/filament/**/*';
+@source '../../../../resources/views/filament';
+@source '../../../../vendor/archilex/filament-filter-sets';
+@source '../../../../resources/views/components/**/*';
+
+@source '../../../../vendor/laraveldaily/filawidgets/resources/views/**/*';
+@source "../../storage/layup-safelist.txt";
+@source '../../../../vendor/voodflow/voodflow/resources/js/**/*.jsx';
+@source '../../../../storage/voodflow-nodes/**/*.jsx';
+
+::-webkit-scrollbar {
+    width: .56vw !important;
+    height: 8px !important;
+}
+
+::-webkit-scrollbar-button {
+    width: 0px !important;
+    height: 0px !important;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #e1e1e1 !important;
+    border: 0px none #ffffff !important;
+    border-radius: 50px !important;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #ffffff !important;
+}
+
+/* Left slide modal */
+.fi-modal-slide-over-left {
+    --tw-translate-x: -100%;
+}
+
+::-webkit-scrollbar-thumb:active {
+    background: #000000 !important;
+}
+
+::-webkit-scrollbar-track {
+    background: #666666 !important;
+    border: 0px none #ffffff !important;
+    /* border-radius: 81px; */
+}
+
+::-webkit-scrollbar-track:hover {
+    background: #666666 !important;
+}
+
+::-webkit-scrollbar-track:active {
+    background: #333333 !important;
+}
+
+::-webkit-scrollbar-corner {
+    background: transparent !important;
+}
+
+.fi-breadcrumbs .fi-breadcrumbs-item-label {
+    @apply text-xs!;
+}
+
+.choices__item--selectable {
+    @apply cursor-pointer!;
+}
+
+.fi-sidebar {
+    @apply bg-white! dark:bg-gray-900!;
+}
+
+.fi-sidebar-item a,
+.fi-tenant-menu-trigger {
+    @apply hover:bg-gray-200/50! hover:dark:bg-gray-800!;
+}
+
+.fi-sidebar-item-active a {
+    @apply bg-gray-200/50! dark:bg-gray-800!;
+}
+
+.fi-btn.fi-color-primary {
+    background-image: linear-gradient(
+        to bottom right,
+        var(--primary-500),
+        var(--primary-900)
+    ) !important;
+    box-shadow:
+        0 4px 6px -1px #0000001a,
+        0 2px 4px -2px #0000001a !important;
+}
+
+.fi-btn.fi-color-primary {
+    transition: 0.5s !important;
+    background-size: 200% auto !important;
+}
+
+.fi-btn.fi-color-primary:hover {
+    background-position: right center !important; /* change the direction of the change here */
+    text-decoration: none !important;
+}
+
+        @media screen and (min-width: 900px) {
+          .fi-modal-window.fi-modal-window-has-close-btn.fi-modal-window-has-content.fi-modal-window-has-footer.fi-align-start.fi-width-md{
+    z-index: 10000 !important;
+min-width: 868px!important;;
+}
+form.fi-modal-window.fi-modal-window-has-close-btn.fi-modal-window-has-content.fi-modal-window-has-footer.fi-align-start.fi-width-md{
+    min-width: 868px!important;
+}
+        }
+
+
+div.fc-timegrid-event-harness .fc-timegrid-event-harness-inset{
+    margin-top: 2px!important;
+}
+.fc-timegrid-event-harness-inset{
+    margin-top: 2px!important;
+}
+
+.fc-event-time{
+    font-size: 10px!important;
+     margin-bottom: 3px!important;
+  margin-top: -3px!important;
+  font-weight: bold!important;
+}
+div.fc-event-time{
+    font-size: 10px!important;
+     margin-bottom: 3px!important;
+  margin-top: -3px!important;
+  font-weight: bold!important;
+}
+.fc-timegrid-event .fc-event-time{
+    font-size: 10px!important;
+     margin-bottom: 3px!important;
+  margin-top: -3px!important;
+  font-weight: bold!important;
+}
+div.fc-timegrid-event .fc-event-time{
+    font-size: 10px!important;
+     margin-bottom: 3px!important;
+  margin-top: -3px!important;
+  font-weight: bold!important;
+}
+.fc-v-event .fc-event-time{
+     font-size: 10px!important;
+     margin-bottom: 3px!important;
+  margin-top: -3px!important;
+  font-weight: bold!important;
+}
+.fc-v-event .fc-event-title{
+    font-size: 12px!important;
+  margin-top: -4px!important;
+
+}
+
+/* Hide event title text in month (dayGrid) view to show only dots/times */
+.fc-daygrid .fc-event-title,
+.fc-daygrid .fc-daygrid-event .fc-event-title {
+         font-weight: normal!important;
+}
+
+a.fc-event.fc-event-draggable.fc-event-resizable.fc-event-start.fc-event-end.fc-event-future.fc-daygrid-event.fc-daygrid-dot-event{
+    display: none!important;
+}
+
+div.logo-before{
+   display:none!important;
+}
+
+
+#app-wirechat-widget {
+    position: relative!important;
+}
+#app-wirechat-widget .filament-widgets-widget {
+    height: calc(100vh - 4rem)!important;
+    max-height: calc(100vh - 4rem)!important;
+}
+
+.fi-pagination.fi-simple{
+    display: flex;
+    justify-content: end;
+
+}
+
+/*
+
+.fi-header.fi-header-has-breadcrumbs{
+    display:none!important;
+}
+
+
+.fi-sidebar-nav{
+    padding-top: 0.6rem;
+}
+
+header.fi-header.fi-header-has-breadcrumbs{
+    display:none!important;
+}
+
+*/
+
+
+.filament-world-clock-header {
+    margin-bottom: 1.5rem!important;
+}
+
+div.filament-world-clock-content-city-hour {
+    font-size: 1rem!important;
+    font-weight: 600!important;
+}
+div.filament-world-clock-content {
+    gap:1rem!important;
+}
+
+
+@media screen and (min-width: 900px) {
+.fi-modal-window.fi-modal-window-has-close-btn.fi-modal-window-has-content.fi-modal-window-has-footer.fi-align-start.fi-width-md{
+    z-index: 10000 !important;
+min-width: 868px!important;;
+}
+form.fi-modal-window.fi-modal-window-has-close-btn.fi-modal-window-has-content.fi-modal-window-has-footer.fi-align-start.fi-width-md{
+    min-width: 868px!important;
+}
+}
+
+
+@media screen and (min-width: 900px) {
+.fi-modal-window.fi-modal-window-has-close-btn.fi-modal-window-has-content.fi-modal-window-has-footer.fi-align-start.fi-width-lg{
+   min-width: 868px!important;
+}
+}
+
+
+.filament-fullcalendar.fc.fc-media-screen.fc-direction-ltr.fc-theme-standard.fc-liquid-hack{
+  min-height: 666px;
+}
+
+div.fi-modal-icon-bg{
+   margin-top:6rem!important;
+}
+
+.fi-avatar.fi-size-md.fi-tenant-avatar{
+overflow: hidden;
+width: 24px;
+  height: 24px;
+}
+
+
+
+.fc-y2.fc-Y2.fc-gI.fc-Es {
+  display: none!important;
+}
+.items-center.hover\:bg-foreground\/5.mb-px.p-px.rounded-sm.mx-px {
+  display: none !important;
+}
+
+div.filament-fullcalendar.filament-fullcalendar.fc.fc-media-screen.fc-direction-ltr.fc-theme-standard{
+        width: 100% !important;
+}
+div.filament-fullcalendar.fc.fc-media-screen.fc-direction-ltr.fc-theme-standard.fc-liquid-hack {
+    max-height: 760px;
+}
+
+.calendar-widget-wrapper {
+width: 100% !important;
+  height: 100% !important;
+  overflow: auto !important;
+  background: transparent;
+  /*
+  border: 2px solid #80808080;
+  */
+  border-radius: 12px;
+}
+
+.calendar-widget-wrapper > div {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.left-side-topicons{
+    margin: 0 10px;
+}
+  /*
+.fi-modal-window.fi-modal-window-has-close-btn.fi-modal-window-has-content.fi-align-start.fi-width-3xl{
+    min-width: 900px!important;
+}
+*/
+
+#calendar-modal{
+    position:absolute;
+}
+
+.fi-section{
+    --tw-ring-color:transparent!important;
+}
+.filament-fullcalendar{
+    overflow: hidden!important;
+}
+
+.fc-scroller {
+    overflow: hidden auto !important;
+}
+
+.fi-text-color-950{
+    color:white!important;
+}
+
+
+.outcome-button svg{
+    color:white!important;
+    fill:#ffffff!important;
+}
+.outcome-buttons-section{
+    padding:4px!important;
+}
+.outcome-button{
+    color:white!important;
+    fill:#ffffff!important;
+    margin:2px!important;
+}
+
+.outcome-buttons-section .fi-section-header-after-ctn .fi-sc {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: stretch !important;
+    gap: 0.5rem !important;
+}
+
+.outcome-buttons-section .fi-section-header-after-ctn .fi-sc > div {
+    flex: 1 1 auto !important;
+    min-width: 101px !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+.outcome-buttons-section .outcome-button {
+    width: 100% !important;
+    height: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    white-space: nowrap !important;
+    padding: 0.5rem 0.5rem !important;
+}
+
+footer span.w-full{
+position: absolute;
+  left: 64px;
+  text-align: left;
+  top: 18px;
+  opacity: 0.8;
+  width: auto;
+  white-space: nowrap;
+}
+
+footer.fi-footer{
+    display: flex;
+  height: 50px;
+  margin: 0px;
+}
+@media screen and (max-width: 1023px) {
+    footer.fi-footer {
+        display: none !important;
+    }
+}
+img.w-auto.object-contain{
+    height: 24px;
+  position: absolute;
+  left: 24px;
+  top: 12px;
+}
+.fi-badge-label-ctn {
+  max-height: 14px;
+}
+
+.fc-dom-16{
+    position: absolute;
+  left: 10rem;
+  top: 5px;
+}
+.outcome-recorder .fi-btn,
+.outcome-recorder .fi-button,
+.ringa-data-outcome-widget .fi-btn,
+.ringa-data-outcome-widget .fi-button {
+    height: 36px !important;
+    min-height: 36px !important;
+    max-height: 36px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.ringa-data-outcome-widget .fi-btn span,
+.ringa-data-outcome-widget .fi-button span,
+.outcome-recorder .fi-btn span,
+.outcome-recorder .fi-button span {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.outcome-form-widget .fi-wi-widget-ctn,
+.ringa-data-outcome-widget .fi-wi-widget-ctn,
+.outcome-form-widget .fi-section,
+.ringa-data-outcome-widget .fi-section,
+.outcome-form-widget .fi-section-content-ctn,
+.ringa-data-outcome-widget .fi-section-content-ctn,
+.outcome-form-widget .fi-section-content,
+.ringa-data-outcome-widget .fi-section-content {
+    height: 100% !important;
+}
+
+.text-queue-card{
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+/* .fi-main-ctn{
+
+
+  min-height: 100vh;
+
+  background:
+    linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)),
+    url("'https://ndsth.com'/assets/bangkok.jpg") center / cover no-repeat fixed;
+
+} */
+
+div.fi-fo-table-repeater-add {
+    display:content;
+}
+  .fi-fo-table-repeater .fi-fo-table-repeater-add{
+    display: contents!important;
+  }
+
+h2.fc-dom-16{
+position: absolute;
+  left: 172px;
+  top: 6px;
+}
+#fc-dom-16{
+position: absolute;
+  left: 172px;
+  top: 6px;
+}
+
+.fi-modal-footer.fi-align-start{
+        display: flex;
+    justify-content: right;
+}
+html{
+    scrollbar-gutter: auto!important;
+    overflow: hidden;
+    max-height: 100vh;
+
+}
+.fi-sidebar.fi-main-sidebar.fi-sidebar-opened{
+    overflow: hidden;
+}
+.fi-main-ctn.fi-main-ctn-sidebar-open{
+        display: flex;
+    max-height: 90vh;
+    opacity: 1;
+    overflow: auto;
+}
+
+.fi-dropdown-panel.fi-scrollable{
+    min-width: 288px;
+}
+
+.fi-sidebar-nav {
+    scrollbar-gutter: auto!important;
+}
+
+.fi-main-ctn{
+    overflow: scroll;
+  height: 90vh;
+}
+div.fi-modal-window{
+    overflow: hidden;
+}
+
+#panel-switch{
+    max-width:320px;
+}
+#ui-switcher-modal{
+    max-width:320px;
+}
+/*
+.fi-modal-window.fi-modal-window-has-close-btn.fi-modal-window-has-content.fi-align-start.fi-width-md{
+    max-width: 320px;
+}
+.fi-modal-window.fi-modal-window-has-close-btn.fi-modal-window-has-content.fi-align-start.fi-width-sm{
+    max-width: 320px;
+}
+*/
+.fc-dom-91{
+    position: absolute;
+  left: 180px;
+  top: 6px;
+}
+.fc-dom-76{
+    position: absolute;
+  left: 180px;
+  top: 6px;
+}
+.singlecalendar-0 .fc-toolbar-title{
+    position: absolute;
+  left: 180px;
+  top: 6px;
+}
+    .fi-section-content-ctn{
+        border:none!important;
+    }
+
+    .fi-fo-rich-editor-content.fi-prose{
+        min-height: 5rem;
+    }
+
+    .fi-left-topbar-btn{
+    margin-left: .06rem;
+    margin-right: .06rem;
+    }
+
+
+.fi-wi-widget.fi-grid-col.lg{
+    border-radius: 0px!important;
+}
+/*
+footer.fi-footer {
+    display: flex;
+  height: 50px;
+  margin: 0px;
+}
+
+.featured-sidebar-group{
+ margin-bottom:-1.2rem;
+}
+.fi-sidebar-group{
+  margin-top:-0.6rem;
+  margin-bottom:0.6;
+}
+.featured-sidebar-group-top{
+ margin-top:-1rem;
+}
+.featured-sidebar-group-admin{
+ margin-top:-2.2rem;
+}
+*/
+.fi-tenant-menu-trigger-tenant-name{
+  font-size: 14px;
+}
+.fi-tenant-menu-trigger-current-tenant-label{
+  font-size: 10px;
+}
+
+.ring-tillbaka-tab .fi-ta-header-ctn{
+    display: none!important;
+}
+.ring-tillbaka-tab .fi-ta-content-ctn .fi-ta-main .fi-ta-table thead{
+    display: none!important;
+}
+
+.ringa-tillbaka-modal-content .fi-ta-header-ctn{
+    display: none!important;
+}
+
+.ringa-tillbaka-modal-content .fi-ta-main .fi-ta-table thead{
+    display: none!important;
+}
+
+.ringa-tillbaka-modal-content .fi-ta-main .fi-ta-table .fi-ta-selection-cell .fi-ta-record-checkbox {
+    display: none!important;
+}
+
+#manus-calendar-modal .fi-fo-rich-editor{
+    min-height:60vh;
+}
+
+.queue-address-section .fi-section-header-heading{
+    display:none!important;
+}
+.phone-numbers-section .fi-section-header{
+   padding-top: 1.5rem;
+  padding-bottom: 0.5rem;
+  padding-right: 1.2rem;
+  padding-left: 1.5rem;
+}
+
+.outcome-buttons-section .fi-sc-action{
+    width: 20%!important;
+}
+
+.ringa-tillbaka-modal-content .fi-ta-main{
+    min-height: 96vh;
+}
+
+.fi-main-ctn{
+    overflow: auto!important;
+}
+
+.queue-table-widget thead{
+    display:none!important;
+}
+
+.fi-ta-col-manager-actions-ctn{
+    padding-top:2rem
+}
+
+footer{
+    background:#18181b;
+}
+
+.fi-main.fi-width-full{
+    width: 100%;
+    height: 100vh;
+    overflow-y:scroll;
+}
+
+/* ── Sidebar resize handle ── */
+.fi-sidebar {
+    --fi-sidebar-resize-width: 260px;
+    width: var(--fi-sidebar-resize-width, 260px) !important;
+    min-width: 160px !important;
+    max-width: 480px !important;
+    position: relative !important;
+    transition: none !important;
+}
+
+.fi-sidebar-resize-handle {
+    position: absolute;
+    top: 0;
+    right: -3px;
+    width: 6px;
+    height: 100%;
+    cursor: col-resize;
+    z-index: 50;
+    user-select: none;
+    background: transparent;
+}
+
+.fi-sidebar-resize-handle::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    height: 100%;
+    background: transparent;
+    transition: background 0.2s ease;
+    border-radius: 2px;
+}
+
+.fi-sidebar-resize-handle:hover::after,
+.fi-sidebar-resize-handle.dragging::after {
+    background: color-mix(in srgb, var(--primary-500, #f59e0b) 60%, transparent);
+}
+
+.fi-sidebar-resize-handle.dragging {
+    cursor: col-resize;
+}
+
+body.fi-sidebar-resizing {
+    cursor: col-resize !important;
+    user-select: none !important;
+}
+
+body.fi-sidebar-resizing * {
+    cursor: col-resize !important;
+    pointer-events: none !important;
+}
+
+body.fi-sidebar-resizing .fi-sidebar-resize-handle {
+    pointer-events: all !important;
+}
+
+.fi-dd-group-btn {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    column-gap: 0.75rem;
+    border-radius: 0.5rem;
+    margin: 0 0 0 5px !important;
+    padding: 2px 25px 2px 15px !important;
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition-property: color, background-color, border-color;
+    transition-duration: 75ms;
+    outline: none;
+    color: var(--gray-700);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    text-align: start;
+}
+
+    @media (width>=64rem) {
+        .fi-body-has-topbar .fi-sidebar {
+            height: calc(100dvh - 15px) !important;
+            top: 15px !important;
+        }
+    }
+
+.fi-dd-groups-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+    padding-top: 25px !important;
+}
+
+@media (width >= 64rem) {
+    .fi-body-has-topbar .fi-sidebar {
+        height: calc(100dvh - 15px) !important;
+        top: 15px !important;
+    }
+}
+.fi-btn.fi-color-primary {
+    background-image: linear-gradient(to bottom right,var(--primary-500),var(--primary-900))!important;
+    background-size: 200%!important;
+    color: lightgray !important;
+    transition: all .5s!important;
+    box-shadow: 0 4px 6px -1px #0000001a,0 2px 4px -2px #0000001a!important
+}

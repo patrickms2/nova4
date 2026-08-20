@@ -1,0 +1,1261 @@
+@import '../../../../vendor/filament/filament/resources/css/theme.css';
+
+@import '../../portal.css';
+
+@source '../../../../app/Filament/Portal/**/*';
+@source '../../../../app/Filament/App/Resources/Taxista*/**/*';
+@source '../../../../resources/views/filament/portal/**/*';
+@source '../../../../resources/views/filament/app/logo.blade.php';
+@source '../../../../resources/views/filament/app/resources/taxista*/**/*';
+@source '../../../../resources/views/components/**/*';
+
+@import '../../portal-taxista.css';
+
+/* =========================================================
+   TAXILANZ PORTAL — UNIFIED LIQUID GLASS SYSTEM
+   Single source of truth for Filament 5
+   ========================================================= */
+
+:root {
+    --nova-bg: #05070b;
+    --nova-text: rgba(255, 255, 255, .92);
+    --nova-muted: rgba(255, 255, 255, .60);
+
+    --nova-border: rgba(255, 255, 255, .08);
+    --nova-border-strong: rgba(255, 255, 255, .14);
+
+    --nova-shadow:
+        0 28px 120px rgba(0, 0, 0, .65),
+        inset 0 1px 0 rgba(255, 255, 255, .08);
+
+    --nova-accent: 239 68 68;
+    --portal-safe-top: env(safe-area-inset-top, 0px);
+    --portal-safe-right: env(safe-area-inset-right, 0px);
+    --portal-safe-bottom: env(safe-area-inset-bottom, 0px);
+    --portal-safe-left: env(safe-area-inset-left, 0px);
+    --portal-app-height: 100dvh;
+    --portal-keyboard-inset: 0px;
+}
+
+html.portal-has-pending-request::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: min(36vw, 14rem);
+    height: 3px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.92), rgba(255, 255, 255, 0.85));
+    box-shadow: 0 0 18px rgba(239, 68, 68, 0.5);
+    z-index: 1400;
+    animation: portal-busy-bar 1.05s cubic-bezier(.4, 0, .2, 1) infinite;
+    pointer-events: none;
+}
+
+body.fi-body.fi-panel-portal .portal-action-hint-stack {
+    position: fixed;
+    left: 50%;
+    bottom: calc(var(--portal-safe-bottom) + 1rem);
+    z-index: 1405;
+    transform: translateX(-50%);
+    pointer-events: none;
+}
+
+body.fi-body.fi-panel-portal .portal-action-hint {
+    min-width: min(18rem, calc(100vw - 1.5rem));
+    max-width: min(26rem, calc(100vw - 1.5rem));
+    padding: 0.75rem 1rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(8, 10, 14, 0.86);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    color: rgba(255, 255, 255, 0.92);
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+    opacity: 0;
+    transform: translateY(0.75rem) scale(0.98);
+    transition:
+        opacity 180ms ease,
+        transform 180ms ease,
+        border-color 180ms ease,
+        box-shadow 180ms ease;
+}
+
+body.fi-body.fi-panel-portal .portal-action-hint.is-visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+body.fi-body.fi-panel-portal .portal-action-hint.is-success {
+    border-color: rgba(74, 222, 128, 0.28);
+    box-shadow: 0 18px 50px rgba(22, 101, 52, 0.18);
+}
+
+body.fi-body.fi-panel-portal .portal-action-hint.is-warning {
+    border-color: rgba(250, 204, 21, 0.28);
+    box-shadow: 0 18px 50px rgba(161, 98, 7, 0.18);
+}
+
+body.fi-body.fi-panel-portal .portal-action-hint.is-error {
+    border-color: rgba(248, 113, 113, 0.3);
+    box-shadow: 0 18px 50px rgba(153, 27, 27, 0.18);
+}
+
+body.fi-body.fi-panel-portal .portal-action-hint__label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    text-align: center;
+}
+
+html:has(body.fi-body.fi-panel-portal) {
+    overscroll-behavior: none;
+    height: 100%;
+    background: #05070b;
+}
+
+body.fi-body.fi-panel-portal {
+    overscroll-behavior: none;
+    overscroll-behavior-y: none;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    min-height: var(--portal-app-height);
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    background: #05070b;
+}
+
+body.fi-body.fi-panel-portal .fi-layout,
+body.fi-body.fi-panel-portal .fi-simple-layout,
+body.fi-body.fi-panel-portal .fi-main-ctn {
+    min-height: var(--portal-app-height);
+}
+
+body.fi-body.fi-panel-portal .fi-main-ctn {
+    height: var(--portal-app-height);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding:
+        calc(var(--portal-safe-top) + 0.35rem) calc(var(--portal-safe-right) + 0.75rem) calc(var(--portal-safe-bottom) + 1rem + var(--portal-keyboard-inset)) calc(var(--portal-safe-left) + 0.75rem);
+    scroll-padding-top: calc(var(--portal-safe-top) + 5.5rem);
+    scrollbar-gutter: stable;
+}
+
+body.fi-body.fi-panel-portal .fi-main,
+body.fi-body.fi-panel-portal .fi-main-ctn,
+body.fi-body.fi-panel-portal .fi-sidebar,
+body.fi-body.fi-panel-portal .fi-simple-main {
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+}
+
+body.fi-body.fi-panel-portal .fi-main {
+    min-height: calc(var(--portal-app-height) - var(--portal-safe-top) - var(--portal-safe-bottom));
+}
+
+body.fi-body.fi-panel-portal input,
+body.fi-body.fi-panel-portal textarea,
+body.fi-body.fi-panel-portal [contenteditable="true"] {
+    -webkit-user-select: text;
+    user-select: text;
+    -webkit-touch-callout: default;
+}
+
+body.fi-body.fi-panel-portal .portal-actionable,
+body.fi-body.fi-panel-portal button,
+body.fi-body.fi-panel-portal a,
+body.fi-body.fi-panel-portal [role="button"] {
+    position: relative;
+}
+
+body.fi-body.fi-panel-portal .portal-action-pressed {
+    transform: scale(0.985) !important;
+}
+
+body.fi-body.fi-panel-portal .portal-action-pending {
+    pointer-events: none !important;
+    cursor: progress !important;
+}
+
+body.fi-body.fi-panel-portal .portal-action-pending>* {
+    opacity: 0.22;
+}
+
+body.fi-body.fi-panel-portal .portal-action-pending::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 1.05rem;
+    height: 1.05rem;
+    margin-top: -0.525rem;
+    margin-left: -0.525rem;
+    border-radius: 999px;
+    border: 2px solid rgba(255, 255, 255, 0.22);
+    border-top-color: rgba(255, 255, 255, 0.95);
+    animation: portal-spinner 0.7s linear infinite;
+    z-index: 2;
+}
+
+html.portal-has-pending-request body.fi-body.fi-panel-portal .fi-section,
+html.portal-has-pending-request body.fi-body.fi-panel-portal .fi-ta-ctn,
+html.portal-has-pending-request body.fi-body.fi-panel-portal .glass {
+    border-color: rgba(255, 255, 255, 0.18);
+}
+
+html.portal-has-pending-request body.fi-body.fi-panel-portal .fi-section::after,
+html.portal-has-pending-request body.fi-body.fi-panel-portal .fi-ta-ctn::after,
+html.portal-has-pending-request body.fi-body.fi-panel-portal .glass::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(110deg, transparent 0%, rgba(255, 255, 255, 0.035) 35%, rgba(255, 255, 255, 0.11) 50%, rgba(255, 255, 255, 0.035) 65%, transparent 100%);
+    background-size: 220% 100%;
+    mix-blend-mode: screen;
+    opacity: 0.48;
+    pointer-events: none;
+    animation: portal-surface-breathe 1.15s linear infinite;
+}
+
+body.fi-body.fi-panel-portal .glass {
+    position: relative;
+    overflow: hidden;
+}
+
+body.fi-body.fi-panel-portal button:disabled,
+body.fi-body.fi-panel-portal .fi-btn:disabled,
+body.fi-body.fi-panel-portal [role="button"][aria-disabled="true"],
+body.fi-body.fi-panel-portal .portal-submit-disabled {
+    opacity: 0.45 !important;
+    filter: saturate(0.72);
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+body.fi-body.fi-panel-portal .portal-submit-ready {
+    opacity: 1;
+}
+
+body.fi-body.fi-panel-portal .fi-modal-footer .fi-btn,
+body.fi-body.fi-panel-portal .fi-ac-btn-action,
+body.fi-body.fi-panel-portal .fi-modal-close-btn,
+body.fi-body.fi-panel-portal .fi-modal-footer-actions button {
+    transition:
+        transform 160ms ease,
+        opacity 160ms ease,
+        box-shadow 160ms ease,
+        background-color 160ms ease !important;
+}
+
+/* =========================================================
+   LOGIN FORM STYLING
+   ========================================================= */
+
+.fi-panel-portal .fi-auth-login form span.fi-fo-field-label-content,
+.fi-panel-app .fi-auth-login form span.fi-fo-field-label-content {
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-weight: 500 !important;
+}
+
+.fi-panel-portal .fi-auth-login form .fi-input,
+.fi-panel-app .fi-auth-login form .fi-input {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
+}
+
+.fi-panel-portal .fi-auth-login form .fi-input::placeholder,
+.fi-panel-app .fi-auth-login form .fi-input::placeholder {
+    color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Video background styling */
+#bg-video {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    object-fit: cover !important;
+    z-index: -1 !important;
+}
+
+/* =========================================================
+   PANEL BACKGROUND
+   ========================================================= */
+
+.fi-panel-portal .fi-main {
+    background: linear-gradient(180deg,
+            #05070b 0%,
+            #070a0f 50%,
+            #05070b 100%);
+}
+
+/* =========================================================
+   TOPBAR
+   ========================================================= */
+
+.fi-panel-portal .fi-topbar {
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    background: rgba(0, 0, 0, 0.98) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 5;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+
+.fi-panel-portal .fi-topbar {
+    padding-top: max(0.35rem, var(--portal-safe-top));
+    padding-left: calc(var(--portal-safe-left) + 0.35rem);
+    padding-right: calc(var(--portal-safe-right) + 0.35rem);
+}
+
+/* Override any theme color influence */
+.fi-panel-portal .fi-topbar *,
+.fi-panel-portal .fi-topbar::before,
+.fi-panel-portal .fi-topbar::after {
+    /*background: transparent !important;*/
+}
+
+/* Topbar elements styling */
+.fi-panel-portal .fi-topbar .fi-topbar-nav {}
+
+.fi-panel-portal .fi-topbar .fi-topbar-user-menu {
+    background: rgba(0, 0, 0, 0.98) !important;
+}
+
+.fi-panel-portal .fi-topbar .fi-topbar-global-search {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
+}
+
+@media (max-width: 779px) {
+    .fi-panel-portal .fi-topbar .fi-topbar-global-search {
+        display: none !important;
+    }
+}
+
+.fi-panel-portal .fi-topbar .fi-topbar-global-search::placeholder {
+    color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.fi-panel-portal .fi-topbar .fi-icon-btn {
+    /* color: rgba(255, 255, 255, 0.8) !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;*/
+}
+
+.fi-panel-portal .fi-topbar .fi-icon-btn:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+    color: white !important;
+}
+
+.fi-panel-portal .fi-topbar .nova-topbar-search {
+    min-width: min(30rem, 48vw);
+    height: 2.5rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0 0.8rem;
+    border-radius: 0.95rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.045);
+    color: rgba(255, 255, 255, 0.78);
+    transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+
+.fi-panel-portal .fi-topbar .nova-topbar-search:hover {
+    background: rgba(255, 255, 255, 0.065);
+    border-color: rgba(255, 255, 255, 0.12);
+    transform: translateY(-1px);
+}
+
+.fi-panel-portal .fi-topbar .nova-topbar-search__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.62);
+}
+
+.fi-panel-portal .fi-topbar .nova-topbar-search__placeholder {
+    flex: 1;
+    text-align: left;
+    font-size: 0.82rem;
+    line-height: 1;
+}
+
+.fi-panel-portal .fi-topbar .nova-topbar-search__badge,
+.fi-panel-portal .fi-topbar .nova-topbar-search__kbd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 1.55rem;
+    padding: 0 0.55rem;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 600;
+}
+
+.fi-panel-portal .fi-topbar .nova-topbar-search__badge {
+    background: rgba(16, 185, 129, 0.14);
+    border: 1px solid rgba(16, 185, 129, 0.22);
+    color: rgb(110 231 183);
+}
+
+.fi-panel-portal .fi-topbar .nova-topbar-search__kbd {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.56);
+}
+
+/* Fix video full height */
+.portal-bg video,
+.portal-bg iframe,
+.portal-bg video::-webkit-media-controls,
+.portal-bg iframe video {
+    width: 100vw !important;
+    height: 100vh !important;
+    object-fit: cover !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    z-index: -1 !important;
+}
+
+/* Ensure background container is full screen */
+.portal-bg {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: -1 !important;
+}
+
+/* =========================================================
+   SIDEBAR
+   ========================================================= */
+
+.fi-panel-portal .fi-sidebar {
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    background: rgba(10, 12, 16, .68);
+    border-right: 1px solid var(--nova-border);
+    z-index: 5;
+    padding-top: var(--portal-safe-top);
+    padding-bottom: var(--portal-safe-bottom);
+}
+
+/* =========================================================
+   SURFACES (Sections / Tables / Modals)
+   ========================================================= */
+
+.fi-panel-portal .fi-section,
+.fi-panel-portal .fi-ta-ctn,
+.fi-panel-portal .fi-modal-window {
+
+    position: relative;
+    overflow: hidden;
+
+    background:
+        radial-gradient(600px 200px at 20% 0%, rgba(255, 255, 255, .12), transparent 60%),
+        linear-gradient(135deg, rgba(255, 255, 255, .05), rgba(255, 255, 255, .02));
+
+    border: 1px solid var(--nova-border);
+    border-radius: 1rem;
+
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
+
+    box-shadow: var(--nova-shadow);
+
+    transition:
+        transform .25s cubic-bezier(.4, 0, .2, 1),
+        box-shadow .25s ease,
+        border-color .25s ease;
+}
+
+/* Subtle hover lift */
+
+.fi-panel-portal .fi-section:hover,
+.fi-panel-portal .fi-ta-ctn:hover {
+    transform: translateY(-3px);
+    border-color: var(--nova-border-strong);
+}
+
+/* =========================================================
+   TABLE ROWS
+   ========================================================= */
+
+.fi-panel-portal .fi-ta-record {
+    background: transparent;
+    border-bottom: 1px solid var(--nova-border);
+    transition: background .15s ease;
+}
+
+.fi-panel-portal .fi-ta-record:hover {
+    background: rgba(255, 255, 255, .05);
+}
+
+/* =========================================================
+   FORMS
+   ========================================================= */
+
+.fi-panel-portal .fi-fo-field-wrp input,
+.fi-panel-portal .fi-fo-field-wrp select,
+.fi-panel-portal .fi-fo-field-wrp textarea {
+
+    background: rgba(255, 255, 255, .04);
+    border: 1px solid var(--nova-border);
+    border-radius: .75rem;
+    backdrop-filter: blur(8px);
+}
+
+.fi-panel-portal .fi-fo-field-wrp input:focus,
+.fi-panel-portal .fi-fo-field-wrp select:focus,
+.fi-panel-portal .fi-fo-field-wrp textarea:focus {
+
+    border-color: rgba(var(--nova-accent), .35);
+    box-shadow: 0 0 0 3px rgba(var(--nova-accent), .15);
+}
+
+/* =========================================================
+   PRIMARY BUTTON
+   ========================================================= */
+
+.fi-panel-portal .fi-btn.fi-color-primary {
+
+    border: none;
+    border-radius: .75rem;
+
+    box-shadow:
+        0 10px 30px rgba(var(--nova-accent), .35),
+        inset 0 1px rgba(255, 255, 255, .15);
+
+    transition:
+        transform .2s ease,
+        box-shadow .2s ease;
+}
+
+.fi-panel-portal .fi-btn.fi-color-primary:hover {
+    transform: translateY(-2px);
+    box-shadow:
+        0 15px 40px rgba(var(--nova-accent), .45),
+        inset 0 1px rgba(255, 255, 255, .2);
+}
+
+/* =========================================================
+   MODAL OVERLAY FIX
+   ========================================================= */
+
+.fi-panel-portal .fi-modal-close-overlay {
+    z-index: 12040 !important;
+    background: rgba(0, 0, 0, .75);
+    backdrop-filter: blur(12px);
+}
+
+.fi-panel-portal .fi-modal {
+    z-index: 12050 !important;
+}
+
+.fi-panel-portal .fi-modal-window-ctn,
+.fi-panel-portal .fi-modal-window,
+.fi-panel-portal .fi-slide-over,
+.fi-panel-portal .fi-slide-over-window {
+    z-index: 12060 !important;
+}
+
+.portal-spotlight__viewport {
+    padding:
+        calc(var(--portal-safe-top) + 1rem) calc(var(--portal-safe-right) + 1rem) calc(var(--portal-safe-bottom) + 1rem + var(--portal-keyboard-inset)) calc(var(--portal-safe-left) + 1rem);
+}
+
+.portal-spotlight__sheet {
+    max-height: min(78dvh, calc(var(--portal-app-height) - var(--portal-safe-top) - var(--portal-safe-bottom) - 2rem));
+}
+
+.portal-spotlight__sheet>.glass {
+    max-height: inherit;
+    overflow: hidden auto;
+}
+
+.portal-spotlight__actions-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.portal-spotlight__utility {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.85rem;
+    padding: 0.95rem 1rem;
+    border-radius: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.03));
+    text-align: left;
+    transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+}
+
+.portal-spotlight__utility:hover {
+    transform: translateY(-1px);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.085), rgba(255, 255, 255, 0.04));
+}
+
+.portal-spotlight__utility-copy {
+    display: flex;
+    min-width: 0;
+    flex: 1;
+    flex-direction: column;
+    gap: 0.18rem;
+}
+
+.portal-spotlight__utility-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.68);
+}
+
+.portal-spotlight__utility-subtitle {
+    font-size: 0.76rem;
+    color: rgba(255, 255, 255, 0.86);
+}
+
+.portal-spotlight__utility-icon {
+    display: inline-flex;
+    height: 2rem;
+    width: 2rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.portal-spotlight__utility--indigo .portal-spotlight__utility-icon {
+    background: rgba(99, 102, 241, 0.14);
+    border-color: rgba(99, 102, 241, 0.18);
+}
+
+.portal-spotlight__utility--rose .portal-spotlight__utility-icon {
+    background: rgba(244, 63, 94, 0.14);
+    border-color: rgba(244, 63, 94, 0.2);
+}
+
+.portal-spotlight__utility--amber .portal-spotlight__utility-icon {
+    background: rgba(245, 158, 11, 0.14);
+    border-color: rgba(245, 158, 11, 0.2);
+}
+
+.portal-spotlight__utility--emerald .portal-spotlight__utility-icon {
+    background: rgba(16, 185, 129, 0.14);
+    border-color: rgba(16, 185, 129, 0.2);
+}
+
+@keyframes portal-spinner {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes portal-busy-bar {
+    0% {
+        transform: translateX(-120%);
+        opacity: 0.2;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateX(320%);
+        opacity: 0.25;
+    }
+}
+
+@keyframes portal-surface-breathe {
+    from {
+        background-position: 200% 0;
+    }
+
+    to {
+        background-position: -20% 0;
+    }
+}
+
+@media (max-width: 768px) {
+    body.fi-body.fi-panel-portal .fi-main-ctn {
+        padding-top: 0 !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        padding-bottom: 0 !important;
+    }
+
+    .fi-panel-portal .fi-topbar {
+        margin-top: 0 !important;
+        margin-left: 0.5rem;
+        margin-right: 0.5rem;
+        border-radius: 18px;
+    }
+
+    .fi-panel-portal .fi-topbar .nova-topbar-search {
+        min-width: 0;
+        max-width: 100%;
+        width: auto;
+        padding-inline: 0.72rem;
+    }
+
+    .fi-panel-portal .fi-topbar .nova-topbar-search__placeholder {
+        font-size: 0.76rem;
+    }
+
+    .fi-panel-portal .fi-topbar .nova-topbar-search__badge,
+    .fi-panel-portal .fi-topbar .nova-topbar-search__kbd {
+        display: none;
+    }
+
+    .fi-panel-portal .fi-main {
+        padding-bottom: 0.25rem;
+    }
+
+    .fi-panel-portal .fi-modal {
+        position: fixed !important;
+        inset: 0 !important;
+        align-items: flex-end !important;
+        padding:
+            calc(var(--portal-safe-top) + 0.5rem) calc(var(--portal-safe-right) + 0.5rem) calc(var(--portal-safe-bottom) + 0.5rem + var(--portal-keyboard-inset)) calc(var(--portal-safe-left) + 0.5rem) !important;
+    }
+
+    .fi-panel-portal .fi-modal-window-ctn {
+        position: fixed !important;
+        inset: 0 !important;
+        width: 100%;
+        display: flex;
+        align-items: center;
+    }
+
+    .fi-panel-portal .fi-modal-window {
+        width: 100% !important;
+        max-width: 100% !important;
+        max-height: min(82dvh, calc(var(--portal-app-height) - var(--portal-safe-top) - 1rem)) !important;
+        margin-top: auto !important;
+        margin-bottom: 0 !important;
+        border-radius: 1.5rem 1.5rem 1rem 1rem !important;
+        overflow: hidden auto !important;
+        transform-origin: bottom center;
+        box-shadow:
+            0 -12px 40px rgba(0, 0, 0, 0.28),
+            0 -1px 0 rgba(255, 255, 255, 0.08) inset !important;
+    }
+
+    .fi-panel-portal .fi-modal-window::after {
+        content: "";
+        width: 3rem;
+        height: 0.3rem;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.22);
+        position: sticky;
+        top: 0.65rem;
+        left: calc(50% - 1.5rem);
+        display: block;
+        z-index: 2;
+        margin-bottom: -0.3rem;
+    }
+
+    .fi-panel-portal .fi-modal-header {
+        padding-top: 1.25rem;
+    }
+
+    .portal-spotlight__viewport {
+        justify-content: stretch;
+        padding:
+            calc(var(--portal-safe-top) + 0.5rem) calc(var(--portal-safe-right) + 0.5rem) calc(var(--portal-safe-bottom) + 0.5rem + var(--portal-keyboard-inset)) calc(var(--portal-safe-left) + 0.5rem);
+        align-items: start;
+        padding-top: 75px;
+    }
+
+    .portal-spotlight__sheet {
+        width: 100%;
+        max-width: 100%;
+        max-height: min(84dvh, calc(var(--portal-app-height) - var(--portal-safe-top) - 1rem));
+    }
+
+    .portal-spotlight__sheet>.glass {
+        border-radius: 1.6rem 1.6rem 1rem 1rem;
+        padding-top: 1.1rem;
+        position: relative;
+        box-shadow:
+            0 -14px 40px rgba(0, 0, 0, 0.34),
+            0 -1px 0 rgba(255, 255, 255, 0.08) inset;
+    }
+
+    .portal-spotlight__sheet>.glass::before {
+        content: "";
+        width: 3rem;
+        height: 0.3rem;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.24);
+        position: absolute;
+        top: 0.55rem;
+        left: calc(50% - 1.5rem);
+    }
+
+    .portal-spotlight__actions-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.65rem;
+    }
+
+    .portal-spotlight__utility {
+        padding: 0.85rem 0.9rem;
+    }
+
+    .portal-spotlight__utility-label {
+        font-size: 0.66rem;
+    }
+
+    .portal-spotlight__utility-subtitle {
+        font-size: 0.72rem;
+    }
+
+    .fi-panel-portal .fi-modal-window {
+        max-height: calc(100dvh - 50px) !important;
+        margin: auto !important;
+        /* margin-top:0!important; */
+        overflow-y: auto !important;
+    }
+
+    body.fi-body.fi-panel-portal:has(.fi-modal.fi-modal-open) .fi-main-ctn {
+        overflow: hidden !important;
+        -webkit-overflow-scrolling: auto !important;
+        overscroll-behavior: none !important;
+        z-index: auto !important;
+    }
+
+    body.fi-body.fi-panel-portal:has(.fi-modal.fi-modal-open) .fi-main,
+    body.fi-body.fi-panel-portal:has(.fi-modal.fi-modal-open) .fi-main-ctn {
+        transform: none !important;
+    }
+
+}
+
+.fi-ta-header-toolbar {
+    display: none;
+}
+
+.fi-ta-content-header {
+    display: none;
+}
+
+.fi-ta-ctn.fi-ta-ctn-with-content-layout.fi-ta-ctn-with-footer.fi-ta-ctn-with-header {
+    -webkit-backdrop-filter: blur(22px);
+    background: #ffffff00 !important;
+    border: 1px solid var(--nova-border) !important;
+    box-shadow: var(--nova-shadow) !important;
+    border-radius: 1rem !important;
+}
+
+nav.fi-pagination {
+    display: none;
+}
+
+input.fi-ta-record-checkbox.fi-checkbox-input {
+    display: none;
+}
+
+.fi-ta-record-content-ctn {
+    row-gap: calc(var(--spacing) * 3);
+    width: 100%;
+    height: 100%;
+    padding-block: calc(var(--spacing) * 4);
+    flex-direction: row;
+    display: flex;
+    flex-wrap: nowrap;
+    align-content: stretch;
+    justify-content: flex-start;
+}
+
+:is(.fi-body.fi-body-has-sidebar-collapsible-on-desktop, .fi-body.fi-body-has-sidebar-fully-collapsible-on-desktop) .fi-main-ctn {
+    opacity: 1;
+    min-height: calc(100dvh - 4rem);
+    transition-property: all;
+    background: #07090d80;
+    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
+    transition-duration: var(--tw-duration, var(--default-transition-duration))
+}
+
+.portal-grid {
+    opacity: 0.03;
+    /* antes estaba mucho más alto */
+}
+
+.fi-panel-portal .fi-topbar>div {
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    display: flex;
+}
+
+.logo-before {
+    display: none !important;
+}
+
+.fi-panel-portal .fi-section,
+.fi-panel-portal .fi-ta-ctn,
+.fi-panel-portal .fi-modal-window {
+
+    background: rgba(255, 255, 255, 0.06);
+
+    border: 1px solid rgba(255, 255, 255, 0.12);
+
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+
+    box-shadow:
+        0 30px 80px rgba(0, 0, 0, .65),
+        inset 0 1px rgba(255, 255, 255, .10);
+}
+
+.fi-panel-portal .fi-section::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(to bottom,
+            rgba(255, 255, 255, .18),
+            transparent 35%);
+    opacity: .15;
+    pointer-events: none;
+}
+
+.fi-panel-portal .fi-section,
+.fi-panel-portal .fi-ta-ctn,
+.fi-panel-portal .fi-modal-window {
+
+    background: rgba(255, 255, 255, 0.05);
+
+    border: 1px solid rgba(255, 255, 255, 0.14);
+
+    box-shadow:
+        0 20px 50px rgba(0, 0, 0, .55),
+        inset 0 1px rgba(255, 255, 255, .08);
+}
+
+.fi-panel-portal .fi-topbar {
+    background: rgba(12, 16, 22, .45);
+    backdrop-filter: blur(28px);
+    border-bottom: 1px solid rgba(255, 255, 255, .08);
+}
+
+.mobile-bottom-nav {
+    background: rgba(255, 255, 255, .04);
+    backdrop-filter: blur(30px);
+    border: 1px solid rgba(255, 255, 255, .12);
+}
+
+/* =========================================================
+   18. Mode Tokens
+========================================================= */
+
+:root {
+    --tl-mode: "portal";
+}
+
+.tl-pro-admin {
+    --tl-surface-1: rgba(255, 255, 255, 0.04);
+    --tl-surface-2: rgba(255, 255, 255, 0.03);
+    --tl-surface-3: rgba(255, 255, 255, 0.02);
+}
+
+/*
+.fi-modal-footer.fi-align-start {
+    display: none;
+}
+
+.fi-modal-footer {
+    display: none;
+}*/
+
+label.fi-color.fi-color-primary.fi-bg-color-600.hover\:fi-bg-color-500.dark\:fi-bg-color-600.dark\:hover\:fi-bg-color-500.fi-text-color-0.hover\:fi-text-color-0.dark\:fi-text-color-0.dark\:hover\:fi-text-color-0.fi-btn.fi-size-md {
+    background: #c20f0fc7;
+    box-shadow: 0 10px 30px rgba(var(--nova-accent), .35), inset 0 1px #c20f0fc7;
+    border: none;
+    border-radius: .75rem;
+    transition: transform .2s, box-shadow .2s;
+}
+
+.dark\:fi-bg-color-600 {
+    --dark-bg: oklch(0.55 0.25 28.71);
+}
+
+button.fi-btn.fi-outlined.fi-size-md.fi-ac-btn-action.nova-appointment-choice-pill {
+    font-size: 10px !important;
+    padding: 8px !important;
+    background: #c42121;
+}
+
+/* Contenedor del modal: lo ancla arriba y permite scroll de página */
+.fi-panel-portal .fi-modal {
+    align-items: flex-start !important;
+    padding-top: 25px !important;
+    padding-bottom: 25px !important;
+    overflow-y: auto !important;
+}
+
+/* Ventana del modal: limita altura y activa scroll interno */
+.fi-panel-portal .fi-modal-window {
+    margin-top: 0 !important;
+    max-height: calc(100dvh - 50px) !important;
+    /* 25 + 25 */
+    overflow-y: auto !important;
+}
+
+button.fi-color.fi-color-red.fi-btn.fi-outlined.fi-size-xs.fi-ac-btn-action.nova-appointment-choice-pill {
+    background: indianred;
+    border: 1px solid red;
+    border-radius: .75rem !important;
+    min-height: 1rem !important;
+    padding: 6px !important;
+    font-size: 10px !important;
+}
+
+
+
+.fi-sidebar {
+    inset-block: calc(var(--spacing) * 0);
+    z-index: 30 !important;
+    background-color: var(--color-white);
+    height: 100dvh;
+    transition-property: all;
+    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
+    transition-duration: var(--tw-duration, var(--default-transition-duration));
+    flex-direction: column;
+    align-content: flex-start;
+    display: flex;
+    position: fixed;
+    inset-inline-start: calc(var(--spacing) * 0)
+}
+
+@media(min-width: 64rem) {
+    .fi-sidebar {
+        z-index: 20 !important;
+        background-color: #0000;
+        transition-property: none
+    }
+}
+
+.fi-sidebar:where(.dark, .dark *) {
+    background-color: var(--gray-900)
+}
+
+@media(min-width: 64rem) {
+    .fi-sidebar:where(.dark, .dark *) {
+        background-color: #0000
+    }
+}
+
+.fi-sidebar.fi-sidebar-open {
+    width: var(--sidebar-width);
+    --tw-translate-x: calc(var(--spacing) * 0);
+    translate: var(--tw-translate-x) var(--tw-translate-y);
+    --tw-shadow: 0 20px 25px -5px var(--tw-shadow-color, #0000001a), 0 8px 10px -6px var(--tw-shadow-color, #0000001a);
+    --tw-ring-shadow: var(--tw-ring-inset, ) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);
+    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+    --tw-ring-color: color-mix(in oklab, var(--gray-950) 5%, transparent)
+}
+
+.bg-primary-600 {
+    background-color: oklch(0.54 0.17 23.6);
+}
+
+.dark\:fi-bg-color-600 {
+    --dark-bg: oklch(0.45 0.15 24);
+}
+
+.to-primary-700 {
+    --tw-gradient-to: oklch(0.27 0.08 23.93 / 0.82);
+    --tw-gradient-stops: var(--tw-gradient-via-stops);
+}
+
+.from-primary-500 {
+    --tw-gradient-from: oklch(0.42 0.17 27.22);
+    --tw-gradient-stops: var(--tw-gradient-via-stops);
+}
+
+.bg-gradient-to-br {
+    --tw-gradient-position: to bottom right in oklab;
+    background-image: linear-gradient(var(--tw-gradient-stops));
+}
+
+.fi-page-header-main-ctn {
+    row-gap: calc(var(--spacing) * 8);
+    padding-block: 5px !important;
+    flex-direction: column;
+    display: flex;
+}
+
+.fi-panel-portal .fi-topbar {
+    -webkit-backdrop-filter: blur(28px);
+    backdrop-filter: blur(28px);
+    background: #0c101673 !important;
+    border-radius: 15px;
+    min-height: 48px !important;
+    border-bottom: 1px solid #ffffff14;
+    margin-left: 15px;
+    margin-right: 15px;
+    margin-top: 5px !important;
+}
+
+video#bg-video {
+    max-width: 100%;
+    height: auto;
+    z-index: -1;
+    position: fixed !important;
+    object-fit: cover !important;
+    position: absolute !important;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    min-width: 100%;
+    min-height: 100%;
+}
+
+:scope .fi-dropdown-panel:where(.dark, .dark *) {
+    background-color: oklch(0.21 0.01 0 / 0.82) !important;
+    --tw-ring-color: #ffffff1a;
+}
+
+body.fi-body.fi-panel-portal .fi-simple-page {
+    position: relative;
+    z-index: 1;
+}
+
+body.fi-body.fi-panel-portal .fi-simple-layout,
+body.fi-body.fi-panel-portal .fi-simple-main-ctn,
+body.fi-body.fi-panel-portal .fi-simple-main,
+body.fi-body.fi-panel-portal .fi-simple-page,
+body.fi-body.fi-panel-portal .fi-simple-page-content,
+body.fi-body.fi-panel-portal .fi-fo-field,
+body.fi-body.fi-panel-portal .fi-input-wrp,
+body.fi-body.fi-panel-portal .fi-input,
+body.fi-body.fi-panel-portal .fi-btn,
+body.fi-body.fi-panel-portal .fi-icon-btn,
+body.fi-body.fi-panel-portal label,
+body.fi-body.fi-panel-portal input,
+body.fi-body.fi-panel-portal button {
+    pointer-events: auto;
+}
+
+body.fi-body.fi-panel-portal .fi-simple-main-ctn {
+    overflow: visible;
+}
+
+body.fi-body.fi-panel-portal .fi-simple-main {
+    overflow: visible;
+}
+
+.fi-main {
+    width: 100%;
+    height: 100%;
+    padding-inline: calc(var(--spacing) * 1) !important;
+    margin-inline: auto
+}
+
+.fi-topbar-close-collapse-sidebar-btn {
+    display: none;
+    margin-inline: calc(var(--spacing) * 0) !important
+}
+
+@media (max-width: 779px) {
+    .fi-panel-portal .fi-topbar .fi-topbar-global-search {
+        display: none !important;
+    }
+
+    .fi-topbar-close-collapse-sidebar-btn {
+        display: none !important;
+        margin-inline: calc(var(--spacing) * 0) !important
+    }
+
+}
+
+
+
+.fi-panel-portal .fi-topbar .nova-topbar-search {
+    color: #ffffffc7;
+    /* background:#ffffff0b; */
+    /* border:1px solid #ffffff14; */
+    border-radius: .95rem;
+    align-items: center;
+    gap: .7rem;
+    /* min-width: min(30rem, 48vw); */
+    height: 2.5rem;
+    padding: 0 .8rem;
+    transition: background .16s, border-color .16s, transform .16s;
+    display: inline-flex
+}
+
+.fi-panel-portal .fi-topbar .nova-topbar-search:hover {
+    background: #fff1;
+    border-color: #ffffff1f;
+    transform: translateY(-1px)
+}
+
+.fi-panel-portal .fi-topbar .nova-topbar-search__icon {
+    color: #ffffff9e;
+    justify-content: center;
+    align-items: center;
+    display: inline-flex
+}
+
+.portal-spotlight__backdrop.absolute.inset-0.bg-black\/90 {
+    background-color: #0000009c;
+    backdrop-filter: blur(5px);
+}
+
+.portal-actionable {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* topbar por encima del contenido base */
+.fi-topbar-ctn,
+.fi-topbar {
+    z-index: 1000 !important;
+    position: sticky !important;
+}
+
+/* el dropdown del user menu debe quedar por encima del topbar para recibir clicks */
+.fi-dropdown-panel,
+.fi-topbar .fi-dropdown-panel,
+.fi-user-menu .fi-dropdown-panel,
+.fi-topbar .fi-user-menu .fi-dropdown-panel {
+    z-index: 1100 !important;
+    pointer-events: auto !important;
+}
+
+.fi-user-menu .fi-dropdown-panel[style] {
+    z-index: 1101 !important;
+    pointer-events: auto !important;
+}
+
+.fi-panel-portal .fi-modal-window-ctn {
+    padding-top: 0;
+    padding-bottom: 75px;
+}
+
+@media(min-width:768px) {
+    button.fi-icon-btn.fi-size-md.fi-topbar-open-collapse-sidebar-btn {
+        display: block !important;
+    }
+}
+button.fi-icon-btn.fi-size-md.fi-topbar-open-sidebar-btn {
+    display: none;
+}

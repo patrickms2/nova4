@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d3eaadea7c248e1b5e1368b534350527",
+    "content-hash": "94e0a7da8d558c8c40d84b0458db8efe",
     "packages": [
         {
             "name": "agroezinger/filament-navigation-enhanced",
@@ -17946,65 +17946,6 @@
             "time": "2026-08-07T11:25:50+00:00"
         },
         {
-            "name": "upscalewp/laravel-revolut-payments",
-            "version": "dev-main",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/landreiiii/Laravel-Package-Revolut-Payments.git",
-                "reference": "21a2fd8157badd3aaf4e4d4f3825f74b01a3a576"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/landreiiii/Laravel-Package-Revolut-Payments/zipball/21a2fd8157badd3aaf4e4d4f3825f74b01a3a576",
-                "reference": "21a2fd8157badd3aaf4e4d4f3825f74b01a3a576",
-                "shasum": ""
-            },
-            "require": {
-                "illuminate/contracts": "^10.0|^11.0|^12.0",
-                "illuminate/http": "^10.0|^11.0|^12.0",
-                "illuminate/support": "^10.0|^11.0|^12.0",
-                "php": "^8.2"
-            },
-            "require-dev": {
-                "orchestra/testbench": "^8.0|^9.0|^10.0",
-                "pestphp/pest": "^2.0|^3.0",
-                "pestphp/pest-plugin-laravel": "^2.0|^3.0",
-                "phpstan/phpstan": "^1.10|^2.0"
-            },
-            "default-branch": true,
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "aliases": {
-                        "RevolutPayments": "upscalewp\\RevolutPayments\\Facades\\RevolutPayments"
-                    },
-                    "providers": [
-                        "upscalewp\\RevolutPayments\\RevolutPaymentsServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "upscalewp\\RevolutPayments\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "upscalewp"
-                }
-            ],
-            "description": "Laravel SDK for Revolut Merchant payments, orders, refunds, customers, and webhooks.",
-            "support": {
-                "issues": "https://github.com/landreiiii/Laravel-Package-Revolut-Payments/issues",
-                "source": "https://github.com/landreiiii/Laravel-Package-Revolut-Payments/tree/main"
-            },
-            "time": "2026-06-03T14:55:24+00:00"
-        },
-        {
             "name": "vaslv/filament-topbar-menu",
             "version": "v1.11.0",
             "source": {
@@ -21582,8 +21523,7 @@
     "stability-flags": {
         "aryxs3m/laravel-hoas": 20,
         "aureuserp/custom-fields": 20,
-        "saade/filament-fullcalendar": 10,
-        "upscalewp/laravel-revolut-payments": 20
+        "saade/filament-fullcalendar": 10
     },
     "prefer-stable": true,
     "prefer-lowest": false,

@@ -1,0 +1,339 @@
+@php
+    $active ??= false;
+    $attributes ??= new \Illuminate\View\ComponentAttributeBag();
+    $collapsible ??= true;
+    $icon ??= null;
+    $items ??= [];
+    $label ??= null;
+    $sidebarCollapsible = filament()->isSidebarCollapsibleOnDesktop();
+    $subNavigation ??= false;
+    $hasDropdown = filled($label) && filled($icon) && $sidebarCollapsible;
+    $groupLabel = $attributes->get('data-accordion-id') ?? ($subNavigation ? "sub_navigation_{$label}" : $label);
+    $isAccordionManaged = $attributes->get('data-accordion-managed') === '1';
+    $usesDatabase = app(\Devletes\FilamentPinnableNavigation\Support\Navigation\PinPersistenceManager::class)->usesDatabase();
+    $pinIcon = (string) config('pinnable-navigation.pin_icon', 'heroicon-o-star');
+    $unpinIcon = (string) config('pinnable-navigation.unpin_icon', 'heroicon-s-star');
+    $outlinedIcon = base64_encode(\Filament\Support\generate_icon_html($pinIcon, size: \Filament\Support\Enums\IconSize::Small)->toHtml());
+    $filledIcon = base64_encode(\Filament\Support\generate_icon_html($unpinIcon, size: \Filament\Support\Enums\IconSize::Small)->toHtml());
+@endphp
+
+<li
+    x-data="{
+        label: @js($groupLabel),
+        accordionManaged: @js($isAccordionManaged),
+        toggleGroup() {
+            if (! this.accordionManaged) {
+                $store.sidebar.toggleCollapsedGroup(this.label)
+                return
+            }
+
+            const managedGroups = accordionGroups.includes(this.label)
+                ? accordionGroups
+                : [...accordionGroups, this.label]
+            const collapsedGroups = Array.isArray($store.sidebar.collapsedGroups) ? $store.sidebar.collapsedGroups : []
+            const nonAccordionCollapsedGroups = collapsedGroups.filter((group) => ! managedGroups.includes(group))
+            const isCollapsed = $store.sidebar.groupIsCollapsed(this.label)
+
+            $store.sidebar.collapsedGroups = isCollapsed
+                ? [
+                    ...nonAccordionCollapsedGroups,
+                    ...managedGroups.filter((group) => group !== this.label),
+                ]
+                : [
+                    ...nonAccordionCollapsedGroups,
+                    ...managedGroups,
+                ]
+        },
+    }"
+    data-group-label="{{ $groupLabel }}"
+    x-bind:class="{ 'fi-collapsed': $store.sidebar.groupIsCollapsed(label) }"
+    {{
+        $attributes->class([
+            'fi-sidebar-group',
+            'fi-active' => $active,
+            'fi-collapsible' => $collapsible,
+        ])
+    }}
+>
+    @if ($label)
+        <div
+            @if ($collapsible)
+                x-on:click="toggleGroup()"
+            @endif
+            @if ($sidebarCollapsible)
+                x-show="$store.sidebar.isOpen"
+                x-transition:enter="fi-transition-enter"
+                x-transition:enter-start="fi-transition-enter-start"
+                x-transition:enter-end="fi-transition-enter-end"
+            @endif
+            class="fi-sidebar-group-btn"
+        >
+            @if ($icon)
+                {{ \Filament\Support\generate_icon_html($icon, size: \Filament\Support\Enums\IconSize::Large) }}
+            @endif
+
+            <span class="fi-sidebar-group-label">
+                {{ $label }}
+            </span>
+
+            @if ($collapsible)
+                <x-filament::icon-button
+                    color="gray"
+                    :icon="\Filament\Support\Icons\Heroicon::ChevronUp"
+                    :icon-alias="\Filament\View\PanelsIconAlias::SIDEBAR_GROUP_COLLAPSE_BUTTON"
+                    :label="$label"
+                    x-bind:aria-expanded="! $store.sidebar.groupIsCollapsed(label)"
+                    x-on:click.stop="toggleGroup()"
+                    class="fi-sidebar-group-collapse-btn"
+                />
+            @endif
+        </div>
+    @endif
+
+    @if ($hasDropdown)
+        <x-filament::dropdown
+            :placement="(__('filament-panels::layout.direction') === 'rtl') ? 'left-start' : 'right-start'"
+            x-show="! $store.sidebar.isOpen"
+        >
+            <x-slot name="trigger">
+                <button
+                    x-data="{ tooltip: false }"
+                    x-effect="
+                        tooltip = $store.sidebar.isOpen
+                            ? false
+                            : {
+                                  content: @js($label),
+                                  placement: document.dir === 'rtl' ? 'left' : 'right',
+                                  theme: $store.theme,
+                              }
+                    "
+                    x-tooltip.html="tooltip"
+                    class="fi-sidebar-group-dropdown-trigger-btn"
+                >
+                    {{ \Filament\Support\generate_icon_html($icon, size: \Filament\Support\Enums\IconSize::Large) }}
+                </button>
+            </x-slot>
+
+            @php
+                $lists = [];
+
+                foreach ($items as $item) {
+                    if ($childItems = $item->getChildItems()) {
+                        $lists[] = [
+                            $item,
+                            ...$childItems,
+                        ];
+                        $lists[] = [];
+
+                        continue;
+                    }
+
+                    if (empty($lists)) {
+                        $lists[] = [$item];
+
+                        continue;
+                    }
+
+                    $lists[count($lists) - 1][] = $item;
+                }
+
+                if (! empty($lists) && empty($lists[count($lists) - 1])) {
+                    array_pop($lists);
+                }
+            @endphp
+
+            @if (filled($label))
+                <x-filament::dropdown.header>
+                    {{ $label }}
+                </x-filament::dropdown.header>
+            @endif
+
+            @foreach ($lists as $list)
+                <x-filament::dropdown.list>
+                    @foreach ($list as $item)
+                        @php
+                            $itemIsActive = $item->isActive();
+                            $itemBadge = $item->getBadge();
+                            $itemBadgeColor = $item->getBadgeColor();
+                            $itemBadgeTooltip = $item->getBadgeTooltip();
+                            $itemUrl = $item->getUrl();
+                            $itemIcon = $itemIsActive ? ($item->getActiveIcon() ?? $item->getIcon()) : $item->getIcon();
+                            $shouldItemOpenUrlInNewTab = $item->shouldOpenUrlInNewTab();
+                            $itemExtraAttributes = $item->getExtraAttributeBag();
+                            $itemNavigationKey = $itemExtraAttributes->get('data-navigation-key');
+                            $itemIsPinnable = str_contains(trim((string) $itemExtraAttributes->get('data-pinnable')), '1');
+                            $itemIsPinned = str_contains(trim((string) $itemExtraAttributes->get('data-pinned')), '1');
+                            $itemHasPinButton = $itemIsPinnable && filled($itemNavigationKey);
+                        @endphp
+
+                        @if ($itemHasPinButton)
+                            <div class="fi-sidebar-dropdown-item-row">
+                                <x-filament::dropdown.list.item
+                                    :badge="$itemBadge"
+                                    :badge-color="$itemBadgeColor"
+                                    :badge-tooltip="$itemBadgeTooltip"
+                                    :color="$itemIsActive ? 'primary' : 'gray'"
+                                    :href="$itemUrl"
+                                    :icon="$itemIcon"
+                                    tag="a"
+                                    :target="$shouldItemOpenUrlInNewTab ? '_blank' : null"
+                                    :attributes="\Filament\Support\prepare_inherited_attributes($itemExtraAttributes)"
+                                    class="fi-sidebar-dropdown-item-btn-with-pin"
+                                >
+                                    {{ $item->getLabel() }}
+                                </x-filament::dropdown.list.item>
+
+                                @if ($usesDatabase)
+                                    <x-filament::icon-button
+                                        color="gray"
+                                        :icon="$itemIsPinned ? $unpinIcon : $pinIcon"
+                                        icon-size="sm"
+                                        :label="$itemIsPinned ? __('pinnable-navigation::pinnable-navigation.actions.unpin_navigation_item') : __('pinnable-navigation::pinnable-navigation.actions.pin_navigation_item')"
+                                        wire:click.stop="togglePin('{{ $itemNavigationKey }}')"
+                                        wire:target="togglePin('{{ $itemNavigationKey }}')"
+                                        class="fi-sidebar-pin-btn"
+                                    />
+                                @else
+                                    <x-filament::icon-button
+                                        color="gray"
+                                        :icon="$pinIcon"
+                                        icon-size="sm"
+                                        :label="__('pinnable-navigation::pinnable-navigation.actions.pin_navigation_item')"
+                                        :data-localstorage-pin-button="$itemNavigationKey"
+                                        :data-navigation-key="$itemNavigationKey"
+                                        :data-pin-label="__('pinnable-navigation::pinnable-navigation.actions.pin_navigation_item')"
+                                        :data-unpin-label="__('pinnable-navigation::pinnable-navigation.actions.unpin_navigation_item')"
+                                        :data-outlined-icon="$outlinedIcon"
+                                        :data-filled-icon="$filledIcon"
+                                        class="fi-sidebar-pin-btn"
+                                    />
+                                @endif
+                            </div>
+                        @else
+                            <x-filament::dropdown.list.item
+                                :badge="$itemBadge"
+                                :badge-color="$itemBadgeColor"
+                                :badge-tooltip="$itemBadgeTooltip"
+                                :color="$itemIsActive ? 'primary' : 'gray'"
+                                :href="$itemUrl"
+                                :icon="$itemIcon"
+                                tag="a"
+                                :target="$shouldItemOpenUrlInNewTab ? '_blank' : null"
+                                :attributes="\Filament\Support\prepare_inherited_attributes($itemExtraAttributes)"
+                            >
+                                {{ $item->getLabel() }}
+                            </x-filament::dropdown.list.item>
+                        @endif
+                    @endforeach
+                </x-filament::dropdown.list>
+            @endforeach
+        </x-filament::dropdown>
+    @endif
+
+    <ul
+        @if (filled($label))
+            @if ($sidebarCollapsible)
+                x-show="$store.sidebar.isOpen ? ! $store.sidebar.groupIsCollapsed(label) : ! @js($hasDropdown)"
+            @else
+                x-show="! $store.sidebar.groupIsCollapsed(label)"
+            @endif
+            x-collapse.duration.200ms
+        @endif
+        @if ($sidebarCollapsible)
+            x-transition:enter="fi-transition-enter"
+            x-transition:enter-start="fi-transition-enter-start"
+            x-transition:enter-end="fi-transition-enter-end"
+        @endif
+        class="fi-sidebar-group-items"
+    >
+        @php
+            $sidebarSubGroupItemLabels = [
+                'Tourist' => [
+                    'Tours' => ['Tour Translations', 'Tours', 'Tour Bookings', 'Tour Schedules', 'Tour Images', 'Tour Categories'],
+                    'Taxi' => ['Taxi Services', 'Driver Vehicle Assignments'],
+                    'Activities' => ['Activities'],
+                    'Restaurants' => ['Restaurants'],
+                    'Hotels' => ['Hotels'],
+                    'Locations' => ['Locations'],
+                ],
+                'Bookings' => [
+                    'Bookings' => ['Bookings', 'Package Bookings', 'Public requests', 'Tour Bookings', 'Taxi Bookings', 'External Bookings'],
+                ],
+            ];
+
+            $renderSidebarItem = function ($item, bool $first = false, bool $last = false) use ($icon, $label, $sidebarCollapsible, $subNavigation): array {
+                $isItemChildItemsActive = $item->isChildItemsActive();
+                $isItemActive = (! $isItemChildItemsActive) && $item->isActive();
+                $itemActiveIcon = $item->getActiveIcon();
+                $itemBadge = $item->getBadge();
+                $itemBadgeColor = $item->getBadgeColor();
+                $itemBadgeTooltip = $item->getBadgeTooltip();
+                $itemChildItems = $item->getChildItems();
+                $itemIcon = $item->getIcon();
+                $shouldItemOpenUrlInNewTab = $item->shouldOpenUrlInNewTab();
+                $itemUrl = $item->getUrl();
+                $itemExtraAttributes = $item->getExtraAttributeBag();
+                $itemNavigationKey = $itemExtraAttributes->get('data-navigation-key');
+                $itemIsPinnable = str_contains(trim((string) $itemExtraAttributes->get('data-pinnable')), '1');
+                $itemIsPinned = str_contains(trim((string) $itemExtraAttributes->get('data-pinned')), '1');
+
+                if ($icon) {
+                    $itemIcon = null;
+                    $itemActiveIcon = null;
+                }
+
+                return [
+                    'active' => $isItemActive,
+                    'activeChildItems' => $isItemChildItemsActive,
+                    'activeIcon' => $itemActiveIcon,
+                    'attributes' => \Filament\Support\prepare_inherited_attributes($itemExtraAttributes),
+                    'badge' => $itemBadge,
+                    'badgeColor' => $itemBadgeColor,
+                    'badgeTooltip' => $itemBadgeTooltip,
+                    'childItems' => $itemChildItems,
+                    'first' => $first,
+                    'grouped' => filled($label),
+                    'icon' => $itemIcon,
+                    'isPinned' => $itemIsPinned,
+                    'isPinnable' => $itemIsPinnable,
+                    'item' => $item,
+                    'label' => $item->getLabel(),
+                    'last' => $last,
+                    'navigationKey' => $itemNavigationKey,
+                    'shouldOpenUrlInNewTab' => $shouldItemOpenUrlInNewTab,
+                    'sidebarCollapsible' => $sidebarCollapsible,
+                    'subNavigation' => $subNavigation,
+                    'url' => $itemUrl,
+                ];
+            };
+
+            $sidebarSubGroups = collect($sidebarSubGroupItemLabels[$label] ?? []);
+            $sidebarSubGroupedItemLabels = $sidebarSubGroups->flatten()->values();
+            $sidebarRemainingItems = collect($items)->reject(fn ($item): bool => $sidebarSubGroupedItemLabels->contains($item->getLabel()));
+        @endphp
+
+        @foreach ($sidebarSubGroups as $sidebarSubGroupLabel => $sidebarSubGroupLabels)
+            @php
+                $sidebarSubGroupItems = collect($sidebarSubGroupLabels)
+                    ->map(fn (string $itemLabel): mixed => collect($items)->first(fn ($item): bool => $item->getLabel() === $itemLabel))
+                    ->filter()
+                    ->values();
+            @endphp
+            @continue($sidebarSubGroupItems->isEmpty())
+
+            <li class="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                {{ $sidebarSubGroupLabel }}
+            </li>
+
+            @foreach ($sidebarSubGroupItems as $item)
+                @include('pinnable-navigation::sidebar.item', $renderSidebarItem($item, $loop->first, $loop->last))
+            @endforeach
+        @endforeach
+
+        @foreach ($sidebarRemainingItems as $item)
+            @include('pinnable-navigation::sidebar.item', $renderSidebarItem($item, $loop->first, $loop->last))
+        @endforeach
+    </ul>
+</li>
+
+
