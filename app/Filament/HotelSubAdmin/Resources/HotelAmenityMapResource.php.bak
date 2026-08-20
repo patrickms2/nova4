@@ -1,0 +1,107 @@
+<?php
+
+namespace App\Filament\HotelSubAdmin\Resources;
+
+use Filament\Actions;
+
+use BackedEnum;
+use UnitEnum;
+
+use App\Filament\HotelSubAdmin\Resources\HotelAmenityMapResource\Pages;
+use App\Filament\HotelSubAdmin\Resources\HotelAmenityMapResource\RelationManagers;
+use App\Models\HotelAmenityMap;
+use Filament\Facades\Filament;
+use Filament\Forms;
+use Filament\Forms\Components\Select;
+use Filament\Schemas\Schema as Form;
+use Filament\Resources\Resource;
+use Filament\Tables;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
+
+class HotelAmenityMapResource extends Resource
+{
+    protected static ?string $model = HotelAmenityMap::class;
+
+    protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static string | UnitEnum | null $navigationGroup = 'Hoteles';
+    protected static ?string $navigationParentGroup = 'Catálogo';
+
+    protected static ?int $navigationSort = 2;
+    public static function canAccess(): bool
+    {
+        return Filament::auth()->check() 
+         && Filament::auth()->user()->role === 'sub_admin' 
+         && Filament::auth()->user()->section === 'hotel'
+         ;
+    }
+    public static function shouldRegisterNavigation(): bool
+    {
+        return Filament::auth()->check()  
+        && Filament::auth()->user()->role === 'sub_admin' 
+            && Filament::auth()->user()->section === 'hotel';
+    }
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+        ->whereHas('hotel', function ($query) {
+            $query->where('admin_id', auth()->id());
+        });
+    }
+
+    public static function form(Form $form): Form
+    {
+        return $form
+        ->schema([
+            Forms\Components\Hidden::make('hotel_id')
+                ->default(fn () => \App\Models\Hotel::where('admin_id', auth()->id())->value('id')),
+                
+
+            Select::make('amenity_id')
+                ->label('Amenity')
+                ->relationship('amenity', 'name')
+                ->required(),
+        ]);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                Tables\Columns\TextColumn::make('hotel.name')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('amenity.name')
+                    ->searchable(),
+            ])
+            ->filters([
+                //
+            ])
+            ->actions([
+                Actions\ViewAction::make(),
+                Actions\EditAction::make(),
+            ])
+            ->bulkActions([
+                Actions\BulkActionGroup::make([
+                    Actions\DeleteBulkAction::make(),
+                ]),
+            ]);
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            //
+        ];
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => Pages\ListHotelAmenityMaps::route('/'),
+            'create' => Pages\CreateHotelAmenityMap::route('/create'),
+            'view' => Pages\ViewHotelAmenityMap::route('/{record}'),
+            'edit' => Pages\EditHotelAmenityMap::route('/{record}/edit'),
+        ];
+    }
+}

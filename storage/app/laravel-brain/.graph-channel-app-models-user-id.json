@@ -1,0 +1,1 @@
+{"meta":{"project":"Nova MCP HUB","analyzedAt":"2026-06-18T12:07:23+00:00","nodeCount":1,"edgeCount":0},"nodes":[{"id":"channel::a68ae2748d5dbe757e03c4dc5c82b48b","type":"channel","label":"App.Models.User.{id}","data":{"name":"App.Models.User.{id}","class":"","file":"/Users/Shared/WWW/novahubmcp/routes/channels.php","flowSteps":[]}}],"edges":[]}

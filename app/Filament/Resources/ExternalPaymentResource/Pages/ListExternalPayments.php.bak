@@ -1,0 +1,25 @@
+<?php
+
+namespace App\Filament\Resources\ExternalPaymentResource\Pages;
+use App\Filament\Resources\ExternalPaymentResource;
+use Filament\Actions;
+use Filament\Resources\Pages\ListRecords;
+use Archilex\AdvancedTables\AdvancedTables;
+use Filament\Forms\Components\Tabs\Tab;
+use Illuminate\Database\Eloquent\Builder;
+class ListExternalPayments extends ListRecords
+{
+    use AdvancedTables;
+    
+    protected static string $resource = ExternalPaymentResource::class;
+    protected function getHeaderActions(): array
+    {
+        return [
+            Actions\Action::make('calendar')
+                ->label('Calendar')
+                ->icon('heroicon-o-calendar-days')
+                ->url(static::getResource()::getUrl('calendar')),
+            Actions\CreateAction::make(),
+        ];
+    }
+}

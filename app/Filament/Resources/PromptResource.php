@@ -1,0 +1,215 @@
+<?php
+
+namespace App\Filament\Resources;
+
+use Filament\Support\Icons\Heroicon;
+
+use App\Filament\Resources\PromptResource\Pages;
+use App\Models\Prompt;
+use Filament\Actions;
+use Filament\Forms;
+use Filament\Resources\Resource;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema as Form;
+use Filament\Tables;
+use Filament\Tables\Table;
+
+class PromptResource extends Resource
+{
+    protected static ?string $model = Prompt::class;
+
+    protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedChatBubbleLeftRight;
+
+    protected static string|\UnitEnum|null $navigationGroup = 'MCP';
+    protected static ?string $navigationParentGroup = 'IA';
+
+    protected static bool $shouldRegisterNavigation = true;
+
+    protected static ?int $navigationSort = 4;
+
+    public static function form(Form $schema): Form
+    {
+        return $schema->schema([
+            Section::make('Prompt Details')
+                ->schema([
+                    Forms\Components\Select::make('server_id')
+                        ->relationship('server', 'name')
+                        ->required()
+                        ->searchable()
+                        ->preload(),
+                    Forms\Components\TextInput::make('name')
+                        ->required()
+                        ->placeholder('code-review')
+                        ->helperText('Lowercase identifier with hyphens'),
+                    Forms\Components\TextInput::make('title')
+                        ->required()
+                        ->placeholder('Code Review Assistant'),
+                    Forms\Components\Textarea::make('description')
+                        ->required()
+                        ->rows(3)
+                        ->placeholder('A prompt that helps review code for best practices and potential issues'),
+                ])
+                ->columns(2),
+
+            Section::make('Arguments')
+                ->schema([
+                    Forms\Components\Repeater::make('arguments')
+                        ->schema([
+                            Forms\Components\TextInput::make('name')
+                                ->required()
+                                ->placeholder('language')
+                                ->helperText('Argument name'),
+                            Forms\Components\TextInput::make('description')
+                                ->placeholder('The programming language of the code')
+                                ->helperText('Description shown to AI client'),
+                            Forms\Components\Toggle::make('required')
+                                ->default(false)
+                                ->inline(false),
+                        ])
+                        ->columns(3)
+                        ->collapsible()
+                        ->itemLabel(fn (array $state): ?string => $state['name'] ?? 'New Argument')
+                        ->addActionLabel('Add Argument')
+                        ->defaultItems(0)
+                        ->helperText('Define arguments that can be passed when using this prompt. Use {argumentName} in messages to reference them.'),
+                ]),
+
+            Section::make('Messages')
+                ->schema([
+                    Forms\Components\Repeater::make('messages')
+                        ->schema([
+                            Forms\Components\Select::make('role')
+                                ->options([
+                                    'system' => 'System',
+                                    'user' => 'User',
+                                    'assistant' => 'Assistant',
+                                ])
+                                ->default('user')
+                                ->required(),
+                            Forms\Components\Textarea::make('content')
+                                ->required()
+                                ->rows(5)
+                                ->placeholder('You are a helpful {language} code reviewer. Please analyze the following code for:
+- Best practices
+- Potential bugs
+- Performance improvements
+- Security issues')
+                                ->helperText('Use {argumentName} to insert argument values'),
+                        ])
+                        ->columns(1)
+                        ->collapsible()
+                        ->itemLabel(fn (array $state): ?string => ucfirst($state['role'] ?? 'user').' message')
+                        ->addActionLabel('Add Message')
+                        ->defaultItems(1)
+                        ->reorderable()
+                        ->helperText('Define the conversation messages. Arguments like {language} will be replaced with actual values.'),
+                ]),
+
+            Section::make('Metadata')
+                ->schema([
+                    Forms\Components\KeyValue::make('metadata')
+                        ->keyLabel('Key')
+                        ->valueLabel('Value')
+                        ->helperText('Additional metadata to attach to this prompt'),
+                ])
+                ->collapsed(),
+
+            Section::make('Settings')
+                ->schema([
+                    Forms\Components\Toggle::make('is_active')
+                        ->label('Active')
+                        ->default(true)
+                        ->helperText('Inactive prompts are not exposed via MCP'),
+                    Forms\Components\TextInput::make('sort_order')
+                        ->numeric()
+                        ->default(0)
+                        ->helperText('Order in which prompts appear'),
+                ])
+                ->columns(2),
+        ]);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                Tables\Columns\TextColumn::make('server.name')
+                    ->label('Server')
+                    ->sortable()
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('name')
+                    ->searchable()
+                    ->copyable(),
+                Tables\Columns\TextColumn::make('title')
+                    ->searchable()
+                    ->limit(30),
+                Tables\Columns\TextColumn::make('description')
+                    ->limit(50)
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('arguments_count')
+                    ->label('Args')
+                    ->getStateUsing(fn (Prompt $record): int => count($record->arguments ?? []))
+                    ->badge()
+                    ->color('info'),
+                Tables\Columns\TextColumn::make('messages_count')
+                    ->label('Messages')
+                    ->getStateUsing(fn (Prompt $record): int => count($record->messages ?? []))
+                    ->badge()
+                    ->color('success'),
+                Tables\Columns\IconColumn::make('is_active')
+                    ->boolean(),
+                Tables\Columns\TextColumn::make('updated_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+            ])
+            ->filters([
+                Tables\Filters\SelectFilter::make('server')
+                    ->relationship('server', 'name')->searchable(),
+                Tables\Filters\TernaryFilter::make('is_active'),
+            ])
+            ->actions([
+                Actions\EditAction::make(),
+                Actions\Action::make('preview')
+                    ->icon(Heroicon::OutlinedEye)
+                    ->modalHeading(fn (Prompt $record) => "Preview: {$record->title}")
+                    ->modalContent(fn (Prompt $record) => view('filament.resources.prompt-preview-modal', ['prompt' => $record]))
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel('Close'),
+                Actions\Action::make('duplicate')
+                    ->icon(Heroicon::OutlinedDocumentDuplicate)
+                    ->action(function (Prompt $record) {
+                        $newPrompt = $record->replicate();
+                        $newPrompt->name = $record->name.'-copy';
+                        $newPrompt->title = $record->title.' (Copy)';
+                        $newPrompt->save();
+                    })
+                    ->successNotificationTitle('Prompt duplicated'),
+            ])
+            ->toolbarActions([
+                Actions\BulkActionGroup::make([
+                    Actions\DeleteBulkAction::make()->deselectRecordsAfterCompletion(),
+                    Actions\BulkAction::make('activate')
+                        ->label('Activate')
+                        ->icon(Heroicon::OutlinedCheck)
+                        ->action(fn ($records) => $records->each->update(['is_active' => true]))
+                        ->deselectRecordsAfterCompletion(),
+                    Actions\BulkAction::make('deactivate')
+                        ->label('Deactivate')
+                        ->icon(Heroicon::OutlinedXMark)
+                        ->action(fn ($records) => $records->each->update(['is_active' => false]))
+                        ->deselectRecordsAfterCompletion(),
+                ]),
+            ])
+            ->defaultSort('sort_order');
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => Pages\ListPrompts::route('/'),
+            'create' => Pages\CreatePrompt::route('/create'),
+            'edit' => Pages\EditPrompt::route('/{record}/edit'),
+        ];
+    }
+}

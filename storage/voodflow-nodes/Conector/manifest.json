@@ -1,0 +1,26 @@
+{
+    "name": "conector",
+    "display_name": "Conector",
+    "version": "1.0.0",
+    "author": "Voodflow",
+    "description": "Custom node for workflow automation",
+    "category": "integration",
+    "tier": "FREE",
+    "display": {
+        "iconType": "heroicon",
+        "icon": "heroicon-o-puzzle-piece",
+        "color": "indigo",
+        "logo": null
+    },
+    "php": {
+        "class": "Conector",
+        "namespace": "Voodflow\\Voodflow\\Nodes\\Conector"
+    },
+    "javascript": {
+        "component": "VoodflowNode_Conector",
+        "bundle": "dist/conector.js"
+    },
+    "license": {
+        "type": "MIT"
+    }
+}

@@ -1,0 +1,43 @@
+{
+    "mcpServers": {
+        "elmapicms": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@elmapicms/mcp-server"
+            ],
+            "env": {
+                "ELMAPI_BASE_URL": "https://cms.novagestion.eu/api",
+                "ELMAPI_API_KEY": "9b44isjL7hPlVivMLf2j7V2esG25nTrJU3dg1jCx229a5773",
+                "ELMAPI_PROJECT_ID": "f979afdc-10ff-45d9-9dda-51e7e0692476"
+            }
+        },
+        "clickup": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@hauptsache.net/clickup-mcp@latest"
+            ],
+            "env": {
+                "CLICKUP_API_KEY": "pk_32602067_GLXBBW8UH2ACUT9VS9FPPR3E23SQEZ1S",
+                "CLICKUP_TEAM_ID": "tu_team_id_opcional"
+            },
+            "disabled": true
+        },
+        "filesystem": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@modelcontextprotocol/server-filesystem",
+                "/Users/patrickms/Downloads/novahub"
+            ]
+        },
+        "laravel-boost": {
+            "command": "php",
+            "args": [
+                "artisan",
+                "boost:mcp"
+            ]
+        }
+    }
+}

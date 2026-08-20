@@ -1,0 +1,367 @@
+{
+    "title": "Merge data from different branches",
+    "author": "admin",
+    "description": "Split data, transform and merge again",
+    "fingerprint": "ca4d3fa2-a956-43c5-834c-5e755d4ba27d",
+    "nodes": [
+        {
+            "id": "dummy_data_node-e76188bc-016b-434f-abca-165cc82cce9c",
+            "type": "dummy_data_node",
+            "position": {
+                "x": -1202.3092981759692,
+                "y": -447.71510305571644
+            },
+            "data": {
+                "label": "Customer",
+                "description": "Sample customer data",
+                "content": "{\n  \"data\": [\n    { \"id\": 1, \"name\": \"Alice\", \"email\": \"alice@example.com\", \"status\": \"active\", \"lifetime_value\": 3200, \"country\": \"IT\", \"tags\": [\"vip\",\"newsletter\"] },\n    { \"id\": 2, \"name\": \"Bob\", \"email\": \"bob@example.com\", \"status\": \"inactive\", \"lifetime_value\": 150, \"country\": \"IT\", \"tags\": [\"newsletter\"] },\n    { \"id\": 3, \"name\": \"Carla\", \"email\": \"carla@example.com\", \"status\": \"active\", \"lifetime_value\": 980, \"country\": \"ES\", \"tags\": [] },\n    { \"id\": 4, \"name\": \"Diana\", \"email\": \"diana@example.com\", \"status\": \"active\", \"lifetime_value\": 5400, \"country\": \"US\", \"tags\": [\"vip\"] },\n    { \"id\": 5, \"name\": \"Edo\", \"email\": \"edo@example.com\", \"status\": \"active\", \"lifetime_value\": 1200, \"country\": \"IT\", \"tags\": [\"trial\"] }\n  ],\n  \"meta\": { \"source\": \"demo\", \"generated_at\": \"2026-04-09T12:00:00Z\" }\n}",
+                "icon": "heroicon-o-document-arrow-down",
+                "iconType": "heroicon",
+                "color": "emerald",
+                "display_name": "Dummy Data",
+                "isNew": true,
+                "isExpanded": true,
+                "positioning": {
+                    "input": false,
+                    "output": true
+                },
+                "logoUrl": null,
+                "logoMissing": false,
+                "data_type": "json",
+                "_v": 2
+            },
+            "style": null
+        },
+        {
+            "id": "merge_node-75b86d20-8e27-47cb-bd96-618eabe2e78e",
+            "type": "merge_node",
+            "position": {
+                "x": 1269.5348738903608,
+                "y": -211.13851450171302
+            },
+            "data": {
+                "label": "Merge",
+                "description": "Re-unify branches",
+                "mergeStrategy": "concat",
+                "mergeKey": "id",
+                "icon": "heroicon-o-arrows-pointing-in",
+                "iconType": "heroicon",
+                "color": "yellow",
+                "display_name": "Merge",
+                "isNew": true,
+                "isExpanded": true,
+                "logoUrl": null,
+                "logoMissing": false
+            },
+            "style": null
+        },
+        {
+            "id": "for_each_node-c0f8564e-ed77-4cb0-8e98-246af9717006",
+            "type": "for_each_node",
+            "position": {
+                "x": -521.777593837398,
+                "y": -212.6792621282237
+            },
+            "data": {
+                "label": "For Each",
+                "description": "",
+                "isNew": true,
+                "icon": "heroicon-o-arrow-path",
+                "iconType": "heroicon",
+                "logoUrl": null,
+                "logoMissing": false,
+                "color": "yellow",
+                "display_name": "ForEach",
+                "array_field": "data",
+                "max_iterations": 100,
+                "_v": 9
+            },
+            "style": null
+        },
+        {
+            "id": "expression_node-5f258610-0348-4a7c-a82f-789b35e2fa39",
+            "type": "expression_node",
+            "position": {
+                "x": 621.5858947100717,
+                "y": -903.3171211571168
+            },
+            "data": {
+                "label": "Expression",
+                "description": "",
+                "expressions": [
+                    {
+                        "field": "branch",
+                        "expression": "\"vip\""
+                    },
+                    {
+                        "field": "discount",
+                        "expression": "20"
+                    },
+                    {
+                        "field": "name",
+                        "expression": "{{name}}"
+                    },
+                    {
+                        "field": "email",
+                        "expression": "{{email}}"
+                    },
+                    {
+                        "field": "lv",
+                        "expression": "{{lifetime_value}}"
+                    }
+                ],
+                "pass_through_input": true,
+                "evaluation_mode": "per_record",
+                "isNew": true,
+                "icon": "heroicon-o-command-line",
+                "iconType": "heroicon",
+                "logoUrl": null,
+                "logoMissing": false,
+                "color": "emerald",
+                "display_name": "Expression",
+                "id": "expression_node-5f258610-0348-4a7c-a82f-789b35e2fa39",
+                "_v": 22
+            },
+            "style": null
+        },
+        {
+            "id": "expression_node-784fabbc-08fc-437b-95b8-2c5a6a528665",
+            "type": "expression_node",
+            "position": {
+                "x": 629.2504119956869,
+                "y": 21.39503150973134
+            },
+            "data": {
+                "label": "Expression",
+                "description": "",
+                "expressions": [
+                    {
+                        "field": "branch",
+                        "expression": "\"standard\""
+                    },
+                    {
+                        "field": "discount",
+                        "expression": "0"
+                    },
+                    {
+                        "field": "name",
+                        "expression": "{{name}}"
+                    },
+                    {
+                        "field": "email",
+                        "expression": "{{email}}"
+                    },
+                    {
+                        "field": "lv",
+                        "expression": "{{lifetime_value}}"
+                    }
+                ],
+                "pass_through_input": true,
+                "evaluation_mode": "per_record",
+                "isNew": false,
+                "icon": "heroicon-o-command-line",
+                "iconType": "heroicon",
+                "logoUrl": null,
+                "logoMissing": false,
+                "color": "emerald",
+                "display_name": "Expression",
+                "_v": 25,
+                "isExpanded": true,
+                "id": "expression_node-784fabbc-08fc-437b-95b8-2c5a6a528665"
+            },
+            "style": null
+        },
+        {
+            "id": "if_node-cdd683f0-2482-495c-9733-748cd52e218d",
+            "type": "if_node",
+            "position": {
+                "x": 76.31406616974692,
+                "y": -251.3296430843137
+            },
+            "data": {
+                "label": "If",
+                "description": "",
+                "isNew": true,
+                "icon": "heroicon-o-arrows-up-down",
+                "iconType": "heroicon",
+                "logoUrl": null,
+                "logoMissing": false,
+                "color": "yellow",
+                "display_name": "If",
+                "id": "if_node-cdd683f0-2482-495c-9733-748cd52e218d",
+                "conditions": [
+                    {
+                        "column": "lifetime_value",
+                        "operator": "<",
+                        "value": "1000",
+                        "logic": "AND",
+                        "value_mode": "manual"
+                    }
+                ],
+                "_v": 8
+            },
+            "style": null
+        },
+        {
+            "id": "data_viewer_node-26e68884-bb03-4a40-adb6-75344c82c248",
+            "type": "data_viewer_node",
+            "position": {
+                "x": 1874.3042234608536,
+                "y": -715.1257759994385
+            },
+            "data": {
+                "label": "Data Viewer",
+                "description": "",
+                "view_mode": "auto",
+                "isNew": true,
+                "icon": "heroicon-o-table-cells",
+                "iconType": "heroicon",
+                "logoUrl": null,
+                "logoMissing": false,
+                "color": "slate",
+                "display_name": "Data Viewer",
+                "id": "data_viewer_node-26e68884-bb03-4a40-adb6-75344c82c248",
+                "visibleColumns": [
+                    "error"
+                ],
+                "display_keys": [
+                    "branch",
+                    "discount",
+                    "name",
+                    "lv"
+                ],
+                "_v": 12
+            },
+            "style": null
+        },
+        {
+            "id": "system_notification-ef055387-fbdc-4e73-8b7f-cdd2d5798e0e",
+            "type": "system_notification",
+            "position": {
+                "x": 1870.0101567133395,
+                "y": -118.07350234157497
+            },
+            "data": {
+                "label": "System Notification",
+                "description": "",
+                "title": "utenti",
+                "body": "Name {{name}}\nEmail {{email}}\nCountry {{country}}\nDiscount {{discount}}\nLifetime value {{lv}}",
+                "status": "info",
+                "icon": "heroicon-o-bell",
+                "icon_color": null,
+                "persistent": false,
+                "duration_ms": null,
+                "channels": [
+                    "database"
+                ],
+                "dispatch_database_event": true,
+                "recipient_user_id": "1",
+                "isNew": true,
+                "iconType": "heroicon",
+                "logoUrl": null,
+                "logoMissing": false,
+                "color": "indigo",
+                "display_name": "System Notification",
+                "id": "system_notification-ef055387-fbdc-4e73-8b7f-cdd2d5798e0e",
+                "_v": 11
+            },
+            "style": null
+        },
+        {
+            "id": "manual_trigger_node-c1e28c90-2b04-436b-b8fa-4590fe9da056",
+            "type": "manual_trigger_node",
+            "position": {
+                "x": -1157.1657353407911,
+                "y": -628.0156982809983
+            },
+            "data": {
+                "label": "Manual Trigger",
+                "description": "Manually trigger workflow execution",
+                "test_payload": "{}",
+                "positioning": {
+                    "input": false,
+                    "output": true
+                },
+                "isNew": true,
+                "icon": "heroicon-o-hand-raised",
+                "iconType": "heroicon",
+                "logoUrl": null,
+                "logoMissing": false,
+                "color": "amber",
+                "display_name": "Manual Trigger",
+                "id": "manual_trigger_node-c1e28c90-2b04-436b-b8fa-4590fe9da056",
+                "isExpanded": false,
+                "_v": 1
+            },
+            "style": null
+        }
+    ],
+    "edges": [
+        {
+            "id": "xy-edge__dummy_data_node-e76188bc-016b-434f-abca-165cc82cce9c-for_each_node-c0f8564e-ed77-4cb0-8e98-246af9717006",
+            "source": "dummy_data_node-e76188bc-016b-434f-abca-165cc82cce9c",
+            "target": "for_each_node-c0f8564e-ed77-4cb0-8e98-246af9717006",
+            "sourceHandle": null,
+            "targetHandle": null
+        },
+        {
+            "id": "xy-edge__expression_node-5f258610-0348-4a7c-a82f-789b35e2fa39-merge_node-75b86d20-8e27-47cb-bd96-618eabe2e78einput-A",
+            "source": "expression_node-5f258610-0348-4a7c-a82f-789b35e2fa39",
+            "target": "merge_node-75b86d20-8e27-47cb-bd96-618eabe2e78e",
+            "sourceHandle": null,
+            "targetHandle": "input-A"
+        },
+        {
+            "id": "xy-edge__expression_node-784fabbc-08fc-437b-95b8-2c5a6a528665-merge_node-75b86d20-8e27-47cb-bd96-618eabe2e78einput-B",
+            "source": "expression_node-784fabbc-08fc-437b-95b8-2c5a6a528665",
+            "target": "merge_node-75b86d20-8e27-47cb-bd96-618eabe2e78e",
+            "sourceHandle": null,
+            "targetHandle": "input-B"
+        },
+        {
+            "id": "xy-edge__for_each_node-c0f8564e-ed77-4cb0-8e98-246af9717006-if_node-cdd683f0-2482-495c-9733-748cd52e218d",
+            "source": "for_each_node-c0f8564e-ed77-4cb0-8e98-246af9717006",
+            "target": "if_node-cdd683f0-2482-495c-9733-748cd52e218d",
+            "sourceHandle": null,
+            "targetHandle": null
+        },
+        {
+            "id": "xy-edge__if_node-cdd683f0-2482-495c-9733-748cd52e218dfalse-expression_node-784fabbc-08fc-437b-95b8-2c5a6a528665",
+            "source": "if_node-cdd683f0-2482-495c-9733-748cd52e218d",
+            "target": "expression_node-784fabbc-08fc-437b-95b8-2c5a6a528665",
+            "sourceHandle": "false",
+            "targetHandle": null
+        },
+        {
+            "id": "xy-edge__if_node-cdd683f0-2482-495c-9733-748cd52e218dtrue-expression_node-5f258610-0348-4a7c-a82f-789b35e2fa39",
+            "source": "if_node-cdd683f0-2482-495c-9733-748cd52e218d",
+            "target": "expression_node-5f258610-0348-4a7c-a82f-789b35e2fa39",
+            "sourceHandle": "true",
+            "targetHandle": null
+        },
+        {
+            "id": "xy-edge__merge_node-75b86d20-8e27-47cb-bd96-618eabe2e78e-data_viewer_node-26e68884-bb03-4a40-adb6-75344c82c248",
+            "source": "merge_node-75b86d20-8e27-47cb-bd96-618eabe2e78e",
+            "target": "data_viewer_node-26e68884-bb03-4a40-adb6-75344c82c248",
+            "sourceHandle": null,
+            "targetHandle": null
+        },
+        {
+            "id": "xy-edge__merge_node-75b86d20-8e27-47cb-bd96-618eabe2e78e-system_notification-ef055387-fbdc-4e73-8b7f-cdd2d5798e0e",
+            "source": "merge_node-75b86d20-8e27-47cb-bd96-618eabe2e78e",
+            "target": "system_notification-ef055387-fbdc-4e73-8b7f-cdd2d5798e0e",
+            "sourceHandle": null,
+            "targetHandle": null
+        },
+        {
+            "id": "xy-edge__manual_trigger_node-c1e28c90-2b04-436b-b8fa-4590fe9da056-dummy_data_node-e76188bc-016b-434f-abca-165cc82cce9c",
+            "source": "manual_trigger_node-c1e28c90-2b04-436b-b8fa-4590fe9da056",
+            "target": "dummy_data_node-e76188bc-016b-434f-abca-165cc82cce9c",
+            "sourceHandle": null,
+            "targetHandle": null
+        }
+    ],
+    "viewport": null,
+    "exportedAt": "2026-08-08T12:00:41+00:00",
+    "voodflowVersion": "1.0.0"
+}

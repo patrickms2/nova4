@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "nodes": [
+    {
+      "id": "trigger_1",
+      "type": "trigger",
+      "position": { "x": 400, "y": 60 },
+      "data": {
+        "label": "User Message",
+        "triggerType": "user_message",
+        "outputVariable": "user_message"
+      }
+    },
+    {
+      "id": "action_mcp",
+      "type": "action",
+      "position": { "x": 400, "y": 200 },
+      "data": {
+        "label": "Obtener Restaurantes",
+        "actionKey": "call-mcp-tool",
+        "inputMapping": {
+          "server_slug": "sirvo-restaurants-mcp",
+          "tool_name": "sirvo-restaurantes",
+          "input": {}
+        },
+        "outputVariable": "mcp_result"
+      }
+    },
+    {
+      "id": "action_normalize",
+      "type": "action",
+      "position": { "x": 400, "y": 340 },
+      "data": {
+        "label": "Normalizar Respuesta",
+        "actionKey": "normalize-mcp-response",
+        "inputMapping": {
+          "raw_response": "{{mcp_result}}",
+          "server_slug": "sirvo-restaurants-mcp",
+          "response_type": "booking"
+        },
+        "outputVariable": "normalized_result"
+      }
+    },
+    {
+      "id": "action_register",
+      "type": "action",
+      "position": { "x": 400, "y": 480 },
+      "data": {
+        "label": "Registrar en Nova",
+        "actionKey": "register-nova-data",
+        "inputMapping": {
+          "normalized_data": "{{normalized_result}}",
+          "server_slug": "sirvo-restaurants-mcp",
+          "record_type": "booking",
+          "intent_key": "restaurant_booking"
+        },
+        "outputVariable": "record_id"
+      }
+    },
+    {
+      "id": "end_1",
+      "type": "end",
+      "position": { "x": 400, "y": 620 },
+      "data": { "label": "End" }
+    }
+  ],
+  "edges": [
+    { "id": "e1", "source": "trigger_1", "target": "action_mcp" },
+    { "id": "e2", "source": "action_mcp", "target": "action_normalize" },
+    { "id": "e3", "source": "action_normalize", "target": "action_register" },
+    { "id": "e4", "source": "action_register", "target": "end_1" }
+  ]
+}

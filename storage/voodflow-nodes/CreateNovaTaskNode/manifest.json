@@ -1,0 +1,26 @@
+{
+    "name": "create-nova-task-node",
+    "display_name": "Create NOVA Task",
+    "version": "1.0.0",
+    "author": "Voodflow",
+    "description": "Creates a NOVA task through the existing CreateTaskAction.",
+    "category": "action",
+    "tier": "FREE",
+    "display": {
+        "iconType": "heroicon",
+        "icon": "heroicon-o-paper-airplane",
+        "color": "blue",
+        "logo": null
+    },
+    "php": {
+        "class": "CreateNovaTaskNode",
+        "namespace": "Voodflow\\Voodflow\\Nodes\\CreateNovaTaskNode"
+    },
+    "javascript": {
+        "component": "VoodflowNode_CreateNovaTaskNode",
+        "bundle": "dist/create-nova-task-node.js"
+    },
+    "license": {
+        "type": "MIT"
+    }
+}

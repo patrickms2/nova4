@@ -1,0 +1,30 @@
+{
+  "items": [
+    [
+      {
+        "connectionType": "STREAMABLE_HTTP",
+        "command": "",
+        "args": [],
+        "url": "https://novahub.test/mcp/nova",
+        "cwd": "",
+        "oauth": "",
+        "clientName": "openmcp.connect.STREAMABLE_HTTP",
+        "clientVersion": "0.0.1",
+        "env": {
+          "HOME": "/Users/patrickms",
+          "LOGNAME": "patrickms",
+          "PATH": "/Users/patrickms/.local/bin:/Users/patrickms/.antigravity/antigravity/bin:/Users/patrickms/.bun/bin:/Users/patrickms/.spin/bin:/Users/patrickms/bin/Sencha/Cmd:/Users/patrickms/.gem/bin:/opt/homebrew/opt/ruby/bin:/opt/homebrew/opt/ruby/bin:/Users/patrickms/developer/flutter/bin:/Users/patrickms/Library/Application Support/Herd/bin/:/Users/patrickms/Library/Application Support/Herd/config/nvm/versions/node/v20.20.2/bin:/Users/patrickms/.gem/ruby/3.2.0/bin:/Users/patrickms/.gem/bin:/Users/patrickms/.gem/bin:/Users/patrickms/.rbenv/bin:/opt/homebrew/opt/python@3.11/libexec/bin/:/opt/homebrew/opt/ruby/bin:/opt/homebrew/opt/mariadb@10.6/bin:/Users/patrickms/developer/flutter/bin:/opt/homebrew/opt/libxml2/bin:/opt/homebrew/Cellar/openssl@3/3.5.2/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/Users/patrickms/.cargo/bin:/Users/patrickms/.composer/vendor/bin:/Applications/MAMP/bin/php:/Applications/MAMP/bin/php/php8.4.17/bin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/opt/pkg/env/active/bin:/opt/pmk/env/global/bin:/Library/Apple/usr/bin:/Users/patrickms/.gem/bin:/usr/local/bin:/Users/patrickms/Library/Android/sdk/tools:/Users/patrickms/Library/Android/sdk/tools/bin:/Users/patrickms/Library/Android/sdk/platform-tools:/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home/bin:/Users/patrickms/Library/Android/sdk/emulator:/Users/patrickms/Library/Android/sdk/tools:/Users/patrickms/Library/Android/sdk/tools/bin:/Users/patrickms/Library/Android/sdk/platform-tools:/Users/patrickms/.rvm/bin::/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Users/patrickms/.rvm/bin:/Applications/ServBay/script/alias:/Applications/ServBay/bin:/Applications/ServBay/sbin:/Applications/ServBay/script:/Applications/ServBay/package/node/current/bin",
+          "SHELL": "/bin/zsh",
+          "TERM": "",
+          "USER": "patrickms"
+        },
+        "serverInfo": {
+          "name": "Nova MCP",
+          "version": "1.0.0"
+        },
+        "name": "Nova MCP",
+        "version": "1.0.0"
+      }
+    ]
+  ]
+}

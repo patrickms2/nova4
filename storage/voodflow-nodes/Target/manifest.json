@@ -1,0 +1,26 @@
+{
+    "name": "target",
+    "display_name": "Target",
+    "version": "1.0.0",
+    "author": "Voodflow",
+    "description": "Custom node for workflow automation",
+    "category": "transform",
+    "tier": "FREE",
+    "display": {
+        "iconType": "heroicon",
+        "icon": "heroicon-o-funnel",
+        "color": "purple",
+        "logo": null
+    },
+    "php": {
+        "class": "Target",
+        "namespace": "Voodflow\\Voodflow\\Nodes\\Target"
+    },
+    "javascript": {
+        "component": "VoodflowNode_Target",
+        "bundle": "dist/target.js"
+    },
+    "license": {
+        "type": "MIT"
+    }
+}

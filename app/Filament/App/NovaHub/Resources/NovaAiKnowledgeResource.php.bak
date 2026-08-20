@@ -1,0 +1,161 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Filament\App\Resources;
+
+use App\Filament\App\NovaHub\Resources\NovaAiKnowledgeResource\Pages\CreateNovaAiKnowledge;
+use App\Filament\App\NovaHub\Resources\NovaAiKnowledgeResource\Pages\EditNovaAiKnowledge;
+use App\Filament\App\NovaHub\Resources\NovaAiKnowledgeResource\Pages\ListNovaAiKnowledge;
+use App\Models\NovaBusiness;
+use App\Models\NovaAiKnowledge;
+use Filament\Forms\Components\KeyValue;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Resources\Resource;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Tables\Columns\BadgeColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Table;
+
+final class NovaAiKnowledgeResource extends Resource
+{
+    protected static ?string $model = NovaAiKnowledge::class;
+
+    protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedBookOpen;
+
+    protected static string|\UnitEnum|null $navigationGroup = 'MCP';
+    protected static ?string $navigationParentGroup = 'IA';
+
+    protected static ?string $navigationLabel = 'Conocimiento IA';
+
+    protected static ?string $modelLabel = 'Fragmento de conocimiento';
+
+    protected static ?string $pluralModelLabel = 'Conocimiento IA';
+
+    protected static ?int $navigationSort = 5;
+
+    protected static bool $isScopedToTenant = false;
+
+    public static function form(Schema $schema): Schema
+    {
+        return $schema->components([
+            Section::make('Fragmento de conocimiento')
+                ->schema([
+                    Select::make('nova_business_id')
+                        ->label('Negocio')
+                        ->options(fn (): array => NovaBusiness::query()
+                            ->orderBy('name')
+                            ->pluck('name', 'id')
+                            ->toArray())
+                        ->searchable()
+                        ->preload()
+                        ->required(),
+                    Select::make('status')
+                        ->label('Estado')
+                        ->options([
+                            'active' => 'Activo',
+                            'pending' => 'Pendiente',
+                            'paused' => 'Pausado',
+                        ])
+                        ->default('active')
+                        ->required(),
+                    TextInput::make('title')
+                        ->label('Título')
+                        ->required()
+                        ->maxLength(255)
+                        ->columnSpanFull(),
+                    Textarea::make('content')
+                        ->label('Contenido')
+                        ->helperText('Texto que el agente IA usará para responder. Sé específico y conciso.')
+                        ->rows(14)
+                        ->required()
+                        ->columnSpanFull(),
+                    KeyValue::make('metadata')
+                        ->label('Metadatos (fuente, dominio, etc.)')
+                        ->columnSpanFull(),
+                ])
+                ->columns(2),
+        ]);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                TextColumn::make('business.name')
+                    ->label('Negocio')
+                    ->badge()
+                    ->sortable()
+                    ->searchable(),
+                TextColumn::make('title')
+                    ->label('Título')
+                    ->searchable()
+                    ->sortable()
+                    ->weight('bold')
+                    ->limit(60),
+                TextColumn::make('content')
+                    ->label('Contenido')
+                    ->limit(80)
+                    ->color('gray')
+                    ->toggleable(),
+                TextColumn::make('status')
+                    ->label('Estado')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'active' => 'success',
+                        'pending' => 'warning',
+                        'paused' => 'danger',
+                        default => 'gray',
+                    })
+                    ->sortable(),
+                TextColumn::make('updated_at')
+                    ->label('Actualizado')
+                    ->dateTime('d/m/Y H:i')
+                    ->sortable()
+                    ->toggleable(),
+            ])
+            ->defaultSort('updated_at', 'desc')
+            ->filters([
+                SelectFilter::make('nova_business_id')
+                    ->label('Negocio')
+                    ->options(fn (): array => NovaBusiness::query()
+                        ->orderBy('name')
+                        ->pluck('name', 'id')
+                        ->toArray())
+                    ->searchable()
+                    ->preload(),
+                SelectFilter::make('status')
+                    ->label('Estado')
+                    ->options([
+                        'active' => 'Activo',
+                        'pending' => 'Pendiente',
+                        'paused' => 'Pausado',
+                    ]),
+            ])
+            ->recordActions([
+                EditAction::make(),
+            ])
+            ->bulkActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                ]),
+            ]);
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => ListNovaAiKnowledge::route('/'),
+            'create' => CreateNovaAiKnowledge::route('/create'),
+            'edit' => EditNovaAiKnowledge::route('/{record}/edit'),
+        ];
+    }
+}

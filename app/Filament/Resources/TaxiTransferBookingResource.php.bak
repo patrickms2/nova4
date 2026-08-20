@@ -1,0 +1,161 @@
+<?php
+
+namespace App\Filament\Resources;
+
+use App\Filament\Resources\TaxiTransferBookingResource\Pages;
+use App\Models\PublicBookingRequest;
+use BackedEnum;
+use Filament\Actions;
+use Filament\Facades\Filament;
+use Filament\Forms;
+use Filament\Resources\Resource;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema as Form;
+use Filament\Tables;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use UnitEnum;
+
+class TaxiTransferBookingResource extends Resource
+{
+    protected static ?string $model = PublicBookingRequest::class;
+
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-truck';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Reservas';
+    protected static ?string $navigationLabel = 'Taxis';
+
+    protected static ?string $modelLabel = 'Reserva Taxi / Transfer';
+
+    protected static ?string $pluralModelLabel = 'Reservas Taxi / Transfers';
+
+    protected static ?string $recordTitleAttribute = 'request_reference';
+
+    protected static ?int $navigationSort = 6;
+
+    public static function form(Form $schema): Form
+    {
+        return $schema->schema([
+            Section::make('Reserva Taxi / Transfer')
+                ->schema([
+                    Forms\Components\TextInput::make('request_reference')->disabled(),
+                    Forms\Components\TextInput::make('type')->disabled(),
+                    Forms\Components\TextInput::make('service_name')->disabled(),
+                    Forms\Components\TextInput::make('status')->disabled(),
+                    Forms\Components\TextInput::make('payment_status')->disabled(),
+                    Forms\Components\TextInput::make('remote_booking_status')->disabled(),
+                ])->columns(3),
+            Section::make('Cliente')
+                ->schema([
+                    Forms\Components\TextInput::make('customer_name')->disabled(),
+                    Forms\Components\TextInput::make('customer_email')->disabled(),
+                    Forms\Components\TextInput::make('customer_phone')->disabled(),
+                    Forms\Components\Textarea::make('notes')->columnSpanFull()->disabled(),
+                ])->columns(3),
+            Section::make('Trayecto')
+                ->schema([
+                    Forms\Components\DatePicker::make('tour_date')->disabled(),
+                    Forms\Components\TimePicker::make('tour_schedule')->seconds(false)->disabled(),
+                    Forms\Components\DateTimePicker::make('pickup_date_time')->disabled(),
+                    Forms\Components\TextInput::make('pickup_address')->disabled(),
+                    Forms\Components\TextInput::make('dropoff_address')->disabled(),
+                    Forms\Components\TextInput::make('passengers')->disabled(),
+                    Forms\Components\TextInput::make('base_price')->disabled(),
+                    Forms\Components\TextInput::make('payment_amount_cents')->disabled(),
+                    Forms\Components\TextInput::make('remote_source_platform')->disabled(),
+                    Forms\Components\TextInput::make('remote_external_id')->disabled(),
+                ])->columns(3),
+        ]);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->defaultSort('created_at', 'desc')
+            ->columns([
+                Tables\Columns\TextColumn::make('id')->label('ID')->searchable()->sortable(),
+                Tables\Columns\TextColumn::make('request_reference')->label('Ref')->searchable()->sortable(),
+                Tables\Columns\TextColumn::make('type')->badge()->sortable(),
+                Tables\Columns\TextColumn::make('booking_kind')->label('Tipo')->badge()->sortable()->toggleable(),
+                Tables\Columns\TextColumn::make('service_name')->label('Servicio')->searchable()->sortable(),
+                Tables\Columns\TextColumn::make('pickup_address')->label('Origen')->searchable()->toggleable(isToggledHiddenByDefault: false),
+                Tables\Columns\TextColumn::make('dropoff_address')->label('Destino')->searchable()->toggleable(isToggledHiddenByDefault: false),
+                Tables\Columns\TextColumn::make('tour_date')->label('Fecha')->date()->sortable(),
+                Tables\Columns\TextColumn::make('tour_schedule')->label('Hora')->sortable(),
+                Tables\Columns\TextColumn::make('passengers')->label('Pax')->sortable(),
+                Tables\Columns\TextColumn::make('customer_name')->label('Cliente')->searchable()->sortable(),
+                Tables\Columns\TextColumn::make('customer_phone')->label('Teléfono')->searchable()->toggleable(),
+                Tables\Columns\TextColumn::make('base_price')->label('Total')->money('EUR')->sortable(),
+                Tables\Columns\TextColumn::make('payment_status')->label('Pago')->badge()->sortable(),
+                Tables\Columns\TextColumn::make('remote_booking_status')->label('Externa')->badge()->sortable()->placeholder('—'),
+                Tables\Columns\TextColumn::make('remote_source_platform')->label('Source')->badge()->sortable()->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('remote_external_id')->label('External ID')->searchable()->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('created_at')->label('Creada')->dateTime()->sortable(),
+            ])
+            ->filters([
+                Tables\Filters\SelectFilter::make('type')
+                    ->options([
+                        'transfer' => 'Transfer',
+                        'taxi' => 'Taxi',
+                    ]),
+                Tables\Filters\SelectFilter::make('status')
+                    ->options([
+                        'pending' => 'Pending',
+                        'approved' => 'Approved',
+                        'cancelled' => 'Cancelled',
+                    ]),
+                Tables\Filters\SelectFilter::make('payment_status')
+                    ->options([
+                        'pending' => 'Pending',
+                        'paid' => 'Paid',
+                        'failed' => 'Failed',
+                    ]),
+                Tables\Filters\SelectFilter::make('remote_booking_status')
+                    ->options([
+                        'created' => 'Created',
+                        'failed' => 'Failed',
+                        'pending' => 'Pending',
+                    ]),
+            ])
+            ->actions([
+                Actions\ViewAction::make(),
+                Actions\Action::make('approve')
+                    ->icon('heroicon-o-check-circle')
+                    ->color('success')
+                    ->visible(fn (PublicBookingRequest $record): bool => $record->status === 'pending')
+                    ->requiresConfirmation()
+                    ->action(function (PublicBookingRequest $record): void {
+                        $record->approve(Filament::auth()->user());
+                    }),
+                Actions\Action::make('cancel')
+                    ->icon('heroicon-o-x-circle')
+                    ->color('danger')
+                    ->form([
+                        Forms\Components\Textarea::make('decision_notes')
+                            ->label('Reason')
+                            ->maxLength(1000),
+                    ])
+                    ->action(function (PublicBookingRequest $record, array $data): void {
+                        $record->cancel(Filament::auth()->user(), $data['decision_notes'] ?? null);
+                    }),
+            ]);
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->where(function (Builder $query): void {
+                $query
+                    ->whereIn('type', ['transfer', 'taxi'])
+                    ->orWhereIn('booking_kind', ['taxi_route', 'tour_route', 'transfer']);
+            });
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => Pages\ListTaxiTransferBookings::route('/'),
+            'view' => Pages\ViewTaxiTransferBooking::route('/{record}'),
+        ];
+    }
+}

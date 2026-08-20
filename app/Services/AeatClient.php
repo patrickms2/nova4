@@ -1,0 +1,438 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Services;
+
+use GuzzleHttp\Client;
+use Squareetlabs\VeriFactu\Contracts\VeriFactuInvoice;
+use Squareetlabs\VeriFactu\Services\AeatClient as BaseAeatClient;
+
+class AeatClient extends BaseAeatClient
+{
+    private string $baseUri;
+    private string $certPath;
+    private ?string $certPassword;
+    private Client $client;
+    private bool $production;
+    private bool $verifactuMode;
+
+    public function __construct(string $certPath, ?string $certPassword = null, bool $production = false, ?bool $verifactuMode = null)
+    {
+        $this->certPath = $certPath;
+        $this->certPassword = $certPassword;
+        $this->production = $production;
+        $this->verifactuMode = $verifactuMode ?? config('verifactu.verifactu_mode', true);
+        $this->baseUri = $production
+            ? 'https://www1.aeat.es'
+            : 'https://prewww1.aeat.es';
+        $this->client = new Client([
+            'cert' => ($certPassword === null) ? $certPath : [$certPath, $certPassword],
+            'base_uri' => $this->baseUri,
+            'headers' => [
+                'User-Agent' => 'LaravelVerifactu/1.0',
+            ],
+        ]);
+    }
+
+
+
+    /**
+     * Build fingerprint/hash for invoice chaining
+     *
+     * @param string $issuerVat
+     * @param string $numSerie
+     * @param string $fechaExp
+     * @param string $tipoFactura
+     * @param string $cuotaTotal
+     * @param string $importeTotal
+     * @param string $ts
+     * @param string $prevHash
+     * @return string
+     */
+    private function buildFingerprint(
+        string $issuerVat,
+        string $numSerie,
+        string $fechaExp,
+        string $tipoFactura,
+        string $cuotaTotal,
+        string $importeTotal,
+        string $ts,
+        string $prevHash = ''
+    ): string {
+        $raw = 'IDEmisorFactura=' . $issuerVat
+            . '&NumSerieFactura=' . $numSerie
+            . '&FechaExpedicionFactura=' . $fechaExp
+            . '&TipoFactura=' . $tipoFactura
+            . '&CuotaTotal=' . $cuotaTotal
+            . '&ImporteTotal=' . $importeTotal
+            . '&Huella=' . $prevHash
+            . '&FechaHoraHusoGenRegistro=' . $ts;
+        return strtoupper(hash('sha256', $raw));
+    }
+
+    /**
+     * Send invoice registration to AEAT with support for invoice chaining
+     *
+     * @param Invoice $invoice
+     * @param array|null $previous Previous invoice data for chaining (hash, number, date)
+     * @return array
+     */
+    /**
+     * Send invoice registration to AEAT with support for invoice chaining
+     *
+     * @param VeriFactuInvoice $invoice
+     * @param array|null $previous Previous invoice data for chaining (hash, number, date)
+     * @return array
+     */
+    /**
+     * Send invoice registration to AEAT with support for invoice chaining
+     *
+     * @param VeriFactuInvoice $invoice
+     * @param array|null $previous Previous invoice data for chaining (hash, number, date)
+     * @return array
+     */
+    public function sendInvoice(VeriFactuInvoice $invoice, ?array $previous = null): array
+    {
+        // 1. Obtener datos del emisor
+        $issuer = config('verifactu.issuer');
+        $issuerName = $issuer['name'] ?? '';
+        $issuerVat = $issuer['vat'] ?? '';
+
+        // 2. Preparar datos comunes
+        $ts = \Carbon\Carbon::now('UTC')->format('c');
+        $numSerie = (string) $invoice->getInvoiceNumber();
+        $fechaExp = $invoice->getIssueDate()->format('d-m-Y');
+        $tipoFactura = $invoice->getInvoiceType();
+        $prevHash = $previous['hash'] ?? $invoice->getPreviousHash() ?? '';
+
+        // 3. Construir partes del mensaje
+        $cabecera = $this->buildHeader($issuerName, $issuerVat);
+        $detalle = $this->buildBreakdowns($invoice);
+        $encadenamiento = $this->buildChaining($previous, $issuerVat);
+        $destinatarios = $this->buildRecipients($invoice);
+
+        // 4. Calcular totales a partir del desglose (cuota 0 para operaciones no sujetas)
+        $cuotaTotal = '0.00';
+        $importeTotal = '0.00';
+        foreach ($detalle as $line) {
+            $cuotaTotal = sprintf('%.2f', (float) $cuotaTotal + (float) $line['CuotaRepercutida']);
+            $importeTotal = sprintf('%.2f', (float) $importeTotal + (float) $line['BaseImponibleOimporteNoSujeto'] + (float) $line['CuotaRepercutida']);
+        }
+
+        if ($detalle === []) {
+            $cuotaTotal = sprintf('%.2f', (float) $invoice->getTaxAmount());
+            $importeTotal = sprintf('%.2f', (float) $invoice->getTotalAmount());
+        }
+
+        // 5. Generar huella
+        $huella = $this->buildFingerprint(
+            $issuerVat,
+            $numSerie,
+            $fechaExp,
+            $tipoFactura,
+            $cuotaTotal,
+            $importeTotal,
+            $ts,
+            $prevHash
+        );
+
+        // 6. Construir RegistroAlta
+        $registroAlta = $this->buildRegistration(
+            $invoice,
+            $issuerName,
+            $issuerVat,
+            $numSerie,
+            $fechaExp,
+            $tipoFactura,
+            $cuotaTotal,
+            $importeTotal,
+            $ts,
+            $huella,
+            $detalle,
+            $encadenamiento,
+            $destinatarios
+        );
+
+        $body = [
+            'Cabecera' => $cabecera,
+            'RegistroFactura' => [
+                ['RegistroAlta' => $registroAlta]
+            ],
+        ];
+
+        // 7. Enviar
+        return $this->performSoapCall($body, $huella, $numSerie, $fechaExp, $ts, $previous);
+    }
+
+    private function buildHeader(string $issuerName, string $issuerVat): array
+    {
+        return [
+            'ObligadoEmision' => [
+                'NombreRazon' => $issuerName,
+                'NIF' => $issuerVat,
+            ],
+        ];
+    }
+
+    private function buildBreakdowns(VeriFactuInvoice $invoice): array
+    {
+        $breakdowns = $invoice->getBreakdowns();
+        $detalle = [];
+
+        foreach ($breakdowns as $breakdown) {
+            $regimeType = $breakdown->getRegimeType();
+            $operationType = $breakdown->getOperationType();
+            $detalle[] = [
+                'Impuesto' => $regimeType === '08' ? '03' : '01',
+                'ClaveRegimen' => $regimeType,
+                'CalificacionOperacion' => $operationType,
+                'TipoImpositivo' => sprintf('%.2f', (float) $breakdown->getTaxRate()),
+                'BaseImponibleOimporteNoSujeto' => sprintf('%.2f', (float) $breakdown->getBaseAmount()),
+                'CuotaRepercutida' => $operationType === 'S1' ? sprintf('%.2f', (float) $breakdown->getTaxAmount()) : '0.00',
+            ];
+        }
+
+        if (count($detalle) === 0) {
+            $base = sprintf('%.2f', (float) $invoice->getTotalAmount() - $invoice->getTaxAmount());
+            $regimeType = config('verifactu.regime_type', '08');
+            $operationType = $regimeType === '08' ? 'N2' : 'S1';
+            $detalle[] = [
+                'Impuesto' => $regimeType === '08' ? '03' : '01',
+                'ClaveRegimen' => $regimeType,
+                'CalificacionOperacion' => $operationType,
+                'TipoImpositivo' => '0.00',
+                'BaseImponibleOimporteNoSujeto' => $base,
+                'CuotaRepercutida' => $operationType === 'S1' ? sprintf('%.2f', (float) $invoice->getTaxAmount()) : '0.00',
+            ];
+        }
+
+        return $detalle;
+    }
+
+    private function buildChaining(?array $previous, string $issuerVat): array
+    {
+        if ($previous) {
+            return [
+                'RegistroAnterior' => [
+                    'IDEmisorFactura' => $issuerVat,
+                    'NumSerieFactura' => $previous['number'],
+                    'FechaExpedicionFactura' => $previous['date'],
+                    'Huella' => $previous['hash'],
+                ],
+            ];
+        }
+        return ['PrimerRegistro' => 'S'];
+    }
+
+    private function buildRecipients(VeriFactuInvoice $invoice): ?array
+    {
+        $recipients = $invoice->getRecipients();
+        if ($recipients->count() > 0) {
+            $destinatarios = [];
+            foreach ($recipients as $recipient) {
+                $r = ['NombreRazon' => $recipient->getName()];
+                $taxId = $recipient->getTaxId();
+                if (!empty($taxId)) {
+                    $r['NIF'] = $taxId;
+                }
+                $destinatarios[] = $r;
+            }
+            return ['IDDestinatario' => $destinatarios];
+        }
+        return null;
+    }
+
+    private function buildRegistration(
+        VeriFactuInvoice $invoice,
+        string $issuerName,
+        string $issuerVat,
+        string $numSerie,
+        string $fechaExp,
+        string $tipoFactura,
+        string $cuotaTotal,
+        string $importeTotal,
+        string $ts,
+        string $huella,
+        array $detalle,
+        array $encadenamiento,
+        ?array $destinatarios
+    ): array {
+        $registroAlta = [
+            'IDVersion' => '1.0',
+            'IDFactura' => [
+                'IDEmisorFactura' => $issuerVat,
+                'NumSerieFactura' => $numSerie,
+                'FechaExpedicionFactura' => $fechaExp,
+            ],
+            'NombreRazonEmisor' => $issuerName,
+            'TipoFactura' => $tipoFactura,
+            'DescripcionOperacion' => $invoice->getOperationDescription(),
+            'Desglose' => ['DetalleDesglose' => $detalle],
+            'CuotaTotal' => $cuotaTotal,
+            'ImporteTotal' => $importeTotal,
+            'Encadenamiento' => $encadenamiento,
+            'SistemaInformatico' => [
+                'NombreRazon' => $issuerName,
+                'NIF' => $issuerVat,
+                'NombreSistemaInformatico' => config('verifactu.sistema_informatico.name', 'LaravelVerifactu'),
+                'IdSistemaInformatico' => config('verifactu.sistema_informatico.id', 'LV'),
+                'Version' => config('verifactu.sistema_informatico.version', '1.0'),
+                'NumeroInstalacion' => config('verifactu.sistema_informatico.installation_number', '001'),
+                'TipoUsoPosibleSoloVerifactu' => config('verifactu.sistema_informatico.only_verifactu_capable', 'S'),
+                'TipoUsoPosibleMultiOT' => config('verifactu.sistema_informatico.multi_obligated_entities_capable', 'N'),
+                'IndicadorMultiplesOT' => config('verifactu.sistema_informatico.has_multiple_obligated_entities', 'N'),
+            ],
+            'FechaHoraHusoGenRegistro' => $ts,
+            'TipoHuella' => '01',
+            'Huella' => $huella,
+        ];
+
+        // Campos opcionales nuevos
+        if ($invoice->getOperationDate()) {
+            $registroAlta['FechaOperacion'] = $invoice->getOperationDate()->format('d-m-Y');
+        }
+
+        if ($invoice->getTaxPeriod()) {
+            $registroAlta['PeriodoImpositivo'] = [
+                'Ejercicio' => $invoice->getIssueDate()->format('Y'),
+                'Periodo' => $invoice->getTaxPeriod(),
+            ];
+        }
+
+        if ($invoice->getCorrectionType()) {
+            $registroAlta['TipoRectificativa'] = $invoice->getCorrectionType();
+
+            // Add ImporteRectificacion block if required
+            if ($invoice->getCorrectionType() === 'S' && $this->isCorrectiveInvoice($tipoFactura)) {
+                $importeRectificacion = $this->buildImporteRectificacion($invoice);
+                if ($importeRectificacion) {
+                    $registroAlta['ImporteRectificacion'] = $importeRectificacion;
+                }
+            }
+        }
+
+        if ($invoice->getExternalReference()) {
+            $registroAlta['RefExterna'] = $invoice->getExternalReference();
+        }
+
+        if ($destinatarios) {
+            $registroAlta['Destinatarios'] = $destinatarios;
+        }
+
+        return $registroAlta;
+    }
+
+    /**
+     * Build ImporteRectificacion block for substitution corrective invoices
+     *
+     * @param VeriFactuInvoice $invoice
+     * @return array|null
+     */
+    private function buildImporteRectificacion(VeriFactuInvoice $invoice): ?array
+    {
+        $baseRectificada = $invoice->getCorrectedBaseAmount();
+        $cuotaRectificada = $invoice->getCorrectedTaxAmount();
+
+        // Both base and tax are required
+        if ($baseRectificada === null || $cuotaRectificada === null) {
+            return null;
+        }
+
+        $importe = [
+            'BaseRectificada' => sprintf('%.2f', $baseRectificada),
+            'CuotaRectificada' => sprintf('%.2f', $cuotaRectificada),
+        ];
+
+        // Add optional surcharge if present
+        $cuotaRecargo = $invoice->getCorrectedSurchargeAmount();
+        if ($cuotaRecargo !== null) {
+            $importe['CuotaRecargoRectificado'] = sprintf('%.2f', $cuotaRecargo);
+        }
+
+        return $importe;
+    }
+
+    /**
+     * Check if invoice type is corrective (R1-R5)
+     *
+     * @param string $tipoFactura
+     * @return bool
+     */
+    private function isCorrectiveInvoice(string $tipoFactura): bool
+    {
+        return in_array($tipoFactura, ['R1', 'R2', 'R3', 'R4', 'R5']);
+    }
+
+    protected function getSoapClient(): \SoapClient
+    {
+        if ($this->production) {
+            $wsdl = $this->verifactuMode
+                ? 'https://www1.aeat.es/wlpl/TIKE-CONT/ws/SistemaFacturacion/VerifactuSOAP?wsdl'
+                : 'https://www1.aeat.es/wlpl/TIKE-CONT/ws/SistemaFacturacion/RequerimientoSOAP?wsdl';
+        } else {
+            $wsdl = 'https://prewww2.aeat.es/static_files/common/internet/dep/aplicaciones/es/aeat/tikeV1.0/cont/ws/SistemaFacturacion.wsdl';
+        }
+
+        $options = [
+            'local_cert' => $this->certPath,
+            'passphrase' => $this->certPassword,
+            'trace' => true,
+            'exceptions' => true,
+            'cache_wsdl' => 0,
+            'soap_version' => SOAP_1_1,
+            'connection_timeout' => 30,
+            'stream_context' => stream_context_create([
+                'ssl' => [
+                    'verify_peer' => true,
+                    'verify_peer_name' => true,
+                    'allow_self_signed' => false,
+                    'crypto_method' => STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT,
+                ],
+                'http' => [
+                    'user_agent' => 'LaravelVerifactu/1.0',
+                ],
+            ]),
+        ];
+
+        return new \SoapClient($wsdl, $options);
+    }
+
+    private function performSoapCall(array $body, string $huella, string $numSerie, string $fechaExp, string $ts, ?array $previous): array
+    {
+        if ($this->production) {
+            $location = $this->verifactuMode
+                ? 'https://www1.aeat.es/wlpl/TIKE-CONT/ws/SistemaFacturacion/VerifactuSOAP'
+                : 'https://www1.aeat.es/wlpl/TIKE-CONT/ws/SistemaFacturacion/RequerimientoSOAP';
+        } else {
+            $location = $this->verifactuMode
+                ? 'https://prewww1.aeat.es/wlpl/TIKE-CONT/ws/SistemaFacturacion/VerifactuSOAP'
+                : 'https://prewww1.aeat.es/wlpl/TIKE-CONT/ws/SistemaFacturacion/RequerimientoSOAP';
+        }
+
+        try {
+            $client = $this->getSoapClient();
+            $client->__setLocation($location);
+            $response = $client->__soapCall('RegFactuSistemaFacturacion', [$body]);
+            return [
+                'status' => 'success',
+                'request' => $client->__getLastRequest(),
+                'response' => $client->__getLastResponse(),
+                'aeat_response' => $response,
+                'hash' => $huella,
+                'number' => $numSerie,
+                'date' => $fechaExp,
+                'timestamp' => $ts,
+                'first' => $previous ? false : true,
+            ];
+        } catch (\SoapFault $e) {
+            return [
+                'status' => 'error',
+                'message' => $e->getMessage(),
+                'request' => isset($client) ? $client->__getLastRequest() : null,
+                'response' => isset($client) ? $client->__getLastResponse() : null,
+            ];
+        }
+    }
+}
+

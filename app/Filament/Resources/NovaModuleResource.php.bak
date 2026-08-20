@@ -1,0 +1,265 @@
+<?php
+
+namespace App\Filament\Resources;
+
+use App\Filament\Resources\NovaModuleResource\Pages;
+use App\Models\NovaModule;
+use Filament\Forms;
+use Filament\Schemas\Schema as Form;
+use Filament\Resources\Resource;
+use Filament\Tables;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use BackedEnum;
+use UnitEnum;
+use Filament\Actions;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Repeater\TableColumn;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Component;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
+use Filament\Forms\Components\KeyValue;
+use Filament\Forms\Components\TagsInput;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
+
+class NovaModuleResource extends Resource
+{
+    protected static ?string $model = NovaModule::class;
+
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-puzzle-piece';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Paneles';
+    protected static ?string $navigationParentGroup = 'Nova Hub';
+
+    protected static ?string $navigationLabel = 'Módulos';
+
+    protected static ?int $navigationSort = 10;
+
+    public static function form(Form $form): Form
+    {
+        return $form
+            ->schema([
+                Section::make('Información del Módulo')
+                    ->columns(2)
+                    ->schema([
+                        Forms\Components\TextInput::make('name')
+                            ->label('Nombre')
+                            ->required()
+                            ->maxLength(255),
+
+                        Forms\Components\TextInput::make('slug')
+                            ->label('Slug')
+                            ->required()
+                            ->maxLength(255)
+                            ->unique(ignoreRecord: true),
+
+                        Forms\Components\TextInput::make('version')
+                            ->label('Versión')
+                            ->default('1.0.0')
+                            ->maxLength(20),
+
+                        Forms\Components\Select::make('status')
+                            ->label('Estado')
+                            ->options([
+                                'active' => 'Activo',
+                                'inactive' => 'Inactivo',
+                                'error' => 'Error',
+                            ])
+                            ->default('inactive')
+                            ->required(),
+                    ]),
+
+                Section::make('Descripción y Dependencias')
+                    ->schema([
+                        Forms\Components\Textarea::make('description')
+                            ->label('Descripción')
+                            ->rows(3)
+                            ->columnSpanFull(),
+
+                        Forms\Components\TagsInput::make('requires')
+                            ->label('Dependencias')
+                            ->placeholder('Añadir dependencia')
+                            ->separator(',')
+                            ->helperText('Módulos requeridos para este módulo')
+                            ->columnSpanFull(),
+                    ]),
+
+                Section::make('Metadata')
+                    ->collapsed()
+                    ->schema([
+                        Forms\Components\KeyValue::make('metadata')
+                            ->keyLabel('Clave')
+                            ->valueLabel('Valor')
+                            ->columnSpanFull(),
+                    ]),
+
+                Section::make('Fechas')
+                    ->columns(2)
+                    ->schema([
+                        Forms\Components\DateTimePicker::make('installed_at')
+                            ->label('Fecha de Instalación')
+                            ->disabled(),
+
+                        Forms\Components\DateTimePicker::make('activated_at')
+                            ->label('Fecha de Activación')
+                            ->disabled(),
+                    ]),
+            ]);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                Tables\Columns\TextColumn::make('name')
+                    ->label('Nombre')
+                    ->searchable()
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('slug')
+                    ->label('Slug')
+                    ->searchable()
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('version')
+                    ->label('Versión')
+                    ->sortable(),
+
+                Tables\Columns\BadgeColumn::make('status')
+                    ->label('Estado')
+                    ->colors([
+                        'success' => 'active',
+                        'warning' => 'inactive',
+                        'danger' => 'error',
+                    ])
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'active' => 'Activo',
+                        'inactive' => 'Inactivo',
+                        'error' => 'Error',
+                        default => $state,
+                    }),
+
+                Tables\Columns\IconColumn::make('isInstalled')
+                    ->label('Instalado')
+                    ->boolean()
+                    ->getStateUsing(fn (NovaModule $record): bool => $record->isInstalled()),
+
+                Tables\Columns\IconColumn::make('isActivated')
+                    ->label('Activado')
+                    ->boolean()
+                    ->getStateUsing(fn (NovaModule $record): bool => $record->isActivated()),
+
+                Tables\Columns\TextColumn::make('installed_at')
+                    ->label('Instalado en')
+                    ->dateTime('d/m/Y H:i')
+                    ->sortable(),
+            ])
+            ->filters([
+                Tables\Filters\SelectFilter::make('status')
+                    ->label('Estado')
+                    ->options([
+                        'active' => 'Activo',
+                        'inactive' => 'Inactivo',
+                        'error' => 'Error',
+                    ]),
+
+                Tables\Filters\TernaryFilter::make('isInstalled')
+                    ->label('Instalado')
+                    ->placeholder('Todos')
+                    ->trueLabel('Instalados')
+                    ->falseLabel('No instalados')
+                    ->queries(
+                        true: fn ($query) => $query->whereNotNull('installed_at'),
+                        false: fn ($query) => $query->whereNull('installed_at'),
+                    ),
+
+                Tables\Filters\TernaryFilter::make('isActivated')
+                    ->label('Activado')
+                    ->placeholder('Todos')
+                    ->trueLabel('Activados')
+                    ->falseLabel('No activados')
+                    ->queries(
+                        true: fn ($query) => $query->whereNotNull('activated_at'),
+                        false: fn ($query) => $query->whereNull('activated_at'),
+                    ),
+            ])
+            ->actions([
+                Actions\ViewAction::make(),
+                Actions\EditAction::make(),
+                Actions\Action::make('install')
+                    ->label('Instalar')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->modalHeading('Instalar Módulo')
+                    ->modalDescription('¿Estás seguro de que quieres instalar este módulo?')
+                    ->action(function (NovaModule $record) {
+                        $record->update([
+                            'installed_at' => now(),
+                            'status' => 'inactive',
+                        ]);
+                    })
+                    ->visible(fn (NovaModule $record): bool => !$record->isInstalled()),
+
+                Actions\Action::make('activate')
+                    ->label('Activar')
+                    ->icon('heroicon-o-power')
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->modalHeading('Activar Módulo')
+                    ->modalDescription('¿Estás seguro de que quieres activar este módulo?')
+                    ->action(function (NovaModule $record) {
+                        $record->update([
+                            'activated_at' => now(),
+                            'status' => 'active',
+                        ]);
+                    })
+                    ->visible(fn (NovaModule $record): bool => $record->isInstalled() && !$record->isActivated()),
+
+                Actions\Action::make('deactivate')
+                    ->label('Desactivar')
+                    ->icon('heroicon-o-power')
+                    ->color('warning')
+                    ->requiresConfirmation()
+                    ->modalHeading('Desactivar Módulo')
+                    ->modalDescription('¿Estás seguro de que quieres desactivar este módulo?')
+                    ->action(function (NovaModule $record) {
+                        $record->update([
+                            'activated_at' => null,
+                            'status' => 'inactive',
+                        ]);
+                    })
+                    ->visible(fn (NovaModule $record): bool => $record->isActivated()),
+
+                Actions\DeleteAction::make(),
+            ])
+            ->bulkActions([
+                Actions\BulkActionGroup::make([
+                    Actions\DeleteBulkAction::make(),
+                ]),
+            ]);
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            //
+        ];
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => Pages\ListNovaModules::route('/'),
+            'create' => Pages\CreateNovaModule::route('/create'),
+            'edit' => Pages\EditNovaModule::route('/{record}/edit'),
+        ];
+    }
+}

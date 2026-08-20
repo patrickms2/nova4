@@ -1,0 +1,66 @@
+<?php
+
+namespace App\Http\Requests;
+
+use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+
+class StoreRatsitDataRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    /**
+     * @return array<string, ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
+    {
+        return [
+            'gatuadress' => ['nullable', 'string', 'max:65535'],
+            'postnummer' => ['nullable', 'string', 'max:255'],
+            'postort' => ['nullable', 'string', 'max:255'],
+            'forsamling' => ['nullable', 'string', 'max:255'],
+            'kommun' => ['nullable', 'string', 'max:255'],
+            'lan' => ['nullable', 'string', 'max:255'],
+            'adressandring' => ['nullable', 'string', 'max:255'],
+            'stjarntacken' => ['nullable', 'string', 'max:255'],
+            'fodelsedag' => ['nullable', 'date'],
+            'personnummer' => ['nullable', 'string', 'max:255'],
+            'alder' => ['nullable', 'string', 'max:255'],
+            'kon' => ['nullable', 'string', 'max:255', Rule::in(['M', 'F', 'O'])],
+            'civilstand' => ['nullable', 'string', 'max:255'],
+            'fornamn' => ['nullable', 'string', 'max:255'],
+            'efternamn' => ['nullable', 'string', 'max:255'],
+            'personnamn' => ['nullable', 'string', 'max:65535'],
+            'telefon' => ['nullable', 'string', 'max:255'],
+            'telfonnummer' => ['nullable', 'string', 'max:65535'],
+            'epost_adress' => ['nullable', 'array'],
+            'epost_adress.*' => ['nullable', 'email'],
+            'bolagsengagemang' => ['nullable', 'array'],
+            'agandeform' => ['nullable', 'string', 'max:255'],
+            'bostadstyp' => ['nullable', 'string', 'max:255'],
+            'boarea' => ['nullable', 'string', 'max:255'],
+            'byggar' => ['nullable', 'string', 'max:255'],
+            'fastighet' => ['nullable', 'string', 'max:255'],
+            'personer' => ['nullable', 'array'],
+            'personer.*' => ['nullable', 'string'],
+            'foretag' => ['nullable', 'array'],
+            'foretag.*' => ['nullable', 'string'],
+            'grannar' => ['nullable', 'array'],
+            'grannar.*' => ['nullable', 'string'],
+            'fordon' => ['nullable', 'array'],
+            'hundar' => ['nullable', 'array'],
+            'hundar.*' => ['nullable', 'string'],
+            'longitude' => ['nullable', 'numeric', 'between:-180,180'],
+            'latitud' => ['nullable', 'numeric', 'between:-90,90'],
+            'google_maps' => ['nullable', 'string', 'max:65535'],
+            'google_streetview' => ['nullable', 'string', 'max:65535'],
+            'ratsit_se' => ['nullable', 'string', 'max:65535'],
+            'is_active' => ['nullable', 'boolean'],
+            'is_queued' => ['nullable', 'boolean'],
+        ];
+    }
+}

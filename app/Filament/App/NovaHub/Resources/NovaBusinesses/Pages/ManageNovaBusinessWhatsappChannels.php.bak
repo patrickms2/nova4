@@ -1,0 +1,76 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Filament\App\NovaHub\Resources\NovaBusinesses\Pages;
+
+use App\Filament\App\NovaHub\Resources\NovaBusinesses\NovaBusinessResource;
+use App\Filament\App\NovaHub\Resources\NovaWhatsappChannels\Schemas\NovaWhatsappChannelForm;
+use App\Filament\App\NovaHub\Resources\NovaWhatsappChannels\Tables\NovaWhatsappChannelsTable;
+use Filament\Actions\CreateAction;
+use Filament\Resources\Pages\ManageRelatedRecords;
+use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Table;
+use Illuminate\Contracts\Support\Htmlable;
+use Livewire\Livewire;
+
+final class ManageNovaBusinessWhatsappChannels extends ManageRelatedRecords
+{
+    protected static string $resource = NovaBusinessResource::class;
+
+    protected static string $relationship = 'whatsappChannels';
+
+    protected static ?string $navigationLabel = 'WhatsApp';
+    protected static ?string $navigationParentItem = 'IA';
+
+    protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedChatBubbleLeftRight;
+
+    protected static ?int $navigationSort = 3;
+
+    public static function getNavigationBadge(): ?string
+    {
+        $record = Livewire::current()->getRecord();
+
+        return (string) $record->whatsappChannels()->count();
+    }
+
+    public function getHeading(): string|Htmlable|null
+    {
+        return $this->getRecord()->name;
+    }
+
+    public function getSubheading(): string|Htmlable|null
+    {
+        return 'Canales WhatsApp asociados a los servicios de este cliente.';
+    }
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            CreateAction::make()
+                ->label('Nuevo canal')
+                ->icon('heroicon-o-plus')
+                ->color('danger')
+                ->mutateFormDataUsing(function (array $data): array {
+                    $data['nova_business_id'] = $this->getRecord()->id;
+
+                    return $data;
+                }),
+        ];
+    }
+
+    public function form(Schema $schema): Schema
+    {
+        return NovaWhatsappChannelForm::configure($schema);
+    }
+
+    public function table(Table $table): Table
+    {
+        $table = NovaWhatsappChannelsTable::configure($table);
+
+        $table->getColumn('business.name')?->toggleable(isToggledHiddenByDefault: true);
+
+        return $table;
+    }
+}

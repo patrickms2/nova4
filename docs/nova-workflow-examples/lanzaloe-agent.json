@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "nodes": [
+    {
+      "id": "trigger_1",
+      "type": "trigger",
+      "position": { "x": 400, "y": 60 },
+      "data": {
+        "label": "User Message",
+        "triggerType": "user_message",
+        "outputVariable": "user_message"
+      }
+    },
+    {
+      "id": "action_knowledge",
+      "type": "action",
+      "position": { "x": 400, "y": 200 },
+      "data": {
+        "label": "Buscar Conocimiento Lanzaloe",
+        "actionKey": "search-nova-knowledge",
+        "inputMapping": "{\"message\": \"{{user_message}}\", \"business_slug\": \"lanzaloe\", \"limit\": 5}",
+        "outputVariable": "knowledge_results"
+      }
+    },
+    {
+      "id": "action_products",
+      "type": "action",
+      "position": { "x": 400, "y": 340 },
+      "data": {
+        "label": "Buscar Productos Magento",
+        "actionKey": "call-mcp-tool",
+        "inputMapping": "{\"server_slug\": \"lanzaloe-magento\", \"tool_name\": \"lanzaloe-magento-products\", \"input\": {}}",
+        "outputVariable": "products"
+      }
+    },
+    {
+      "id": "agent_reply",
+      "type": "aiAgent",
+      "position": { "x": 400, "y": 480 },
+      "data": {
+        "label": "Generar Respuesta",
+        "prompt": "Eres el asistente de Lanzaloe, tienda de cosmética natural de aloe vera en Lanzarote.\n\nProductos disponibles:\n{{products.result}}\n\nConocimiento adicional:\n{{knowledge_results.results}}\n\nMensaje del usuario: {{user_message}}\n\nResponde en español de forma amable. Destaca los beneficios del aloe vera si es relevante. Si quiere comprar, proporciona el enlace al producto.",
+        "outputVariable": "reply"
+      }
+    },
+    {
+      "id": "send_reply",
+      "type": "sendMessage",
+      "position": { "x": 400, "y": 620 },
+      "data": {
+        "label": "Enviar Respuesta",
+        "messageType": "text",
+        "messageContent": "{{reply}}"
+      }
+    }
+  ],
+  "edges": [
+    { "id": "e1", "source": "trigger_1", "target": "action_knowledge" },
+    { "id": "e2", "source": "action_knowledge", "target": "action_products" },
+    { "id": "e3", "source": "action_products", "target": "agent_reply" },
+    { "id": "e4", "source": "agent_reply", "target": "send_reply" }
+  ]
+}

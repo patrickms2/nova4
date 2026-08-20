@@ -1,0 +1,45 @@
+{
+    "agents": [
+        "copilot",
+        "junie",
+        "claude_code",
+        "codex",
+        "cursor",
+        "opencode"
+    ],
+    "cloud": true,
+    "guidelines": true,
+    "mcp": true,
+    "nightwatch": false,
+    "packages": [
+        "filament/filament",
+        "filament/blueprint",
+        "laramint/laravel-brain",
+        "anousss007/blatui",
+        "laraveljutsu/zap",
+        "kwasii/livewire-mapcn",
+        "laraveldaily/filacheck",
+        "nativephp/mobile",
+        "nativephp/mobile-camera"
+    ],
+    "sail": false,
+    "skills": [
+        "infer-conventions",
+        "ai-sdk-development",
+        "laravel-best-practices",
+        "mcp-development",
+        "fluxui-development",
+        "livewire-development",
+        "volt-development",
+        "tailwindcss-development",
+        "blatui-development",
+        "livewire-mapcn-development",
+        "nativephp-mobile",
+        "nativephp-v3-to-v4-upgrade",
+        "nativephp-webview-to-native",
+        "filament-security-audit",
+        "laravel-brain",
+        "deploying-laravel-cloud",
+        "karpathy-guidelines"
+    ]
+}

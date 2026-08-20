@@ -1,0 +1,128 @@
+<?php
+
+namespace App\Filament\TourAdmin\Resources;
+
+use Filament\Support\Icons\Heroicon;
+
+use App\Filament\TourAdmin\Resources\TourCategoryResource\Pages;
+use App\Models\TourCategory;
+use BackedEnum;
+use Filament\Actions;
+use Filament\Facades\Filament;
+use Filament\Forms;
+use Filament\Resources\Resource;
+use Filament\Schemas\Schema as Form;
+use Filament\Tables;
+use Filament\Tables\Table;
+
+class TourCategoryResource extends Resource
+{
+    protected static ?string $model = TourCategory::class;
+
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedTag;
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Tours';
+    protected static ?string $navigationParentGroup = 'Catálogo';
+
+    protected static ?int $navigationSort = 14;
+
+    public static function canAccess(): bool
+    {
+        return true;
+
+        return Filament::auth()->check()
+            && (Filament::auth()->user()->role === 'super_admin'
+                || (
+                    Filament::auth()->user()->role === 'admin'
+                    && Filament::auth()->user()->section === 'tour'
+                ));
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return true;
+
+        return Filament::auth()->check()
+            && (Filament::auth()->user()->role === 'super_admin'
+                || Filament::auth()->user()->UserType === 'Admin'
+                || (
+                    Filament::auth()->user()->role === 'admin'
+                    && Filament::auth()->user()->section === 'tour'
+                ));
+    }
+
+    public static function form(Form $form): Form
+    {
+        return $form
+            ->schema([
+                Forms\Components\TextInput::make('category_name')
+                    ->required()
+                    ->maxLength(255),
+
+                Forms\Components\Select::make('parentCategory.parent_category_id')
+                    ->relationship('parentCategory', 'category_name')->searchable()
+                    ->default(null),
+                Forms\Components\TextInput::make('icon')
+                    ->maxLength(255)
+                    ->default(null),
+                Forms\Components\TextInput::make('display_order')
+                    ->required()
+                    ->numeric()
+                    ->default(0),
+                Forms\Components\Textarea::make('description')
+                    ->columnSpanFull(),
+                Forms\Components\Toggle::make('is_active')
+                    ->required(),
+            ]);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                Tables\Columns\TextColumn::make('category_name')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('parentCategory.category_name')
+                    ->label('Parent Category')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('icon')
+                    ->label('Icon')
+                    ->getStateUsing(fn ($record) => "<i class='{$record->icon}' style='font-size: 20px'></i>")
+                    ->html(),
+                Tables\Columns\TextColumn::make('display_order')
+                    ->numeric()
+                    ->sortable(),
+                Tables\Columns\IconColumn::make('is_active')
+                    ->boolean(),
+            ])
+            ->filters([
+                //
+            ])
+            ->actions([
+                Actions\ViewAction::make(),
+                Actions\EditAction::make(),
+            ])
+            ->toolbarActions([
+                Actions\BulkActionGroup::make([
+                    Actions\DeleteBulkAction::make()->deselectRecordsAfterCompletion(),
+                ]),
+            ]);
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            //
+        ];
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => Pages\ListTourCategories::route('/'),
+            'create' => Pages\CreateTourCategory::route('/create'),
+            'view' => Pages\ViewTourCategory::route('/{record}'),
+            'edit' => Pages\EditTourCategory::route('/{record}/edit'),
+        ];
+    }
+}

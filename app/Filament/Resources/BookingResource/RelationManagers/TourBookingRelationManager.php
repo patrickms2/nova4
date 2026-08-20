@@ -1,0 +1,55 @@
+<?php
+
+namespace App\Filament\Resources\BookingResource\RelationManagers;
+use Filament\Actions;
+use Filament\Forms;
+use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Schemas\Schema as Form;
+use Filament\Tables;
+use Filament\Tables\Table;
+class TourBookingRelationManager extends RelationManager
+{
+    protected static string $relationship = 'tourBooking';
+    public function form(Form $form): Form
+    {
+        return $form
+            ->schema([
+                Forms\Components\TextInput::make('number_of_adults')
+                    ->required()
+                    ->numeric(),
+                Forms\Components\TextInput::make('number_of_children'),
+            ]);
+    }
+    public function table(Table $table): Table
+    {
+        return $table
+            ->recordTitleAttribute('TourBookingID')
+            ->columns([
+                Tables\Columns\TextColumn::make('tour.name')
+                    ->label('Tour')->searchable(),
+                Tables\Columns\TextColumn::make('schedule.start_date')
+                    ->label('Schedule')
+                    ->date()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('number_of_adults'),
+                Tables\Columns\TextColumn::make('number_of_children'),
+                Tables\Columns\TextColumn::make('guide.name')
+                    ->label('Guide'),
+            ])
+            ->filters([
+                //
+            ])
+            ->headerActions([
+                Actions\CreateAction::make(),
+            ])
+            ->actions([
+                Actions\EditAction::make(),
+                Actions\DeleteAction::make(),
+            ])
+            ->toolbarActions([
+                Actions\BulkActionGroup::make([
+                    Actions\DeleteBulkAction::make()->deselectRecordsAfterCompletion(),
+                ]),
+            ]);
+    }
+}

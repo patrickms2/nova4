@@ -1,0 +1,160 @@
+{
+    "title": "Transform data for API",
+    "author": "admin",
+    "description": "Transform data befeore sending to an exrternal service (CRM, AI...)",
+    "fingerprint": "98a37975-2890-4305-be09-6dacb46186ed",
+    "nodes": [
+        {
+            "id": "dummy_data_node-05722c2d-5e37-4173-be14-000eabd067ff",
+            "type": "dummy_data_node",
+            "position": {
+                "x": -600,
+                "y": -50
+            },
+            "data": {
+                "label": "User Profile",
+                "description": "Raw user data",
+                "data_type": "json",
+                "content": "{\n  \"id\": 42,\n  \"first_name\": \"Alice\",\n  \"last_name\": \"Smith\",\n  \"email_address\": \"alice@example.com\",\n  \"age\": 30\n}",
+                "icon": "heroicon-o-document-arrow-down",
+                "iconType": "heroicon",
+                "color": "emerald",
+                "display_name": "Dummy Data",
+                "isNew": true,
+                "isExpanded": true,
+                "positioning": {
+                    "input": false,
+                    "output": true
+                },
+                "logoUrl": null,
+                "logoMissing": false
+            },
+            "style": null
+        },
+        {
+            "id": "transform_node-2387ec30-507f-4ca2-8c68-d5d14908f2f3",
+            "type": "transform_node",
+            "position": {
+                "x": 0,
+                "y": -50
+            },
+            "data": {
+                "label": "Prepare API Body",
+                "description": "Map to API format",
+                "mappings": [
+                    {
+                        "source": "id",
+                        "target": "userId",
+                        "expression": "",
+                        "mode": "single"
+                    },
+                    {
+                        "source": "first_name",
+                        "target": "name",
+                        "expression": "",
+                        "mode": "single"
+                    },
+                    {
+                        "source": "email_address",
+                        "target": "email",
+                        "expression": "",
+                        "mode": "single"
+                    }
+                ],
+                "keep_unmapped": false,
+                "icon": "heroicon-o-arrows-right-left",
+                "iconType": "heroicon",
+                "color": "emerald",
+                "display_name": "Transform",
+                "isNew": true,
+                "isExpanded": true,
+                "logoUrl": null,
+                "logoMissing": false
+            },
+            "style": null
+        },
+        {
+            "id": "data_viewer_node-3e3e26ac-8645-4980-9890-8f8cfd30d3c6",
+            "type": "data_viewer_node",
+            "position": {
+                "x": 650,
+                "y": -50
+            },
+            "data": {
+                "label": "API Body",
+                "description": "Transformed output",
+                "view_mode": "auto",
+                "icon": "heroicon-o-table-cells",
+                "iconType": "heroicon",
+                "color": "slate",
+                "display_name": "Data Viewer",
+                "isNew": true,
+                "logoUrl": null,
+                "logoMissing": false,
+                "visibleColumns": [
+                    "userId",
+                    "name",
+                    "email"
+                ],
+                "display_keys": [
+                    "userId",
+                    "name",
+                    "email"
+                ],
+                "_v": 3
+            },
+            "style": null
+        },
+        {
+            "id": "sticky_note-1775812483662",
+            "type": "sticky_note",
+            "position": {
+                "x": 116.99530516431923,
+                "y": -228.80721830985917
+            },
+            "data": {
+                "content": "Change variable name, format and data structure to make it compatible with third party tools",
+                "color": "yellow",
+                "fontSize": "large"
+            },
+            "style": null
+        },
+        {
+            "id": "sticky_note-1775812551496",
+            "type": "sticky_note",
+            "position": {
+                "x": 767.9929577464789,
+                "y": -241.90140845070422
+            },
+            "data": {
+                "content": "Insted of the viewer node, you should send a webhook or an httpRequest and send correctly formatted data to other services",
+                "color": "yellow",
+                "fontSize": "large"
+            },
+            "style": null
+        }
+    ],
+    "edges": [
+        {
+            "id": "edummy_data_node-05722c2d-5e37-4173-be14-000eabd067ff-transform_node-2387ec30-507f-4ca2-8c68-d5d14908f2f3",
+            "source": "dummy_data_node-05722c2d-5e37-4173-be14-000eabd067ff",
+            "target": "transform_node-2387ec30-507f-4ca2-8c68-d5d14908f2f3",
+            "sourceHandle": null,
+            "targetHandle": null
+        },
+        {
+            "id": "etransform_node-2387ec30-507f-4ca2-8c68-d5d14908f2f3-data_viewer_node-3e3e26ac-8645-4980-9890-8f8cfd30d3c6",
+            "source": "transform_node-2387ec30-507f-4ca2-8c68-d5d14908f2f3",
+            "target": "data_viewer_node-3e3e26ac-8645-4980-9890-8f8cfd30d3c6",
+            "sourceHandle": null,
+            "targetHandle": null
+        }
+    ],
+    "viewport": {
+        "x": 789.4117647058823,
+        "y": 294.6738235294117,
+        "zoom": 1.0023529411764707
+    },
+    "exportedAt": "2026-08-08T12:00:41+00:00",
+    "voodflowVersion": "1.0.0"
+}

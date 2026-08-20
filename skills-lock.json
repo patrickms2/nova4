@@ -1,0 +1,83 @@
+{
+  "version": 1,
+  "skills": {
+    "elmapi-assets": {
+      "source": "elmapicms/elmapicms-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/elmapi-assets/SKILL.md",
+      "computedHash": "fefc2cf2fabcb0d207efb5d83308c87f03e0685e59cbbf1a1036d0ae4bc3e32f"
+    },
+    "elmapi-astro": {
+      "source": "elmapicms/elmapicms-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/elmapi-astro/SKILL.md",
+      "computedHash": "21b98da324924c96574ae85dbc4bed1626798082ded386861f3c1ab98e36c01b"
+    },
+    "elmapi-auth-contract": {
+      "source": "elmapicms/elmapicms-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/elmapi-auth-contract/SKILL.md",
+      "computedHash": "4bf3cd5e087df8f0dd7f319e877c9443bb2b9d2adcb57e9f3520463f7dc26859"
+    },
+    "elmapi-auth-review": {
+      "source": "elmapicms/elmapicms-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/elmapi-auth-review/SKILL.md",
+      "computedHash": "a4539bf6b7c3c76804c5bd66faf019acfcfaf2450bcbb0c5c4762d21cc3cb275"
+    },
+    "elmapi-collections-fields": {
+      "source": "elmapicms/elmapicms-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/elmapi-collections-fields/SKILL.md",
+      "computedHash": "c1b3ff179a430f114ad7ae889a51bdf1d7a08cd7f1944662aee6839b92e98ecb"
+    },
+    "elmapi-content": {
+      "source": "elmapicms/elmapicms-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/elmapi-content/SKILL.md",
+      "computedHash": "e6f71596f7991cb5d04d82157155ea6ff349c0820c1f5f53d14cd8eb269b3123"
+    },
+    "elmapi-errors": {
+      "source": "elmapicms/elmapicms-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/elmapi-errors/SKILL.md",
+      "computedHash": "f0d4c5b47f076c036569d2e998755608be4fa06b43ec55566539b6f748f7a9a1"
+    },
+    "elmapi-mcp-content-structure": {
+      "source": "elmapicms/elmapicms-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/elmapi-mcp-content-structure/SKILL.md",
+      "computedHash": "3fbb18a3eb66bdd6c4483615bd41ac5e65d96f257ead13c2c46a47d0ae22b745"
+    },
+    "elmapi-nextjs": {
+      "source": "elmapicms/elmapicms-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/elmapi-nextjs/SKILL.md",
+      "computedHash": "49374d5b0caba756f664a80b98beec463e9a82959731a84d28a5c6b7a13de4f5"
+    },
+    "elmapi-nextjs-auth": {
+      "source": "elmapicms/elmapicms-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/elmapi-nextjs-auth/SKILL.md",
+      "computedHash": "ee97f3fe39cef92ac1ddd42652b13837c4eb3403a6bf97f9d5898a6a42222851"
+    },
+    "elmapi-nuxt": {
+      "source": "elmapicms/elmapicms-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/elmapi-nuxt/SKILL.md",
+      "computedHash": "4cb68e9f58ab89d9e3a73c2280b45fdee92e326efdfa5ec758f749a98292b06f"
+    },
+    "elmapi-sdk-setup": {
+      "source": "elmapicms/elmapicms-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/elmapi-sdk-setup/SKILL.md",
+      "computedHash": "79793e99299f846875dc58f5ae85bdb9216ef2baf24c976c938682a4e1595218"
+    },
+    "elmapi-user-auth": {
+      "source": "elmapicms/elmapicms-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/elmapi-user-auth/SKILL.md",
+      "computedHash": "a7a899e665ccbe3fc852bcc4e66c3a79abad40d5d64d610ca426d4499791afca"
+    }
+  }
+}

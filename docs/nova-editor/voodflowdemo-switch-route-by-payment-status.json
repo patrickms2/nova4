@@ -1,0 +1,313 @@
+{
+    "title": "Switch route by payment status",
+    "author": "admin",
+    "description": "Check payment status and send messages or email accordingly",
+    "fingerprint": "b6dcdbdd-2c1c-452a-9767-40e7a89dc4fa",
+    "nodes": [
+        {
+            "id": "manual_trigger_node-f0be46da-532a-4f16-b06e-a5b08828edfc",
+            "type": "manual_trigger_node",
+            "position": {
+                "x": -1906.2801792931382,
+                "y": -751.870695146327
+            },
+            "data": {
+                "label": "Manual Trigger",
+                "description": "Manually trigger workflow execution",
+                "test_payload": "{}",
+                "positioning": {
+                    "input": false,
+                    "output": true
+                },
+                "isNew": true,
+                "icon": "heroicon-o-hand-raised",
+                "iconType": "heroicon",
+                "logoUrl": null,
+                "logoMissing": false,
+                "color": "amber",
+                "display_name": "Manual Trigger",
+                "id": "manual_trigger_node-ca91f1f1-14e2-4e5d-a9a0-e950d8820bc6",
+                "_v": 16,
+                "isExpanded": true
+            },
+            "style": null
+        },
+        {
+            "id": "switch_node-c6957445-2da9-4684-a1e3-3daaf20ee23e",
+            "type": "switch_node",
+            "position": {
+                "x": -802.8339921091374,
+                "y": -853.9123142144414
+            },
+            "data": {
+                "label": "Switch",
+                "description": "",
+                "field": "payment.status",
+                "cases": [
+                    {
+                        "id": "cmnfy3r5cojdy",
+                        "value": "paid",
+                        "label": "Paid",
+                        "operator": "equals"
+                    },
+                    {
+                        "id": "cmnfyu4s9qmi0",
+                        "value": "pending",
+                        "label": "Pending",
+                        "operator": "equals"
+                    },
+                    {
+                        "id": "cmnfyu518q9ca",
+                        "value": "failed",
+                        "label": "Failed",
+                        "operator": "equals"
+                    }
+                ],
+                "isNew": true,
+                "icon": "heroicon-o-arrows-pointing-out",
+                "iconType": "heroicon",
+                "logoUrl": null,
+                "logoMissing": false,
+                "color": "yellow",
+                "display_name": "Switch",
+                "id": "switch_node-2896a255-5048-4b27-8b16-2ae9466c7434",
+                "isFieldDynamic": false,
+                "_v": 24,
+                "isExpanded": true
+            },
+            "style": null
+        },
+        {
+            "id": "dummy_data_node-64625253-bc44-450f-b6e2-970393e5ed9c",
+            "type": "dummy_data_node",
+            "position": {
+                "x": -1381.6317202853593,
+                "y": -751.7464502165643
+            },
+            "data": {
+                "label": "Dummy Data",
+                "description": "",
+                "data_type": "array",
+                "content": "{\n  \"order_id\": 1042,\n  \"customer\": \"Alice\",\n  \"total\": 89.90,\n  \"payment\": {\n    \"method\": \"credit_card\",\n    \"status\": \"pending\"\n  },\n  \"shipping\": {\n    \"carrier\": \"DHL\",\n    \"tracking\": \"DHL-98765\"\n  }\n}",
+                "isNew": true,
+                "icon": "heroicon-o-document-arrow-down",
+                "iconType": "heroicon",
+                "logoUrl": null,
+                "logoMissing": false,
+                "color": "emerald",
+                "display_name": "Dummy Data",
+                "id": "dummy_data_node-1dd74e37-3d48-4454-adf7-7f463ae1c998",
+                "_v": 5,
+                "isExpanded": true
+            },
+            "style": null
+        },
+        {
+            "id": "data_viewer_node-bd7e7d74-0ab7-4cc1-a0d8-7104a95bd718",
+            "type": "data_viewer_node",
+            "position": {
+                "x": -800.7982469303624,
+                "y": -260.08991228909
+            },
+            "data": {
+                "label": "Data Viewer",
+                "description": "",
+                "view_mode": "auto",
+                "isNew": true,
+                "icon": "heroicon-o-table-cells",
+                "iconType": "heroicon",
+                "logoUrl": null,
+                "logoMissing": false,
+                "color": "slate",
+                "display_name": "Data Viewer",
+                "id": "data_viewer_node-8b3dc2b8-ac6c-4792-a7a3-a9f7f3f4fbfd",
+                "visibleColumns": [
+                    "order_id",
+                    "customer",
+                    "total",
+                    "payment.method",
+                    "payment.status",
+                    "shipping.carrier",
+                    "shipping.tracking"
+                ],
+                "display_keys": [
+                    "payment.status"
+                ],
+                "_v": 1
+            },
+            "style": null
+        },
+        {
+            "id": "data_viewer_node-f7f9dd68-db66-4999-aa7c-f28587f659f5",
+            "type": "data_viewer_node",
+            "position": {
+                "x": -25.078084992135473,
+                "y": -952.6365250779425
+            },
+            "data": {
+                "label": "Data Viewer",
+                "description": "",
+                "view_mode": "auto",
+                "isNew": true,
+                "icon": "heroicon-o-table-cells",
+                "iconType": "heroicon",
+                "logoUrl": null,
+                "logoMissing": false,
+                "color": "slate",
+                "display_name": "Data Viewer",
+                "id": "data_viewer_node-ab8147a1-e445-40cc-88d9-71f5417a9da6",
+                "visibleColumns": [
+                    "order_id",
+                    "customer",
+                    "total",
+                    "payment.method",
+                    "payment.status",
+                    "shipping.carrier",
+                    "shipping.tracking",
+                    "_voodflow_switch_field"
+                ],
+                "display_keys": [
+                    "payment.status",
+                    "_voodflow_switch_value"
+                ],
+                "_v": 4
+            },
+            "style": null
+        },
+        {
+            "id": "data_viewer_node-fedfcc86-bd2b-4f00-9df4-b21af2f51dd2",
+            "type": "data_viewer_node",
+            "position": {
+                "x": -31.128917250543452,
+                "y": -598.9884726280501
+            },
+            "data": {
+                "label": "Data Viewer",
+                "description": "",
+                "view_mode": "auto",
+                "isNew": true,
+                "icon": "heroicon-o-table-cells",
+                "iconType": "heroicon",
+                "logoUrl": null,
+                "logoMissing": false,
+                "color": "slate",
+                "display_name": "Data Viewer",
+                "id": "data_viewer_node-49431f33-fea1-47be-9b14-b95a3a74be6a",
+                "visibleColumns": [
+                    "order_id",
+                    "customer",
+                    "total",
+                    "payment.method",
+                    "payment.status",
+                    "shipping.carrier",
+                    "shipping.tracking",
+                    "_voodflow_switch_field"
+                ],
+                "display_keys": [
+                    "payment.status",
+                    "_voodflow_switch_value"
+                ],
+                "_v": 2
+            },
+            "style": null
+        },
+        {
+            "id": "data_viewer_node-f9c81d29-84f3-4f93-83de-b73c2b0c0399",
+            "type": "data_viewer_node",
+            "position": {
+                "x": -33.00397289591396,
+                "y": -195.9994266291077
+            },
+            "data": {
+                "label": "Data Viewer",
+                "description": "",
+                "view_mode": "auto",
+                "isNew": true,
+                "icon": "heroicon-o-table-cells",
+                "iconType": "heroicon",
+                "logoUrl": null,
+                "logoMissing": false,
+                "color": "slate",
+                "display_name": "Data Viewer",
+                "id": "data_viewer_node-ba16b4b0-d35c-4fd9-bcca-4cbd8c12c99b",
+                "visibleColumns": [
+                    "order_id",
+                    "customer",
+                    "total",
+                    "payment.method",
+                    "payment.status",
+                    "shipping.carrier",
+                    "shipping.tracking",
+                    "_voodflow_switch_field"
+                ],
+                "display_keys": [
+                    "payment.status",
+                    "_voodflow_switch_value"
+                ],
+                "_v": 2
+            },
+            "style": null
+        },
+        {
+            "id": "sticky_note-1775812293132",
+            "type": "sticky_note",
+            "position": {
+                "x": -1259.0681799623494,
+                "y": -930.4879034440022
+            },
+            "data": {
+                "content": "Try to change the payment status to see how the SWITCH node works",
+                "color": "yellow",
+                "fontSize": "large"
+            },
+            "style": null
+        }
+    ],
+    "edges": [
+        {
+            "id": "emanual_trigger_node-f0be46da-532a-4f16-b06e-a5b08828edfc-dummy_data_node-64625253-bc44-450f-b6e2-970393e5ed9c",
+            "source": "manual_trigger_node-f0be46da-532a-4f16-b06e-a5b08828edfc",
+            "target": "dummy_data_node-64625253-bc44-450f-b6e2-970393e5ed9c",
+            "sourceHandle": null,
+            "targetHandle": null
+        },
+        {
+            "id": "edummy_data_node-64625253-bc44-450f-b6e2-970393e5ed9c-switch_node-c6957445-2da9-4684-a1e3-3daaf20ee23e",
+            "source": "dummy_data_node-64625253-bc44-450f-b6e2-970393e5ed9c",
+            "target": "switch_node-c6957445-2da9-4684-a1e3-3daaf20ee23e",
+            "sourceHandle": null,
+            "targetHandle": null
+        },
+        {
+            "id": "edummy_data_node-64625253-bc44-450f-b6e2-970393e5ed9c-data_viewer_node-bd7e7d74-0ab7-4cc1-a0d8-7104a95bd718",
+            "source": "dummy_data_node-64625253-bc44-450f-b6e2-970393e5ed9c",
+            "target": "data_viewer_node-bd7e7d74-0ab7-4cc1-a0d8-7104a95bd718",
+            "sourceHandle": null,
+            "targetHandle": null
+        },
+        {
+            "id": "eswitch_node-c6957445-2da9-4684-a1e3-3daaf20ee23e-case_cmnfy3r5cojdy-data_viewer_node-f7f9dd68-db66-4999-aa7c-f28587f659f5",
+            "source": "switch_node-c6957445-2da9-4684-a1e3-3daaf20ee23e",
+            "target": "data_viewer_node-f7f9dd68-db66-4999-aa7c-f28587f659f5",
+            "sourceHandle": "case_cmnfy3r5cojdy",
+            "targetHandle": null
+        },
+        {
+            "id": "eswitch_node-c6957445-2da9-4684-a1e3-3daaf20ee23e-case_cmnfyu4s9qmi0-data_viewer_node-fedfcc86-bd2b-4f00-9df4-b21af2f51dd2",
+            "source": "switch_node-c6957445-2da9-4684-a1e3-3daaf20ee23e",
+            "target": "data_viewer_node-fedfcc86-bd2b-4f00-9df4-b21af2f51dd2",
+            "sourceHandle": "case_cmnfyu4s9qmi0",
+            "targetHandle": null
+        },
+        {
+            "id": "eswitch_node-c6957445-2da9-4684-a1e3-3daaf20ee23e-case_cmnfyu518q9ca-data_viewer_node-f9c81d29-84f3-4f93-83de-b73c2b0c0399",
+            "source": "switch_node-c6957445-2da9-4684-a1e3-3daaf20ee23e",
+            "target": "data_viewer_node-f9c81d29-84f3-4f93-83de-b73c2b0c0399",
+            "sourceHandle": "case_cmnfyu518q9ca",
+            "targetHandle": null
+        }
+    ],
+    "viewport": null,
+    "exportedAt": "2026-08-08T12:00:41+00:00",
+    "voodflowVersion": "1.0.0"
+}

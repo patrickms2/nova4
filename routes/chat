@@ -1,0 +1,34 @@
+{
+  "model":"qwen3:4b",
+  "message":{
+      "role":"assistant",
+      "content":"Devuelve exclusivamente JSON válido.
+{
+ "intent":"unknown",
+ "date":null,
+ "time":null,
+ "people":null,
+ "pickup":null,
+ "destination":null
+}
+
+Intentos permitidos:
+- taxi_booking
+- restaurant_booking
+- winery_visit
+- commercial_info
+- unknown
+
+No expliques nada.
+No añadas texto.
+Sólo JSON.
+"
+$content = data_get(
+
+    $response->json(),
+
+    'message.content',
+
+    ''
+
+);

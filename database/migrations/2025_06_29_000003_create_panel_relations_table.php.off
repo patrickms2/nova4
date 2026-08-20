@@ -1,0 +1,31 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('panel_relations', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('panel_id')->constrained()->onDelete('cascade');
+            $table->string('type'); // belongsTo, hasMany, hasOne, belongsToMany
+            $table->string('related_model'); // Related model class name
+            $table->foreignId('related_panel_id')->nullable()->constrained('panels')->onDelete('set null');
+            $table->string('foreign_key')->nullable(); // For belongsTo, hasMany, hasOne
+            $table->string('local_key')->nullable(); // Usually 'id', but can be different
+            $table->string('method_name')->nullable(); // Custom method name for the relation
+            $table->json('relation_config')->nullable(); // Additional relation-specific configurations
+            $table->timestamps();
+
+            $table->index(['panel_id', 'type']);
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('panel_relations');
+    }
+};

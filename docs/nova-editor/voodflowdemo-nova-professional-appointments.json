@@ -1,0 +1,217 @@
+{
+    "title": "NOVA — Gestión de citas",
+    "author": "nova",
+    "description": "Capacidades, recursos y acciones reales de la plantilla de negocio 'Gestión de citas' (studio.blueprint.professional-appointments), reconstruidos desde GraphBuilder.",
+    "fingerprint": "b65f7c04-01ae-4c00-ba22-85bed42aa739",
+    "nodes": [
+        {
+            "id": "capacidad-studiographnodecapabilityhome",
+            "type": "capacidad",
+            "position": {
+                "x": 0,
+                "y": 0
+            },
+            "data": {
+                "label": "Inicio",
+                "description": "NOVA Address: studio.graph.node.capability.home",
+                "color": "emerald",
+                "display_name": "Capacidad",
+                "id": "capacidad-studiographnodecapabilityhome"
+            },
+            "style": null
+        },
+        {
+            "id": "capacidad-studiographnodecapabilitycompany",
+            "type": "capacidad",
+            "position": {
+                "x": 280,
+                "y": 0
+            },
+            "data": {
+                "label": "Empresa",
+                "description": "NOVA Address: studio.graph.node.capability.company",
+                "color": "emerald",
+                "display_name": "Capacidad",
+                "id": "capacidad-studiographnodecapabilitycompany"
+            },
+            "style": null
+        },
+        {
+            "id": "capacidad-studiographnodecapabilitydepartments",
+            "type": "capacidad",
+            "position": {
+                "x": 560,
+                "y": 0
+            },
+            "data": {
+                "label": "Departamentos",
+                "description": "NOVA Address: studio.graph.node.capability.departments",
+                "color": "emerald",
+                "display_name": "Capacidad",
+                "id": "capacidad-studiographnodecapabilitydepartments"
+            },
+            "style": null
+        },
+        {
+            "id": "capacidad-studiographnodecapabilityemployees",
+            "type": "capacidad",
+            "position": {
+                "x": 840,
+                "y": 0
+            },
+            "data": {
+                "label": "Empleados",
+                "description": "NOVA Address: studio.graph.node.capability.employees",
+                "color": "emerald",
+                "display_name": "Capacidad",
+                "id": "capacidad-studiographnodecapabilityemployees"
+            },
+            "style": null
+        },
+        {
+            "id": "capacidad-studiographnodecapabilityslots",
+            "type": "capacidad",
+            "position": {
+                "x": 0,
+                "y": 180
+            },
+            "data": {
+                "label": "Horarios",
+                "description": "NOVA Address: studio.graph.node.capability.slots",
+                "color": "emerald",
+                "display_name": "Capacidad",
+                "id": "capacidad-studiographnodecapabilityslots"
+            },
+            "style": null
+        },
+        {
+            "id": "capacidad-studiographnodecapabilityappointments",
+            "type": "capacidad",
+            "position": {
+                "x": 280,
+                "y": 180
+            },
+            "data": {
+                "label": "Citas",
+                "description": "NOVA Address: studio.graph.node.capability.appointments",
+                "color": "emerald",
+                "display_name": "Capacidad",
+                "id": "capacidad-studiographnodecapabilityappointments"
+            },
+            "style": null
+        },
+        {
+            "id": "capacidad-studiographnodecapabilityreports",
+            "type": "capacidad",
+            "position": {
+                "x": 560,
+                "y": 180
+            },
+            "data": {
+                "label": "Informes",
+                "description": "NOVA Address: studio.graph.node.capability.reports",
+                "color": "emerald",
+                "display_name": "Capacidad",
+                "id": "capacidad-studiographnodecapabilityreports"
+            },
+            "style": null
+        },
+        {
+            "id": "recurso-studiographnoderesourceinforme",
+            "type": "recurso",
+            "position": {
+                "x": 840,
+                "y": 180
+            },
+            "data": {
+                "label": "Informe",
+                "description": "NOVA Address: studio.graph.node.resource.informe",
+                "color": "blue",
+                "display_name": "Recurso",
+                "id": "recurso-studiographnoderesourceinforme"
+            },
+            "style": null
+        },
+        {
+            "id": "accion-studiographnodeactiongenerar-informes",
+            "type": "acciones",
+            "position": {
+                "x": 0,
+                "y": 360
+            },
+            "data": {
+                "label": "Generar informes",
+                "description": "NOVA Address: studio.graph.node.action.generar-informes",
+                "color": "amber",
+                "display_name": "Accion",
+                "id": "accion-studiographnodeactiongenerar-informes"
+            },
+            "style": null
+        },
+        {
+            "id": "capacidad-studiographnodecapabilitynova",
+            "type": "capacidad",
+            "position": {
+                "x": 280,
+                "y": 360
+            },
+            "data": {
+                "label": "NOVA",
+                "description": "NOVA Address: studio.graph.node.capability.nova",
+                "color": "emerald",
+                "display_name": "Capacidad",
+                "id": "capacidad-studiographnodecapabilitynova"
+            },
+            "style": null
+        },
+        {
+            "id": "recurso-studiographnoderesourcenova",
+            "type": "recurso",
+            "position": {
+                "x": 560,
+                "y": 360
+            },
+            "data": {
+                "label": "NOVA",
+                "description": "NOVA Address: studio.graph.node.resource.nova",
+                "color": "blue",
+                "display_name": "Recurso",
+                "id": "recurso-studiographnoderesourcenova"
+            },
+            "style": null
+        }
+    ],
+    "edges": [
+        {
+            "id": "xy-edge__capacidad-studiographnodecapabilityreports-recurso-studiographnoderesourceinforme",
+            "source": "capacidad-studiographnodecapabilityreports",
+            "target": "recurso-studiographnoderesourceinforme",
+            "sourceHandle": null,
+            "targetHandle": null,
+            "label": "produces"
+        },
+        {
+            "id": "xy-edge__capacidad-studiographnodecapabilityreports-accion-studiographnodeactiongenerar-informes",
+            "source": "capacidad-studiographnodecapabilityreports",
+            "target": "accion-studiographnodeactiongenerar-informes",
+            "sourceHandle": null,
+            "targetHandle": null,
+            "label": "supports"
+        },
+        {
+            "id": "xy-edge__capacidad-studiographnodecapabilitynova-recurso-studiographnoderesourcenova",
+            "source": "capacidad-studiographnodecapabilitynova",
+            "target": "recurso-studiographnoderesourcenova",
+            "sourceHandle": null,
+            "targetHandle": null,
+            "label": "produces"
+        }
+    ],
+    "viewport": {
+        "x": 0,
+        "y": 0,
+        "zoom": 0.75
+    },
+    "exportedAt": "2026-08-08T12:50:15+00:00",
+    "voodflowVersion": "1.0.0"
+}

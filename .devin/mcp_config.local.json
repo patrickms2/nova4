@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "sirvo": {
+      "url": "http://192.168.1.42:3000",
+      "transport": "http"
+    },
+            "elmapicms": {
+            "command": "/Users/patrickms/Library/Application Support/Herd/config/nvm/versions/node/v20.20.2/bin/elmapicms-mcp-server",
+            "args": [],
+            "env": {
+                "ELMAPI_BASE_URL": "https://cms.novagestion.eu/api",
+                "ELMAPI_API_KEY": "slyFlLJzOPDQdAHRO8MZLPfyEdJqbzZ1apCYmWOT150304da",
+                "ELMAPI_PROJECT_ID": "20e7620d-1ff9-4272-8643-869fc7b9d684"
+            }
+        }
+  }
+}

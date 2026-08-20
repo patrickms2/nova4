@@ -1,0 +1,98 @@
+{
+    "title": "News update",
+    "author": "admin",
+    "description": "Send a notification to the admin when a new news item is created.",
+    "fingerprint": "9ac09e73-f90b-40d3-a852-aa07660a35b5",
+    "nodes": [
+        {
+            "id": "trigger-2220b638-7078-4604-a7e5-88a0b0ee3d5a",
+            "type": "trigger",
+            "position": {
+                "x": 367.0432817092774,
+                "y": 252.9042056772128
+            },
+            "data": {
+                "label": "Event Trigger",
+                "description": "",
+                "eventClass": "eloquent.updated: Firefly\\FilamentBlog\\Models\\Post",
+                "status": "draft",
+                "isNew": true,
+                "icon": "heroicon-o-bolt",
+                "iconType": "heroicon",
+                "logoUrl": null,
+                "logoMissing": false,
+                "color": "amber",
+                "display_name": "Event Trigger",
+                "id": "trigger-2220b638-7078-4604-a7e5-88a0b0ee3d5a",
+                "_v": 4
+            },
+            "style": null
+        },
+        {
+            "id": "sticky_note-1775821134438",
+            "type": "sticky_note",
+            "position": {
+                "x": 482.0432817092774,
+                "y": 102.90420567721279
+            },
+            "data": {
+                "content": "Trigger the workflow when a new news item is created",
+                "color": "yellow",
+                "fontSize": "large"
+            },
+            "style": {
+                "width": 220,
+                "height": 104
+            }
+        },
+        {
+            "id": "system_notification-3274765d-d62d-4447-8fde-030ba45a1056",
+            "type": "system_notification",
+            "position": {
+                "x": 1183.143049091424,
+                "y": -171.913727426517
+            },
+            "data": {
+                "label": "System Notification",
+                "description": "",
+                "title": "{{newsPost.title}}",
+                "body": "Hi Admin, this post has an update!\nAuthor: {{newsPost.user.name}}\nTitle: {{newsPost.title}}\nCategory: {{#each newsPost.categories}}{{name}}, {{\/each}}",
+                "status": "info",
+                "icon": "heroicon-o-bell",
+                "icon_color": null,
+                "persistent": false,
+                "duration_ms": null,
+                "channels": [
+                    "database"
+                ],
+                "dispatch_database_event": true,
+                "recipient_user_id": "1",
+                "isNew": true,
+                "iconType": "heroicon",
+                "logoUrl": null,
+                "logoMissing": false,
+                "color": "indigo",
+                "display_name": "System Notification",
+                "id": "system_notification-3274765d-d62d-4447-8fde-030ba45a1056",
+                "_v": 15
+            },
+            "style": null
+        }
+    ],
+    "edges": [
+        {
+            "id": "xy-edge__trigger-2220b638-7078-4604-a7e5-88a0b0ee3d5a-system_notification-3274765d-d62d-4447-8fde-030ba45a1056",
+            "source": "trigger-2220b638-7078-4604-a7e5-88a0b0ee3d5a",
+            "target": "system_notification-3274765d-d62d-4447-8fde-030ba45a1056",
+            "sourceHandle": null,
+            "targetHandle": null
+        }
+    ],
+    "viewport": {
+        "x": -1.5913717610944786,
+        "y": 135.1990615942263,
+        "zoom": 0.7371346086455505
+    },
+    "exportedAt": "2026-08-08T12:00:41+00:00",
+    "voodflowVersion": "1.0.0"
+}

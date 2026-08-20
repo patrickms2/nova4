@@ -1,0 +1,193 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Filament\App\NovaHub\Resources\NovaBusinesses\Pages;
+
+use App\Filament\App\NovaHub\Resources\NovaBusinesses\NovaBusinessResource;
+use App\Models\NovaAiProfile;
+use App\Models\NovaService;
+use App\Services\Nova\NovaWebsiteKnowledgeImporter;
+use Filament\Actions\Action;
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\EditAction;
+use Filament\Forms\Components\KeyValue;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
+use Filament\Resources\Pages\ManageRelatedRecords;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
+use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Database\Eloquent\Builder;
+use Livewire\Livewire;
+use Throwable;
+
+final class ManageNovaBusinessAiKnowledge extends ManageRelatedRecords
+{
+    protected static string $resource = NovaBusinessResource::class;
+
+    protected static string $relationship = 'aiKnowledge';
+
+    protected static ?string $navigationLabel = 'Conocimiento IA';
+    protected static ?string $navigationParentItem = 'IA';
+
+    protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedBookOpen;
+
+    protected static ?int $navigationSort = 6;
+
+    public static function getNavigationBadge(): ?string
+    {
+        $record = Livewire::current()->getRecord();
+
+        return (string) cache()->remember(
+                    static::class . '.' . $record->id . '.navigation-badge',
+                    now()->addMinute(),
+                    fn () => $record->aiKnowledge()->where('status', 'active')->count()
+                );
+    }
+
+    public function getHeading(): string|Htmlable|null
+    {
+        return $this->getRecord()->name;
+    }
+
+    public function getSubheading(): string|Htmlable|null
+    {
+        return 'Información que el chat IA puede usar para responder sobre este cliente.';
+    }
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            Action::make('importWebsite')
+                ->label('Importar web')
+                ->icon(Heroicon::OutlinedArrowDownTray)
+                ->color('danger')
+                ->requiresConfirmation()
+                ->modalHeading('Importar información de la web')
+                ->modalDescription(fn (): string => $this->getRecord()->website_url
+                    ? 'Se importará texto desde '.$this->getRecord()->website_url.' y se guardará como conocimiento activo.'
+                    : 'Este cliente no tiene URL web configurada.')
+                ->disabled(fn (): bool => blank($this->getRecord()->website_url))
+                ->action(function (NovaWebsiteKnowledgeImporter $importer): void {
+                    try {
+                        $knowledge = $importer->import($this->getRecord());
+
+                        Notification::make()
+                            ->title('Información importada')
+                            ->body('Fragmento actualizado: '.$knowledge->title)
+                            ->success()
+                            ->send();
+                    } catch (Throwable $exception) {
+                        Notification::make()
+                            ->title('No se pudo importar la web')
+                            ->body($exception->getMessage())
+                            ->danger()
+                            ->send();
+                    }
+                }),
+            CreateAction::make()
+                ->label('Nuevo fragmento')
+                ->icon(Heroicon::OutlinedPlus)
+                ->color('danger')
+                ->mutateDataUsing(function (array $data): array {
+                    $data['nova_business_id'] = $this->getRecord()->id;
+
+                    return $data;
+                }),
+        ];
+    }
+
+    public function form(Schema $schema): Schema
+    {
+        return $schema->components([
+            Section::make('Fragmento de conocimiento')
+                ->schema([
+                    Select::make('nova_service_id')
+                        ->label('Servicio')
+                        ->options(fn (): array => NovaService::query()
+                            ->where('nova_business_id', $this->getRecord()->id)
+                            ->orderBy('name')
+                            ->pluck('name', 'id')
+                            ->toArray())
+                        ->searchable()
+                        ->preload(),
+                    Select::make('nova_ai_profile_id')
+                        ->label('Perfil IA')
+                        ->options(fn (): array => NovaAiProfile::query()
+                            ->where('nova_business_id', $this->getRecord()->id)
+                            ->orderBy('name')
+                            ->pluck('name', 'id')
+                            ->toArray())
+                        ->searchable()
+                        ->preload(),
+                    TextInput::make('title')
+                        ->label('Título')
+                        ->required()
+                        ->maxLength(255),
+                    Select::make('status')
+                        ->label('Estado')
+                        ->options([
+                            'pending' => 'Pendiente',
+                            'active' => 'Activo',
+                            'paused' => 'Pausado',
+                        ])
+                        ->default('active')
+                        ->required(),
+                    Textarea::make('content')
+                        ->label('Contenido')
+                        ->rows(12)
+                        ->required()
+                        ->columnSpanFull(),
+                    KeyValue::make('metadata')
+                        ->label('Metadatos')
+                        ->columnSpanFull(),
+                ])
+                ->columns(2),
+        ]);
+    }
+
+    public function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                TextColumn::make('title')
+                    ->label('Título')
+                    ->searchable()
+                    ->sortable()
+                    ->weight('bold'),
+                TextColumn::make('service.name')
+                    ->label('Servicio')
+                    ->badge()
+                    ->toggleable(),
+                TextColumn::make('aiProfile.name')
+                    ->label('Perfil IA')
+                    ->badge()
+                    ->toggleable(),
+                TextColumn::make('status')
+                    ->label('Estado')
+                    ->badge()
+                    ->sortable(),
+                TextColumn::make('metadata.source_url')
+                    ->label('Origen')
+                    ->limit(45)
+                    ->toggleable(),
+                TextColumn::make('updated_at')
+                    ->label('Actualizado')
+                    ->dateTime('d/m/Y H:i')
+                    ->sortable()
+                    ->toggleable(),
+            ])
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query->latest())
+            ->recordActions([
+                EditAction::make(),
+                DeleteAction::make(),
+            ]);
+    }
+}

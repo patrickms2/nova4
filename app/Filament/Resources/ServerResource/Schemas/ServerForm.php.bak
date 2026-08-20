@@ -1,0 +1,240 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Filament\Resources\ServerResource\Schemas;
+
+use App\Models\NovaBusiness;
+use Filament\Forms\Components\KeyValue;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TagsInput;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Schemas\Schema;
+
+class ServerForm
+{
+    public static function configure(Schema $schema): Schema
+    {
+        return $schema
+        ->columns(1)
+        ->components([
+            Tabs::make()->persistTab()->tabs([
+                Tab::make('General')
+                    ->icon('heroicon-o-server-stack')
+                    ->schema([
+                        static::identityFields(),
+                        static::clientFields(),
+                    ]),
+
+                Tab::make('Autenticación')
+                    ->icon('heroicon-o-key')
+                    ->schema([
+                        static::authenticationFields(),
+                    ]),
+
+                Tab::make('Capacidades')
+                    ->icon('heroicon-o-bolt')
+                    ->schema([
+                        static::capabilitiesFields(),
+                    ]),
+
+                Tab::make('Configuración')
+                    ->icon('heroicon-o-cog-6-tooth')
+                    ->schema([
+                        static::configFields(),
+                    ]),
+
+                Tab::make('Estado')
+                    ->icon('heroicon-o-signal')
+                    ->schema([
+                        static::statusFields(),
+                    ]),
+
+                Tab::make('Metadata')
+                    ->icon('heroicon-o-tag')
+                    ->schema([
+                        static::metadataFields(),
+                    ]),
+            ]),
+        ]);
+    }
+
+    public static function identityFields(): Section
+    {
+        return Section::make('Identificación')
+            ->description('Nombre, slug y descripción del servidor MCP.')
+            ->columns(2)
+            ->schema([
+                TextInput::make('name')
+                    ->label('Nombre')
+                    ->required()
+                    ->maxLength(255)
+                    ->live(onBlur: true)
+                    ->afterStateUpdated(fn ($state, $set) => $set('slug', \Str::slug($state))),
+
+                TextInput::make('slug')
+                    ->label('Slug')
+                    ->unique(ignoreRecord: true)
+                    ->maxLength(255),
+
+                TextInput::make('version')
+                    ->label('Versión')
+                    ->default('1.0.0')
+                    ->maxLength(20),
+
+                Toggle::make('is_active')
+                    ->label('Activo')
+                    ->default(true)
+                    ->inline(false),
+
+                Textarea::make('description')
+                    ->label('Descripción')
+                    ->rows(2)
+                    ->columnSpanFull(),
+
+                Textarea::make('instructions')
+                    ->label('Instrucciones para IA')
+                    ->rows(4)
+                    ->helperText('Instrucciones para clientes IA sobre cómo usar este servidor.')
+                    ->columnSpanFull(),
+            ]);
+    }
+
+    public static function clientFields(): Section
+    {
+        return Section::make('Cliente Nova')
+            ->description('Negocio al que pertenece este servidor.')
+            ->columns(2)
+            ->schema([
+                Select::make('nova_business_id')
+                    ->label('Cliente')
+                    ->options(NovaBusiness::pluck('name', 'id'))
+                    ->searchable()
+                    ->placeholder('Sin asignar'),
+            ]);
+    }
+
+    public static function configFields(): Section
+    {
+        return Section::make('Conexión')
+            ->description('Transporte, endpoint y middleware del servidor.')
+            ->columns(2)
+            ->schema([
+                Select::make('transport')
+                    ->label('Transporte')
+                    ->options([
+                        'web' => 'Web (HTTP)',
+                        'local' => 'Local (CLI)',
+                    ])
+                    ->default('web')
+                    ->required(),
+
+                TextInput::make('endpoint')
+                    ->label('Endpoint')
+                    ->prefix('/mcp/')
+                    ->placeholder('mi-servidor')
+                    ->helperText('Vacío = auto-generado desde slug.'),
+
+                TagsInput::make('middleware')
+                    ->label('Middleware')
+                    ->placeholder('Añadir middleware')
+                    ->helperText('Ej: throttle:mcp, auth:sanctum')
+                    ->columnSpanFull(),
+            ]);
+    }
+
+    public static function authenticationFields(): Section
+    {
+        return Section::make('Autenticación')
+            ->description('Configuración de autenticación del servidor.')
+            ->columns(2)
+            ->schema([
+                Select::make('auth_type')
+                    ->label('Tipo de Autenticación')
+                    ->options([
+                        'api_key' => 'API Key',
+                        'oauth' => 'OAuth 2.0',
+                        'basic' => 'Basic Auth',
+                        'none' => 'Sin autenticación',
+                    ])
+                    ->default('api_key')
+                    ->required()
+                    ->reactive()
+                    ->afterStateUpdated(fn ($state, $set) => $set('credentials.required', $state !== 'none')),
+
+                KeyValue::make('credentials')
+                    ->keyLabel('Campo')
+                    ->valueLabel('Valor')
+                    ->columnSpanFull()
+                    ->helperText('Credenciales de autenticación según el tipo seleccionado.'),
+            ]);
+    }
+
+    public static function capabilitiesFields(): Section
+    {
+        return Section::make('Capacidades del Servidor')
+            ->description('Intenciones que este servidor puede manejar.')
+            ->schema([
+                TagsInput::make('capabilities')
+                    ->label('Capacidades')
+                    ->placeholder('Añadir capacidad')
+                    ->helperText('Ej: restaurant_booking, availability_check, menu_info')
+                    ->separator(',')
+                    ->columnSpanFull(),
+
+                Textarea::make('capability_description')
+                    ->label('Descripción de Capacidades')
+                    ->rows(3)
+                    ->helperText('Describe qué puede hacer este servidor con cada capacidad.')
+                    ->columnSpanFull(),
+            ]);
+    }
+
+    public static function statusFields(): Section
+    {
+        return Section::make('Estado y Monitoreo')
+            ->description('Estado actual del servidor e información de monitoreo.')
+            ->columns(2)
+            ->schema([
+                Select::make('status')
+                    ->label('Estado')
+                    ->options([
+                        'active' => 'Activo',
+                        'inactive' => 'Inactivo',
+                        'error' => 'Error',
+                        'maintenance' => 'Mantenimiento',
+                    ])
+                    ->default('active')
+                    ->required(),
+
+                TextInput::make('last_checked_at')
+                    ->label('Última Verificación')
+                    ->disabled()
+                    ->formatStateUsing(fn ($state) => $state ? $state->format('d/m/Y H:i:s') : 'Nunca'),
+
+                Textarea::make('last_error')
+                    ->label('Último Error')
+                    ->rows(3)
+                    ->disabled()
+                    ->placeholder('Sin errores')
+                    ->columnSpanFull(),
+            ]);
+    }
+
+    public static function metadataFields(): Section
+    {
+        return Section::make('Metadata')
+            ->description('Pares clave-valor adicionales para este servidor.')
+            ->collapsed()
+            ->schema([
+                KeyValue::make('metadata')
+                    ->keyLabel('Clave')
+                    ->valueLabel('Valor'),
+            ]);
+    }
+}

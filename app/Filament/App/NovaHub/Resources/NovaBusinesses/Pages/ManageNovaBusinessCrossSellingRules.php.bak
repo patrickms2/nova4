@@ -1,0 +1,74 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Filament\App\NovaHub\Resources\NovaBusinesses\Pages;
+
+use App\Filament\App\NovaHub\Resources\NovaBusinesses\NovaBusinessResource;
+use App\Filament\App\NovaHub\Resources\NovaCrossSellingRules\Schemas\NovaCrossSellingRuleForm;
+use App\Filament\App\NovaHub\Resources\NovaCrossSellingRules\Tables\NovaCrossSellingRulesTable;
+use Filament\Actions\CreateAction;
+use Filament\Resources\Pages\ManageRelatedRecords;
+use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Table;
+use Illuminate\Contracts\Support\Htmlable;
+use Livewire\Livewire;
+
+final class ManageNovaBusinessCrossSellingRules extends ManageRelatedRecords
+{
+    protected static string $resource = NovaBusinessResource::class;
+
+    protected static string $relationship = 'crossSellingRules';
+
+    protected static ?string $navigationLabel = 'Cross-selling';
+    protected static ?string $navigationParentItem = 'MCP';
+
+    protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedArrowsRightLeft;
+
+    protected static ?int $navigationSort = 8;
+
+    public static function getNavigationBadge(): ?string
+    {
+        $record = Livewire::current()->getRecord();
+
+        return (string) $record->crossSellingRules()->count();
+    }
+
+    public function getHeading(): string|Htmlable|null
+    {
+        return $this->getRecord()->name;
+    }
+
+    public function getSubheading(): string|Htmlable|null
+    {
+        return 'Reglas de cross-selling configuradas para este negocio.';
+    }
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            CreateAction::make()
+                ->label('Nueva regla')
+                ->icon('heroicon-o-plus')
+                ->mutateFormDataUsing(function (array $data): array {
+                    $data['from_business_id'] = $this->getRecord()->id;
+
+                    return $data;
+                }),
+        ];
+    }
+
+    public function form(Schema $schema): Schema
+    {
+        return NovaCrossSellingRuleForm::configure($schema);
+    }
+
+    public function table(Table $table): Table
+    {
+        $table = NovaCrossSellingRulesTable::configure($table);
+        $table->getColumn('fromBusiness.name')?->toggleable(isToggledHiddenByDefault: true);
+
+        return $table;
+    }
+}

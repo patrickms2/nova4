@@ -1,0 +1,201 @@
+<?php
+
+namespace App\Filament\Resources;
+
+use Filament\Support\Icons\Heroicon;
+
+use App\Filament\Resources\RestaurantResource\Pages;
+use App\Models\Restaurant;
+use Archilex\AdvancedTables\AdvancedTables;
+use BackedEnum;
+use Filament\Actions;
+use Filament\Forms;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Resources\Resource;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema as Form;
+use Filament\Tables;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use UnitEnum;
+
+class RestaurantResource extends Resource
+{
+    use AdvancedTables;
+
+    protected static ?string $model = Restaurant::class;
+
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBuildingStorefront;
+
+    protected static string|UnitEnum|null $navigationGroup = 'Restaurantes';
+    protected static ?string $navigationParentGroup = 'Catálogo';
+    protected static ?string $navigationLabel = 'Restaurantes';
+
+    protected static ?int $navigationSort = 40;
+
+    public static function form(Form $form): Form
+    {
+        return $form
+            ->schema([
+                Section::make('Restaurant Information')
+                    ->schema([
+                        Forms\Components\TextInput::make('restaurant_name')
+                            ->label('Name')
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\Select::make('location_id')
+                            ->label('Location')
+                            ->relationship('location', 'name')
+                            ->searchable()
+                            ->preload()
+                            ->required(),
+                        Forms\Components\Textarea::make('description')
+                            ->maxLength(65535)
+                            ->columnSpanFull(),
+                        Forms\Components\TextInput::make('cuisine'),
+                        Forms\Components\Select::make('price_range')
+                            ->options([
+                                1 => 'Budget',
+                                2 => 'Moderate',
+                                3 => 'Expensive',
+                                4 => 'Very Expensive',
+                            ])
+                            ->default(1),
+                        Forms\Components\TimePicker::make('opening_time')
+                            ->seconds(false),
+                        Forms\Components\TimePicker::make('closing_time')
+                            ->seconds(false),
+                    ])->columns(2),
+
+                Section::make('Contact Information')
+                    ->schema([
+                        Forms\Components\TextInput::make('website'),
+                        Forms\Components\TextInput::make('phone')
+                            ->tel()
+                            ->maxLength(20),
+                        Forms\Components\TextInput::make('email')
+                            ->email()
+                            ->maxLength(255),
+                    ])->columns(3),
+                Section::make('Media')
+                    ->schema([
+                        Forms\Components\FileUpload::make('main_image_url')
+                            ->label('Main Image')
+                            ->image()
+                            ->directory('restaurant-images')->maxSize(2048),
+                    ]),
+                Section::make('Status')
+                    ->schema([
+                        Forms\Components\Toggle::make('has_reservation')
+                            ->label('Accepts Reservations')
+                            ->default(true),
+                        Forms\Components\Toggle::make('is_active')
+                            ->label('Active'),
+                        Forms\Components\Toggle::make('is_featured')
+                            ->label('Featured'),
+                        Forms\Components\Select::make('manager_id')
+                            ->label('Manager')
+                            ->relationship('manager', 'email', function (Builder $query) {
+                                return $query->where('user_type', 'restaurant_manager');
+                            })
+                            ->searchable()
+                            ->preload(),
+                    ])->columns(2),
+                Section::make('External Source')
+                    ->schema([
+                        TextEntry::make('source_label')
+                            ->label('Source')
+                            ->state(fn ($record): string => (string) ($record?->externalSyncMappings()->latest()->value('source_label') ?? 'Local')),
+                        TextEntry::make('resource_type')
+                            ->label('Type')
+                            ->state(fn ($record): string => (string) ($record?->externalSyncMappings()->latest()->value('resource_type') ?? 'local')),
+                    ])
+                    ->columns(2),
+            ]);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                Tables\Columns\TextColumn::make('id')
+                    ->label('ID')
+                    ->sortable()
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('name')
+                    ->label('Name'),
+                Tables\Columns\TextColumn::make('externalSyncMappings.source_label')
+                    ->label('Source')
+                    ->badge()
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('externalSyncMappings.resource_type')
+                    ->label('Type'),
+                Tables\Columns\TextColumn::make('location.name')
+                    ->label('Location'),
+                Tables\Columns\TextColumn::make('cuisine'),
+                Tables\Columns\TextColumn::make('price_range')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('opening_time')
+                    ->time(),
+                Tables\Columns\TextColumn::make('closing_time'),
+                Tables\Columns\TextColumn::make('average_rating')
+                    ->label('Rating'),
+                Tables\Columns\IconColumn::make('has_reservation')
+                    ->label('Reservations')
+                    ->boolean(),
+                Tables\Columns\IconColumn::make('is_active')
+                    ->label('Active'),
+                Tables\Columns\IconColumn::make('is_featured')
+                    ->label('Featured'),
+                Tables\Columns\TextColumn::make('manager.email')
+                    ->label('Manager'),
+                Tables\Columns\TextColumn::make('created_at')
+                    ->dateTime()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('updated_at'),
+            ])
+            ->filters([
+                Tables\Filters\SelectFilter::make('location_id')
+                    ->relationship('location', 'name')->searchable(),
+                Tables\Filters\SelectFilter::make('price_range')
+                    ->options([
+                        1 => 'Budget',
+                        2 => 'Moderate',
+                        3 => 'Expensive',
+                        4 => 'Very Expensive',
+                    ]),
+                Tables\Filters\TernaryFilter::make('has_reservation')
+                    ->label('Accepts Reservations'),
+                Tables\Filters\TernaryFilter::make('is_active')
+                    ->label('Active'),
+                Tables\Filters\TernaryFilter::make('is_featured')
+                    ->label('Featured'),
+            ])
+            ->actions([
+                Actions\EditAction::make(),
+                Actions\ViewAction::make(),
+                Actions\DeleteAction::make(),
+            ])
+            ->bulkActions([
+                Actions\BulkActionGroup::make([
+                    Actions\DeleteBulkAction::make()->deselectRecordsAfterCompletion(),
+                ]),
+            ]);
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            //
+        ];
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => Pages\ListRestaurants::route('/'),
+            'create' => Pages\CreateRestaurant::route('/create'),
+            'edit' => Pages\EditRestaurant::route('/{record}/edit'),
+        ];
+    }
+}

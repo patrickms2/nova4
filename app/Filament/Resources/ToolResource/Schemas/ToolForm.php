@@ -1,0 +1,204 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Filament\Resources\ToolResource\Schemas;
+
+use Filament\Support\Icons\Heroicon;
+
+use App\Models\Server;
+use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TagsInput;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Schemas\Schema;
+
+class ToolForm
+{
+    public static function configure(Schema $schema): Schema
+    {
+        return $schema
+                    ->columns(1)
+        ->components([
+            Tabs::make()->persistTab()->tabs([
+                Tab::make('General')
+                    ->icon(Heroicon::OutlinedWrenchScrewdriver)
+                    ->schema([
+                        static::identityFields(),
+                        static::settingsFields(),
+                    ]),
+
+                Tab::make('Input Schema')
+                    ->icon(Heroicon::OutlinedArrowDownOnSquare)
+                    ->schema([
+                        static::inputSchemaFields(),
+                    ]),
+
+                Tab::make('Handler')
+                    ->icon(Heroicon::OutlinedCodeBracket)
+                    ->schema([
+                        static::handlerFields(),
+                    ]),
+
+                Tab::make('Avanzado')
+                    ->icon(Heroicon::OutlinedAdjustmentsHorizontal)
+                    ->schema([
+                        static::outputSchemaFields(),
+                        static::annotationsFields(),
+                    ]),
+            ]),
+        ]);
+    }
+
+    public static function identityFields(): Section
+    {
+        return Section::make('Identificación')
+            ->description('Servidor, nombre y descripción de la tool.')
+            ->columns(2)
+            ->schema([
+                Select::make('server_id')
+                    ->label('Servidor MCP')
+                    ->options(Server::pluck('name', 'id'))
+                    ->required()
+                    ->searchable()
+                    ->preload(),
+
+                TextInput::make('name')
+                    ->label('Nombre (slug)')
+                    ->placeholder('get-weather')
+                    ->helperText('Minúsculas con guiones.'),
+
+                TextInput::make('title')
+                    ->label('Título')
+                    ->placeholder('Get Weather'),
+
+                Textarea::make('description')
+                    ->label('Descripción')
+                    ->rows(3)
+                    ->columnSpanFull(),
+            ]);
+    }
+
+    public static function settingsFields(): Section
+    {
+        return Section::make('Configuración')
+            ->columns(2)
+            ->schema([
+                Toggle::make('is_active')
+                    ->label('Activo')
+                    ->default(true)
+                    ->inline(false),
+
+                TextInput::make('sort_order')
+                    ->label('Orden')
+                    ->numeric()
+                    ->default(0),
+            ]);
+    }
+
+    public static function inputSchemaFields(): Section
+    {
+        return Section::make('Input Schema')
+            ->description('Parámetros que acepta esta tool.')
+            ->schema([
+                Repeater::make('input_schema')
+                    ->hiddenLabel()
+                    ->schema([
+                        TextInput::make('name')->label('Nombre')->required(),
+                        Select::make('type')
+                            ->label('Tipo')
+                            ->options([
+                                'string' => 'String',
+                                'integer' => 'Integer',
+                                'number' => 'Number',
+                                'boolean' => 'Boolean',
+                                'array' => 'Array',
+                                'object' => 'Object',
+                            ])
+                            ->default('string')
+                            ->required(),
+                        TextInput::make('description')->label('Descripción'),
+                        Toggle::make('required')->label('Requerido')->default(false),
+                        TagsInput::make('enum')->label('Enum values')->placeholder('Añadir valor'),
+                        TextInput::make('default')->label('Default'),
+                    ])
+                    ->columns(3)
+                    ->collapsible()
+                    ->itemLabel(fn (array $state): ?string => $state['name'] ?? null),
+            ]);
+    }
+
+    public static function handlerFields(): Section
+    {
+        return Section::make('Código Handler')
+            ->description('PHP que procesa la llamada a la tool. Usa $input para acceder a los parámetros.')
+            ->schema([
+                Textarea::make('handler_code')
+                    ->hiddenLabel()
+                    ->rows(18)
+                    ->placeholder('// Access parameters via $input array
+// Example:
+$location = $input["location"] ?? "New York";
+// Return a string or array
+return "Weather for {$location}: Sunny, 72°F";'),
+            ]);
+    }
+
+    public static function outputSchemaFields(): Section
+    {
+        return Section::make('Output Schema')
+            ->description('Estructura del resultado (opcional).')
+            ->collapsed()
+            ->schema([
+                Repeater::make('output_schema')
+                    ->hiddenLabel()
+                    ->schema([
+                        TextInput::make('name')->label('Nombre'),
+                        Select::make('type')
+                            ->label('Tipo')
+                            ->options([
+                                'string' => 'String',
+                                'integer' => 'Integer',
+                                'number' => 'Number',
+                                'boolean' => 'Boolean',
+                                'array' => 'Array',
+                                'object' => 'Object',
+                            ])
+                            ->default('string'),
+                        TextInput::make('description')->label('Descripción'),
+                        Toggle::make('required')->label('Requerido')->default(false),
+                    ])
+                    ->columns(4)
+                    ->collapsible(),
+            ]);
+    }
+
+    public static function annotationsFields(): Section
+    {
+        return Section::make('Annotations')
+            ->description('Metadatos semánticos sobre el comportamiento de la tool.')
+            ->collapsed()
+            ->schema([
+                Grid::make(4)->schema([
+                    Toggle::make('annotations.isReadOnly')
+                        ->label('Read Only')
+                        ->helperText('No modifica estado'),
+                    Toggle::make('annotations.isIdempotent')
+                        ->label('Idempotent')
+                        ->helperText('Mismo input = mismo output'),
+                    Toggle::make('annotations.isDestructive')
+                        ->label('Destructive')
+                        ->helperText('Puede eliminar datos'),
+                    Toggle::make('annotations.isOpenWorld')
+                        ->label('Open World')
+                        ->helperText('Interactúa externamente'),
+                ]),
+            ]);
+    }
+}

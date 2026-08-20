@@ -1,0 +1,111 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Filament\App\NovaHub\Resources\NovaBusinesses\Pages;
+
+use App\Filament\App\Facturacion\Resources\FacturaResource\Schemas\FacturaForm;
+use App\Filament\App\Facturacion\Resources\FacturaResource\Tables\FacturasTable;
+use App\Filament\App\NovaHub\Resources\NovaBusinesses\NovaBusinessResource;
+use App\Models\Factura;
+use Filament\Actions\CreateAction;
+use Filament\Resources\Pages\ManageRelatedRecords;
+use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Table;
+use Illuminate\Contracts\Support\Htmlable;
+use Livewire\Livewire;
+
+final class ManageNovaBusinessFacturas extends ManageRelatedRecords
+{
+    protected static string $resource = NovaBusinessResource::class;
+
+    protected static string $relationship = 'facturas';
+
+    protected static ?string $navigationLabel = 'Facturas';
+
+    protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentText;
+    protected static ?string $navigationParentItem = 'Ajustes';
+
+    protected static ?int $navigationSort = 3;
+
+    protected static ?string $recordTitleAttribute = 'codfactura';
+
+    public static function getNavigationBadge(): ?string
+    {
+        $record = Livewire::current()->getRecord();
+
+        return (string) $record->facturas()->count();
+    }
+
+    public function getHeading(): string|Htmlable|null
+    {
+        return $this->getRecord()->name;
+    }
+
+    public function getSubheading(): string|Htmlable|null
+    {
+        return 'Facturas asociadas a los clientes de facturación de este cliente Nova.';
+    }
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            CreateAction::make()
+                ->label('Nueva factura')
+                ->fillForm(fn (): array => $this->defaultClienteData())
+                ->mutateFormDataUsing(function (array $data): array {
+                    $defaults = $this->defaultClienteData();
+                    $data = array_merge($defaults, $data);
+
+                    $data['codfactura'] = filled($data['codfactura'] ?? null)
+                        ? $data['codfactura']
+                        : $defaults['codfactura'];
+
+                    $data['notas'] = filled($data['notas'] ?? null)
+                        ? $data['notas']
+                        : FacturaForm::monthName($data['fechaemitido'] ?? now());
+
+                    return $data;
+                }),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function defaultClienteData(): array
+    {
+        $fechaEmitido = now();
+        $data = [
+            'codfactura' => Factura::suggestNumero(),
+            'fechaemitido' => $fechaEmitido->format('d/m/Y'),
+            'notas' => FacturaForm::monthName($fechaEmitido),
+        ];
+
+        $cliente = $this->getRecord()->clientes()->first();
+
+        if (! $cliente) {
+            return $data;
+        }
+
+        return array_merge($data, [
+            'cliente_id' => $cliente->codcliente,
+            'codcliente' => $cliente->codcliente,
+            'cliente_nombre' => $cliente->nombretotal,
+            'cliente_cif' => $cliente->dni,
+            'cliente_direccion' => $cliente->direccion,
+            'cliente_telefono' => $cliente->telefono,
+        ]);
+    }
+
+    public function form(Schema $schema): Schema
+    {
+        return FacturaForm::configure($schema);
+    }
+
+    public function table(Table $table): Table
+    {
+        return FacturasTable::configure($table);
+    }
+}

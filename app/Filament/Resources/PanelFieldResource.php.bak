@@ -1,0 +1,235 @@
+<?php
+
+namespace App\Filament\Resources;
+
+use App\Filament\Resources\PanelFieldResource\Pages;
+use App\Filament\Resources\PanelFieldResource\Pages\ListPanels;
+use App\Filament\Resources\PanelFieldResource\Pages\CreatePanelField;
+use App\Filament\Resources\PanelFieldResource\Pages\EditPanelField;
+
+use App\Models\PanelField;
+use Filament\Forms;
+use Filament\Schemas\Schema as Form;
+use Filament\Resources\Resource;
+use Filament\Tables;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use BackedEnum;
+use UnitEnum;
+use Filament\Actions;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Repeater\TableColumn;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Component;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
+class PanelFieldResource extends Resource
+{
+    protected static ?string $model = PanelField::class;
+
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-briefcase';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Paneles';
+    protected static ?string $navigationParentGroup = 'Nova Hub';
+
+    protected static ?int $navigationSort = 3;
+
+    public static function form(Form $form): Form
+    {
+        return $form
+            ->schema([
+                Section::make('Field Information')
+                    ->schema([
+                        Section::make(2)
+                            ->schema([
+                                Forms\Components\Select::make('panel_id')
+                                    ->relationship('panel', 'name')
+                                    ->required()
+                                    ->searchable()
+                                    ->preload(),
+
+                                Forms\Components\TextInput::make('name')
+                                    ->required()
+                                    ->maxLength(255)
+                                    ->helperText('Database field name'),
+                            ]),
+
+                        Section::make(2)
+                            ->schema([
+                                Forms\Components\TextInput::make('label')
+                                    ->required()
+                                    ->maxLength(255)
+                                    ->helperText('Display label for the field'),
+
+                                Forms\Components\TextInput::make('order')
+                                    ->numeric()
+                                    ->default(0),
+                            ]),
+                    ]),
+
+                Section::make('Field Types')
+                    ->schema([
+                        Section::make(3)
+                            ->schema([
+                                Forms\Components\Select::make('type')
+                                    ->label('Migration Type')
+                                    ->options([
+                                        'string' => 'String',
+                                        'text' => 'Text',
+                                        'integer' => 'Integer',
+                                        'bigInteger' => 'Big Integer',
+                                        'decimal' => 'Decimal',
+                                        'boolean' => 'Boolean',
+                                        'date' => 'Date',
+                                        'datetime' => 'DateTime',
+                                        'timestamp' => 'Timestamp',
+                                        'json' => 'JSON',
+                                        'foreignId' => 'Foreign ID',
+                                    ])
+                                    ->required(),
+
+                                Forms\Components\Select::make('filament_type')
+                                    ->label('Form Field Type')
+                                    ->options([
+                                        'TextInput' => 'Text Input',
+                                        'Textarea' => 'Textarea',
+                                        'RichEditor' => 'Rich Editor',
+                                        'Select' => 'Select',
+                                        'Checkbox' => 'Checkbox',
+                                        'Toggle' => 'Toggle',
+                                        'Radio' => 'Radio',
+                                        'DatePicker' => 'Date Picker',
+                                        'DateTimePicker' => 'Date Time Picker',
+                                        'TimePicker' => 'Time Picker',
+                                        'FileUpload' => 'File Upload',
+                                        'ColorPicker' => 'Color Picker',
+                                        'Hidden' => 'Hidden',
+                                    ])
+                                    ->required(),
+
+                                Forms\Components\Select::make('column_type')
+                                    ->label('Table Column Type')
+                                    ->options([
+                                        'TextColumn' => 'Text Column',
+                                        'IconColumn' => 'Icon Column',
+                                        'ImageColumn' => 'Image Column',
+                                        'BooleanColumn' => 'Boolean Column',
+                                        'BadgeColumn' => 'Badge Column',
+                                        'ColorColumn' => 'Color Column',
+                                        'NumberColumn' => 'Number Column',
+                                        'DateColumn' => 'Date Column',
+                                        'DateTimeColumn' => 'Date Time Column',
+                                        'TimeColumn' => 'Time Column',
+                                    ])
+                                    ->required(),
+                            ]),
+                    ]),
+
+                Section::make('Field Configuration')
+                    ->schema([
+                        Section::make(2)
+                            ->schema([
+                                Forms\Components\Toggle::make('nullable')
+                                    ->default(false),
+
+                                Forms\Components\TextInput::make('default')
+                                    ->maxLength(255),
+                            ]),
+
+                        Forms\Components\KeyValue::make('validation_rules')
+                            ->keyLabel('Rule')
+                            ->valueLabel('Parameter')
+                            ->columnSpanFull(),
+
+                        Forms\Components\KeyValue::make('field_config')
+                            ->keyLabel('Property')
+                            ->valueLabel('Value')
+                            ->columnSpanFull()
+                            ->helperText('Additional field-specific configurations'),
+                    ])
+                    ->collapsed(),
+            ]);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                Tables\Columns\TextColumn::make('panel.name')
+                    ->searchable()
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('name')
+                    ->searchable()
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('label')
+                    ->searchable()
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('type')
+                    ->searchable()
+                    ->sortable()
+                    ->badge(),
+
+                Tables\Columns\TextColumn::make('filament_type')
+                    ->searchable()
+                    ->sortable()
+                    ->badge(),
+
+                Tables\Columns\IconColumn::make('nullable')
+                    ->boolean(),
+
+                Tables\Columns\TextColumn::make('order')
+                    ->sortable(),
+            ])
+            ->filters([
+                Tables\Filters\SelectFilter::make('panel')
+                    ->relationship('panel', 'name')
+                    ->searchable()
+                    ->preload(),
+
+                Tables\Filters\SelectFilter::make('type')
+                    ->options([
+                        'string' => 'String',
+                        'text' => 'Text',
+                        'integer' => 'Integer',
+                        'boolean' => 'Boolean',
+                        'date' => 'Date',
+                        'datetime' => 'DateTime',
+                    ]),
+
+                Tables\Filters\TernaryFilter::make('nullable'),
+            ])
+            ->actions([
+                Actions\ViewAction::make(),
+                Actions\EditAction::make(),
+                Actions\DeleteAction::make(),
+            ])
+            ->bulkActions([
+                Actions\DeleteBulkAction::make(),
+            ])
+            ->reorderable('order')
+            ->defaultSort('panel_id', 'asc')
+            ->defaultSort('order', 'asc');
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            //
+        ];
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => Pages\ListPanelFields::route('/'),
+            'create' => Pages\CreatePanelField::route('/create'),
+            'edit' => Pages\EditPanelField::route('/{record}/edit'),
+        ];
+    }
+}

@@ -1,0 +1,34 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('panel_tables', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('panel_id')->constrained()->onDelete('cascade');
+            $table->string('name');
+            $table->string('title');
+            $table->text('description')->nullable();
+            $table->json('columns'); // Table column definitions
+            $table->json('filters')->nullable(); // Table filter definitions
+            $table->json('actions')->nullable(); // Table action definitions
+            $table->json('bulk_actions')->nullable(); // Table bulk action definitions
+            $table->json('table_config')->nullable(); // Additional table configurations
+            $table->boolean('is_default')->default(false); // Mark as default table for the panel
+            $table->timestamps();
+
+            $table->unique(['panel_id', 'name']);
+            $table->index(['panel_id', 'is_default']);
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('panel_tables');
+    }
+};

@@ -1,0 +1,74 @@
+<?php
+
+namespace App\Filament\Resources\TaxiServiceResource\Relations;
+use Filament\Actions;
+use Filament\Forms;
+use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Schemas\Schema as Form;
+use Filament\Tables;
+use Filament\Tables\Table;
+class ListTaxiServiceBookings extends RelationManager
+{
+    protected static string $relationship = 'bookings';
+    public function form(Form $form): Form
+    {
+        return $form
+            ->schema([
+                Forms\Components\DateTimePicker::make('pickup_date_time')
+                    ->required(),
+                Forms\Components\TextInput::make('estimated_distance')
+                    ->required()
+                    ->numeric()
+                    ->step(0.01),
+                Forms\Components\Select::make('pickup_location_id')
+                    ->relationship('pickupLocation', 'address')
+                    ->searchable(),
+                Forms\Components\Select::make('dropoff_location_id')
+                    ->relationship('dropoffLocation', 'address'),
+                Forms\Components\Select::make('vehicle_type_id')
+                    ->relationship('vehicleType', 'type_name'),
+                Forms\Components\Select::make('driver_id')
+                    ->relationship('driver', 'license_number')
+                    ->searchable(),
+                Forms\Components\Select::make('vehicle_id')
+                    ->relationship('vehicle', 'registration_number')->searchable(),
+            ]);
+    }
+    public function table(Table $table): Table
+    {
+        return $table
+            ->recordTitleAttribute('taxi_booking_id')
+            ->columns([
+                Tables\Columns\TextColumn::make('booking.booking_reference')
+                    ->label('Booking Reference')->searchable(),
+                Tables\Columns\TextColumn::make('pickup_location.address')
+                    ->label('Pickup Location'),
+                Tables\Columns\TextColumn::make('dropoff_location.address')
+                    ->label('Dropoff Location'),
+                Tables\Columns\TextColumn::make('pickup_date_time')
+                    ->dateTime()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('estimated_distance')
+                    ->suffix(' km'),
+                Tables\Columns\TextColumn::make('driver.license_number')
+                    ->label('Driver'),
+                Tables\Columns\TextColumn::make('vehicle.registration_number')
+                    ->label('Vehicle'),
+            ])
+            ->filters([
+                //
+            ])
+            ->headerActions([
+                Actions\CreateAction::make(),
+            ])
+            ->actions([
+                Actions\EditAction::make(),
+                Actions\DeleteAction::make(),
+            ])
+            ->toolbarActions([
+                Actions\BulkActionGroup::make([
+                    Actions\DeleteBulkAction::make()->deselectRecordsAfterCompletion(),
+                ]),
+            ]);
+    }
+}

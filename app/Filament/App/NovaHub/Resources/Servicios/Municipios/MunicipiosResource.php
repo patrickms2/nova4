@@ -1,0 +1,217 @@
+<?php
+
+namespace App\Filament\App\NovaHub\Resources\Servicios\Municipios;
+
+use Filament\Support\Icons\Heroicon;
+use App\AdminDashboardSidebarSorting;
+use App\Filament\Components\Tables\InlineEditColumn;
+use App\Filament\Support\baseresource;
+use App\Models\TipoUsuario;
+use Archilex\AdvancedTables\AdvancedTables;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
+use Filament\Forms;
+use Filament\Schemas\Schema as Form;
+use Filament\Resources\Resource;
+use Filament\Panel;
+use Filament\Tables;
+use Filament\Forms\ComponentContainer;
+use Filament\Forms\Contracts\HasForms;
+use Filament\Support\Components\ViewComponent;
+use Filament\Support\Concerns\HasExtraAttributes;
+use Filament\Tables\Columns\TextInputColumn;
+use Filament\Tables\Table;
+use Filament\Support\Concerns\HasLineClamp;
+use Filament\Tables\Columns\TextColumn\TextColumnSize;
+use Filament\Tables\Contracts\HasTable;
+use Illuminate\Support\Facades\Hash;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\BadgeColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ColorColumn;
+use Filament\Tables\Columns\ToggleColumn;
+
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
+use Filament\Forms\Components\ColorPicker;
+use Filament\Forms\Components\Select;
+use Filament\Actions\ActionGroup;
+use Filament\Pages\Enums\SubNavigationPosition;
+use Filament\Pages\Page;
+use Filament\Resources\Pages\PageRegistration;
+use Filament\Actions;
+use Filament\Resources\Pages\ListRecords;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Actions\Action;
+use Filament\Actions\Contracts\HasRecord;
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+
+use Filament\Facades\Filament;
+use Filament\Navigation\NavigationGroup;
+use Filament\Navigation\NavigationItem;
+use Filament\Resources\Concerns\HasTabs;
+use Filament\Actions\BulkAction;
+use App\Filament\App\NovaHub\Resources\Servicios\Municipioss\Pages;
+use App\Filament\App\NovaHub\Resources\Servicios\Municipios\Pages\ManageMunicipios;
+use App\Filament\App\NovaHub\Resources\Servicios\Municipios\Pages\ListMunicipios;
+use Filament\Schemas\Schema as Infolist;
+use App\Filament\App\NovaHub\Resources\Servicios\ServiciosCluster\ServiciosCluster;
+
+use App\Models\Taxi\Municipio;
+use Filament\Resources\Pages\ManageRecords;
+use App\Filament\Clusters\Settings;
+use UnitEnum;
+use BackedEnum;
+use Archilex\AdvancedTables\Filters\SelectFilter;
+use Archilex\AdvancedTables\Filters\TextFilter;
+use Archilex\AdvancedTables\Filters\AdvancedFilter;
+use Archilex\AdvancedTables\Filters\BooleanFilter;
+use Archilex\AdvancedTables\Filters\NumericFilter;
+use Archilex\AdvancedTables\Filters\DateFilter;
+use Filament\Support\View\Components\BadgeComponent;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Js;
+use Illuminate\View\ComponentAttributeBag;
+
+class MunicipiosResource extends baseresource
+{
+
+
+    protected static ?string $model = Municipio::class;
+
+    // protected static string | BackedEnum | null $navigationIcon  = Heroicon::OutlinedRectangleStack;
+    protected static ?string $navigationLabel = "Municipios";
+    //protected static ?string $cluster = ServiciosCluster::class;
+    protected static ?SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
+    protected static string | UnitEnum | null $navigationGroup = 'Taxis';
+
+
+    public static function form(Form $form): Form
+    {
+        return $form
+            ->schema([
+                Forms\Components\TextInput::make('nombre'),
+                Forms\Components\ColorPicker::make('color'),
+                Forms\Components\Toggle::make('estado'),
+
+            ]);
+    }
+    public static function  table(Table $table): Table {
+
+        return $table
+        ->columns([
+            TextColumn::make('id')
+                ->sortable()
+                ->searchable(),
+            TextColumn::make('nombre')
+                //->badge(true)
+                ->color(
+                    fn ($record): string => $record?->color ?? 'gray',
+                )
+                ->size('sm')
+                ->formatStateUsing(fn (string $state): string => strtoupper($state))
+                ->extraAttributes(function ($record) {
+
+                    $color = $record?->color;
+                    return $color ?
+                        [ 'badge' => "color: {$color}", 'style' => "color: {$color}; font-weight: 600;",'class' => "fi-color fi-size-md fi-color-[{$color}] fi-ta-text-has-badges fi-text-color-900 dark:fi-text-color-200"] : [];
+                })
+                ->sortable()
+                ->searchable(),
+
+            ColorColumn::make('color')->label('Color'),
+            IconColumn::make('estado')
+                ->label('Estado')
+                ->boolean()
+                ->trueIcon(Heroicon::CheckCircle)->trueColor('success')
+                ->falseIcon(Heroicon::XCircle)->falseColor('danger'),
+            ToggleColumn::make('estado'),
+
+            Tables\Columns\TextColumn::make('usuario_count')
+                ->label('Usuarios')
+                ->counts('usuario')
+                ->sortable()
+                ->alignCenter(),
+        ])
+        ->filters([])
+        ->actions([
+            EditAction::make(),
+        ])
+        ->toolbarActions([
+            BulkActionGroup::make([
+                DeleteBulkAction::make()->deselectRecordsAfterCompletion(),
+            ]),
+        ])
+        ->defaultSort('id', 'desc');
+    }
+
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist;
+    }
+
+    public static function canAccess(): bool
+    {
+        return static::canViewAny();
+    }
+
+    public static function registerNavigationItems(): void
+    {
+        if (filled(static::getCluster())) {
+            return;
+        }
+
+        if (! static::shouldRegisterNavigation()) {
+            return;
+        }
+
+        if (! static::canAccess()) {
+            return;
+        }
+
+        Filament::getCurrentPanel()
+            ->navigationItems(static::getNavigationItems());
+    }
+
+    /**
+     * @return array<NavigationItem>
+     */
+    /*public static function getNavigationItems(): array
+    {
+        return [
+            NavigationItem::make(static::getNavigationLabel())
+                ->group(static::getNavigationGroup())
+                ->parentItem(static::getNavigationParentItem())
+                ->icon(static::getNavigationIcon())
+                ->activeIcon(static::getActiveNavigationIcon())
+                ->isActiveWhen(fn () => request()->routeIs(static::getRouteBaseName() . '.*'))
+                ->badge(static::getNavigationBadge(), color: static::getNavigationBadgeColor())
+                ->badgeTooltip(static::getNavigationBadgeTooltip())
+                ->sort(static::getNavigationSort())
+                ->url(static::getNavigationUrl()),
+        ];
+    }
+
+    public static function getSubNavigationPosition(): SubNavigationPosition
+    {
+        return static::$subNavigationPosition;
+    }*/
+
+
+
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => ManageMunicipios::route('/'),
+            //'index' => Pages\ListMunicipios::route('/'),
+            //'create' => Pages\CreateMunicipio::route('/create'),
+            /*'edit' => Pages\EditMunicipio::route('/{record}/edit'),*/
+        ];
+    }
+}

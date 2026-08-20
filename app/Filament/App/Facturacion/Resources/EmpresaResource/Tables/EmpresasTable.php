@@ -1,0 +1,30 @@
+<?php
+
+namespace App\Filament\App\Facturacion\Resources\EmpresaResource\Tables;
+
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
+
+class EmpresasTable
+{
+    public static function configure(Table $table): Table
+    {
+        return $table
+            ->columns([
+                TextColumn::make('codeempresa')->label('Código')->sortable(),
+                TextColumn::make('empresa')->label('Razón social')->wrap()->searchable(),
+                TextColumn::make('nif'),
+                TextColumn::make('email'),
+                TextColumn::make('telefono'),
+                TextColumn::make('porcentajeexplotacion')->suffix('%'),
+            ])
+            ->actions([
+                EditAction::make(),
+            ])
+            ->toolbarActions([
+                DeleteBulkAction::make()->deselectRecordsAfterCompletion(),
+            ]);
+    }
+}

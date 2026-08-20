@@ -1,0 +1,203 @@
+{
+    "$schema": "https://getcomposer.org/schema.json",
+    "name": "laravel/laravel",
+    "type": "project",
+    "description": "The skeleton application for the Laravel framework.",
+    "keywords": ["laravel", "framework"],
+    "license": "MIT",
+    "require": {
+        "php": "^8.4",
+        "agroezinger/filament-navigation-enhanced": "^1.0",
+        "anousss007/blatui": "^1.15",
+        "anselmocossa/filament-launchpad": "^1.4",
+        "archilex/filament-filter-sets": "^5.3",
+        "aryxs3m/laravel-hoas": "dev-master",
+        "ashrafic/laravel-ai-orbit": "^1.2",
+        "asmit/advanced-kanban": "^1.6",
+        "aureuserp/custom-fields": "dev-master",
+        "barryvdh/laravel-dompdf": "^3.1",
+        "bezhansalleh/filament-panel-switch": "^3.1",
+        "blade-ui-kit/blade-heroicons": "^2.7",
+        "blade-ui-kit/blade-icons": "^1.10",
+        "caresome/filament-auth-designer": "*",
+        "cheesegrits/filament-google-maps": "*",
+        "cleaniquecoders/flowstone": "^1.5",
+        "crumbls/filament-database": "^3.0",
+        "crumbls/layup": "^1.3",
+        "crumbls/navcraft": "^0.0.1",
+        "crumbls/timeline": "^0.0.1",
+        "devletes/filament-pinnable-navigation": "^1.0",
+        "emuniq/filament-collapsible-subnav": "^1.6",
+        "filafly/brisk": "^1.1",
+        "filafly/filament-phosphor-icons": "^2.2",
+        "filament/filament": "^5.7",
+        "filament/spatie-laravel-media-library-plugin": "^5.6",
+        "filament/spatie-laravel-settings-plugin": "^5.6",
+        "filament/spatie-laravel-tags-plugin": "^5.6",
+        "gehrisandro/tailwind-merge-laravel": "^1.4",
+        "glebsons4ntos/filament-voice-transcribe": "^1.0",
+        "guava/calendar": "^3.1",
+        "guava/filament-knowledge-base": "^3.1",
+        "guava/filament-mcp": "^1.0",
+        "heiner/filament-agentic-chatbot": "^0.16.1",
+        "illuminate/contracts": "^12.0|^13.0",
+        "jccoca/filament-json-column": "^1.0",
+        "kirschbaum-development/commentions": "^0.7.10",
+        "kirschbaum-development/laravel-loop": "^0.1.8",
+        "kwasii/livewire-mapcn": "^1.1",
+        "laboiteacode/filament-dependency-graph": "^1.1",
+        "laravel/ai": "v0.7.2",
+        "laravel/framework": "^12.0",
+        "laravel/mcp": "^0.8|^0.9.0",
+        "laravel/reverb": "^1.10",
+        "laravel/sanctum": "^4.3",
+        "laravel/tinker": "^2.10.1",
+        "laraveljutsu/zap": "^1.15",
+        "livewire-filemanager/filemanager": "^1.1",
+        "livewire/flux": "^2.14",
+        "livewire/flux-pro": "^2.14",
+        "livewire/livewire": "^4.3",
+        "livewire/volt": "^1.10",
+        "mallardduck/blade-lucide-icons": "^1.26",
+        "malzariey/filament-daterangepicker-filter": "^5.0",
+        "marcelodelgado/filament-announcements": "^1.0",
+        "martin6363/filament-sidebar-resize": "^1.0",
+        "nativephp/mobile": "^4.1",
+        "nativephp/mobile-camera": "^1.0",
+        "nativephp/mobile-microphone": "^1.0",
+        "openai-php/laravel": "^0.19.1",
+        "osamaatef/filament-drilldown-sidebar": "^1.4",
+        "projectmata/mobile-secure-storage": "^1.0",
+        "redsys/tpv": "^2.3",
+        "saade/filament-fullcalendar": "^4.0@beta",
+        "secondnetwork/blade-tabler-icons": "^3.44",
+        "setasign/fpdf": "^1.9",
+        "setasign/fpdi": "^2.6",
+        "spatie/browsershot": "^5.4",
+        "spatie/eloquent-sortable": "^4.0",
+        "spatie/laravel-package-tools": "^1.14.0",
+        "squareetlabs/laravel-verifactu": "^1.0",
+        "unnathianalytics/laragrid": "^1.6",
+        "upscalewp/laravel-revolut-payments": "dev-main",
+        "vaslv/filament-topbar-menu": "^1.4",
+        "voodflow/voodflow": "^0.1.0",
+        "wezlo/filament-search-spotlight": "^1.0",
+        "zoltantorok/filament-drag-and-scroll": "^1.0"
+    },
+    "require-dev": {
+        "fakerphp/faker": "^1.23",
+        "filament/blueprint": "^2.2",
+        "laradumps/laradumps": "*",
+        "laradumps/laradumps-core": "^4.1",
+        "laramint/laravel-brain": "*",
+        "laravel/boost": "^2.4",
+        "laravel/pail": "^1.2.2",
+        "laravel/pint": "^1.24",
+        "laravel/sail": "^1.41",
+        "laraveldaily/filacheck": "^1.2",
+        "laraveldaily/filacheck-pro": "^1.2",
+        "mockery/mockery": "^1.6",
+        "nunomaduro/collision": "^8.6",
+        "phpunit/phpunit": "^11.5.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/",
+            "Nova\\NovaHub\\": "app/Filament/App/NovaHub",
+            "Nova\\Factuacion\\": "app/Filament/App/Factuacion",
+            "Nova\\Rentals\\": "app/Filament/App/Rentals",
+            "Nova\\Domotics\\": "app/Filament/App/Domotics",
+
+            "Database\\Factories\\": "database/factories/",
+            "Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "setup": [
+            "composer install",
+            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",
+            "@php artisan key:generate",
+            "@php artisan migrate --force",
+            "npm install",
+            "npm run build"
+        ],
+        "dev": "npx concurrently -c \"#93c5fd,#c4b5fd,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1\" \"npm run dev\" --names='server,queue,vite'",
+        "test": [
+            "@php artisan config:clear --ansi",
+            "@php artisan test"
+        ],
+        "post-autoload-dump": [
+            "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
+            "@php artisan package:discover --ansi",
+            "@php artisan filament:upgrade"
+        ],
+        "post-update-cmd": [
+            "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
+        ],
+        "post-root-package-install": [
+            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+        ],
+        "post-create-project-cmd": [
+            "@php artisan key:generate --ansi",
+            "@php -r \"file_exists('database/database.sqlite') || touch('database/database.sqlite');\"",
+            "@php artisan migrate --graceful --ansi"
+        ],
+        "pre-package-uninstall": [
+            "Illuminate\\Foundation\\ComposerScripts::prePackageUninstall"
+        ]
+    },
+    "extra": {
+        "laravel": {
+            "dont-discover": []
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true,
+            "php-http/discovery": true
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "repositories": [
+        {
+            "name": "filacheck",
+            "type": "composer",
+            "url": "https://satis.filamentexamples.com"
+        },
+        {
+            "name": "filament",
+            "type": "composer",
+            "url": "https://packages.filamentphp.com/composer"
+        },
+        {
+            "name": "flux-pro",
+            "type": "composer",
+            "url": "https://composer.fluxui.dev"
+        },
+        {
+        "name": "archilex",
+        "type": "composer",
+        "url": "https://advancedtables.privato.pub/composer"
+    },         {
+            "type": "composer",
+            "url": "https://agentic-chatbot.composer.sh"
+        }, {
+      "type": "composer",
+      "url": "https://filament-advanced-kanban.composer.sh"
+    },{
+            "type": "composer",
+            "url": "https://voodflow.composer.sh"
+        }
+
+
+    ]
+}

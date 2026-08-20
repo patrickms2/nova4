@@ -1,0 +1,87 @@
+<?php
+
+namespace App\Filament\Resources\NovaIntentToServerMapping\Schemas;
+
+use App\Models\NovaBusiness;
+use App\Models\Server;
+use App\Models\Tool;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\KeyValue;
+use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Section;
+
+use Filament\Schemas\Schema;
+
+class NovaIntentToServerMappingForm
+{
+    public static function configure(Schema $schema): Schema
+    {
+        return $schema
+            ->components([
+                Section::make('Routing Configuration')
+                    ->schema([
+                        Select::make('intent_key')
+                            ->label('Intent')
+                            ->options([
+                                'system_info' => 'System Info',
+                                'commercial_info' => 'Commercial Info',
+                                'restaurant_booking' => 'Restaurant Booking',
+                                'winery_visit' => 'Winery Visit',
+                                'taxi_booking' => 'Taxi Booking',
+                                'hotel_booking' => 'Hotel Booking',
+                                'product_purchase' => 'Product Purchase',
+                                'route_recommendation' => 'Route Recommendation',
+                                'cancellation_request' => 'Cancellation Request',
+                                'physical_store_visit' => 'Physical Store Visit',
+                            ])
+                            ->required()
+                            ->searchable(),
+                        Select::make('server_id')
+                            ->label('MCP Server')
+                            ->relationship('server', 'name')
+                            ->options(Server::query()->active()->pluck('name', 'id'))
+                            ->required()
+                            ->searchable()
+                            ->live(),
+                        Select::make('tool_id')
+                            ->label('Tool (Optional)')
+                            ->relationship('tool', 'name')
+                            ->options(function (callable $get) {
+                                $serverId = $get('server_id');
+                                if (!$serverId) {
+                                    return [];
+                                }
+                                return Tool::query()->where('server_id', $serverId)->pluck('name', 'id');
+                            })
+                            ->searchable()
+                            ->preload(),
+                        TextInput::make('priority')
+                            ->label('Priority')
+                            ->numeric()
+                            ->default(0)
+                            ->helperText('Higher priority mappings are checked first'),
+                    ]),
+                Section::make('Conditions')
+                    ->schema([
+                        KeyValue::make('conditions')
+                            ->label('Conditions')
+                            ->keyLabel('Condition')
+                            ->valueLabel('Value')
+                            ->helperText('Optional conditions for this mapping (e.g., min_guests: 2)'),
+                    ]),
+                Section::make('Business Scope')
+                    ->schema([
+                        Select::make('nova_business_id')
+                            ->label('Business (Optional)')
+                            ->relationship('business', 'name')
+                            ->options(NovaBusiness::query()->pluck('name', 'id'))
+                            ->searchable()
+                            ->helperText('Leave empty for global mapping (applies to all businesses)'),
+                        Toggle::make('is_active')
+                            ->label('Active')
+                            ->default(true),
+                    ]),
+            ]);
+    }
+}

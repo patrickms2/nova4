@@ -1,0 +1,26 @@
+{
+    "name": "acciones",
+    "display_name": "Acciones",
+    "version": "1.0.0",
+    "author": "Voodflow",
+    "description": "Custom node for workflow automation",
+    "category": "action",
+    "tier": "FREE",
+    "display": {
+        "iconType": "heroicon",
+        "icon": "heroicon-o-paper-airplane",
+        "color": "amber",
+        "logo": null
+    },
+    "php": {
+        "class": "Acciones",
+        "namespace": "Voodflow\\Voodflow\\Nodes\\Acciones"
+    },
+    "javascript": {
+        "component": "VoodflowNode_Acciones",
+        "bundle": "dist/acciones.js"
+    },
+    "license": {
+        "type": "MIT"
+    }
+}

@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 1,
+  "nodes": [
+    {
+      "id": "trigger_1",
+      "type": "trigger",
+      "position": { "x": 400, "y": 60 },
+      "data": {
+        "label": "Inventory Webhook",
+        "triggerType": "webhook",
+        "webhookPath": "/inventory-alert"
+      }
+    },
+    {
+      "id": "set_product",
+      "type": "setVariable",
+      "position": { "x": 400, "y": 220 },
+      "data": {
+        "label": "Extract Product Info",
+        "variableName": "product_summary",
+        "expression": "Product: {{input.product_name}} (SKU: {{input.sku}})\nCurrent stock: {{input.current_stock}}\nThreshold: {{input.reorder_threshold}}\nWarehouse: {{input.warehouse}}"
+      }
+    },
+    {
+      "id": "cond_critical",
+      "type": "condition",
+      "position": { "x": 400, "y": 380 },
+      "data": {
+        "label": "Stock Critical?",
+        "leftOperand": "{{input.current_stock}}",
+        "operator": "less_than",
+        "rightOperand": "{{input.reorder_threshold}}"
+      }
+    },
+    {
+      "id": "ai_reorder",
+      "type": "aiAgent",
+      "position": { "x": 150, "y": 560 },
+      "data": {
+        "label": "Draft Reorder Alert",
+        "provider": "",
+        "model": "",
+        "systemPrompt": "You are an inventory management assistant. A product has fallen below its reorder threshold. Draft a concise, professional reorder alert email body with:\n1. Product details and current stock level\n2. Recommended reorder quantity (2x the threshold as a rule of thumb)\n3. Urgency level based on how far below threshold\n4. Suggested action timeline\nKeep it under 150 words. Be direct and actionable.",
+        "userPromptTemplate": "{{product_summary}}",
+        "temperature": 0.3,
+        "maxTokens": 500,
+        "outputVariable": "alert_body",
+        "streamToChat": false
+      }
+    },
+    {
+      "id": "action_notify",
+      "type": "action",
+      "position": { "x": 150, "y": 740 },
+      "data": {
+        "label": "Send Alert Email",
+        "actionKey": "send_email",
+        "inputMapping": "{\"to\": \"purchasing@example.com\", \"subject\": \"⚠️ Low Stock Alert: {{input.product_name}} ({{input.sku}})\", \"body\": \"{{alert_body}}\"}",
+        "outputVariable": "email_result"
+      }
+    },
+    {
+      "id": "http_log",
+      "type": "httpRequest",
+      "position": { "x": 150, "y": 900 },
+      "data": {
+        "label": "Log to Slack",
+        "method": "POST",
+        "url": "https://hooks.slack.com/services/YOUR/WEBHOOK/URL",
+        "headers": "{\"Content-Type\": \"application/json\"}",
+        "body": "{\"text\": \"🚨 *Low Stock Alert*\\n{{product_summary}}\\n\\nReorder alert sent to purchasing team.\"}",
+        "outputVariable": "slack_result",
+        "timeout": 10
+      }
+    },
+    {
+      "id": "msg_ok",
+      "type": "sendMessage",
+      "position": { "x": 650, "y": 560 },
+      "data": {
+        "label": "Stock OK",
+        "messageType": "text",
+        "messageContent": "✅ Stock level for {{input.product_name}} ({{input.current_stock}} units) is above threshold. No action needed."
+      }
+    },
+    {
+      "id": "note_1",
+      "type": "note",
+      "position": { "x": 50, "y": 60 },
+      "data": {
+        "label": "About",
+        "noteContent": "Webhook-Triggered Inventory Alert — External system POSTs stock data; workflow checks threshold, drafts AI reorder alert, sends email, and posts to Slack. Shows: webhook trigger, condition, httpRequest, action, AI drafting, no user interaction needed.",
+        "color": "#f87171"
+      }
+    }
+  ],
+  "edges": [
+    { "id": "e-1", "source": "trigger_1", "target": "set_product" },
+    { "id": "e-2", "source": "set_product", "target": "cond_critical" },
+    { "id": "e-3", "source": "cond_critical", "target": "ai_reorder", "sourceHandle": "yes" },
+    { "id": "e-4", "source": "cond_critical", "target": "msg_ok", "sourceHandle": "no" },
+    { "id": "e-5", "source": "ai_reorder", "target": "action_notify" },
+    { "id": "e-6", "source": "action_notify", "target": "http_log" }
+  ],
+  "viewport": { "x": 0, "y": 0, "zoom": 1 }
+}

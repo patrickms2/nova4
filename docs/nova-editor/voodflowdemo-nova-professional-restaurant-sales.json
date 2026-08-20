@@ -1,0 +1,177 @@
+{
+    "title": "NOVA — Menú de restaurante",
+    "author": "nova",
+    "description": "Capacidades, recursos y acciones reales de la plantilla de negocio 'Menú de restaurante' (studio.blueprint.professional-restaurant-sales), reconstruidos desde GraphBuilder.",
+    "fingerprint": "48b3c7a7-c23d-4e8a-974e-cc662afb62f9",
+    "nodes": [
+        {
+            "id": "capacidad-studiographnodecapabilityhome",
+            "type": "capacidad",
+            "position": {
+                "x": 0,
+                "y": 0
+            },
+            "data": {
+                "label": "Inicio",
+                "description": "NOVA Address: studio.graph.node.capability.home",
+                "color": "emerald",
+                "display_name": "Capacidad",
+                "id": "capacidad-studiographnodecapabilityhome"
+            },
+            "style": null
+        },
+        {
+            "id": "capacidad-studiographnodecapabilityrestaurant-menu",
+            "type": "capacidad",
+            "position": {
+                "x": 280,
+                "y": 0
+            },
+            "data": {
+                "label": "Platos",
+                "description": "NOVA Address: studio.graph.node.capability.restaurant-menu",
+                "color": "emerald",
+                "display_name": "Capacidad",
+                "id": "capacidad-studiographnodecapabilityrestaurant-menu"
+            },
+            "style": null
+        },
+        {
+            "id": "recurso-studiographnoderesourceproducto",
+            "type": "recurso",
+            "position": {
+                "x": 560,
+                "y": 0
+            },
+            "data": {
+                "label": "Producto",
+                "description": "NOVA Address: studio.graph.node.resource.producto",
+                "color": "blue",
+                "display_name": "Recurso",
+                "id": "recurso-studiographnoderesourceproducto"
+            },
+            "style": null
+        },
+        {
+            "id": "capacidad-studiographnodecapabilityreports",
+            "type": "capacidad",
+            "position": {
+                "x": 840,
+                "y": 0
+            },
+            "data": {
+                "label": "Informes",
+                "description": "NOVA Address: studio.graph.node.capability.reports",
+                "color": "emerald",
+                "display_name": "Capacidad",
+                "id": "capacidad-studiographnodecapabilityreports"
+            },
+            "style": null
+        },
+        {
+            "id": "recurso-studiographnoderesourceinforme",
+            "type": "recurso",
+            "position": {
+                "x": 0,
+                "y": 180
+            },
+            "data": {
+                "label": "Informe",
+                "description": "NOVA Address: studio.graph.node.resource.informe",
+                "color": "blue",
+                "display_name": "Recurso",
+                "id": "recurso-studiographnoderesourceinforme"
+            },
+            "style": null
+        },
+        {
+            "id": "accion-studiographnodeactiongenerar-informes",
+            "type": "acciones",
+            "position": {
+                "x": 280,
+                "y": 180
+            },
+            "data": {
+                "label": "Generar informes",
+                "description": "NOVA Address: studio.graph.node.action.generar-informes",
+                "color": "amber",
+                "display_name": "Accion",
+                "id": "accion-studiographnodeactiongenerar-informes"
+            },
+            "style": null
+        },
+        {
+            "id": "capacidad-studiographnodecapabilitynova",
+            "type": "capacidad",
+            "position": {
+                "x": 560,
+                "y": 180
+            },
+            "data": {
+                "label": "NOVA",
+                "description": "NOVA Address: studio.graph.node.capability.nova",
+                "color": "emerald",
+                "display_name": "Capacidad",
+                "id": "capacidad-studiographnodecapabilitynova"
+            },
+            "style": null
+        },
+        {
+            "id": "recurso-studiographnoderesourcenova",
+            "type": "recurso",
+            "position": {
+                "x": 840,
+                "y": 180
+            },
+            "data": {
+                "label": "NOVA",
+                "description": "NOVA Address: studio.graph.node.resource.nova",
+                "color": "blue",
+                "display_name": "Recurso",
+                "id": "recurso-studiographnoderesourcenova"
+            },
+            "style": null
+        }
+    ],
+    "edges": [
+        {
+            "id": "xy-edge__capacidad-studiographnodecapabilityrestaurant-menu-recurso-studiographnoderesourceproducto",
+            "source": "capacidad-studiographnodecapabilityrestaurant-menu",
+            "target": "recurso-studiographnoderesourceproducto",
+            "sourceHandle": null,
+            "targetHandle": null,
+            "label": "produces"
+        },
+        {
+            "id": "xy-edge__capacidad-studiographnodecapabilityreports-recurso-studiographnoderesourceinforme",
+            "source": "capacidad-studiographnodecapabilityreports",
+            "target": "recurso-studiographnoderesourceinforme",
+            "sourceHandle": null,
+            "targetHandle": null,
+            "label": "produces"
+        },
+        {
+            "id": "xy-edge__capacidad-studiographnodecapabilityreports-accion-studiographnodeactiongenerar-informes",
+            "source": "capacidad-studiographnodecapabilityreports",
+            "target": "accion-studiographnodeactiongenerar-informes",
+            "sourceHandle": null,
+            "targetHandle": null,
+            "label": "supports"
+        },
+        {
+            "id": "xy-edge__capacidad-studiographnodecapabilitynova-recurso-studiographnoderesourcenova",
+            "source": "capacidad-studiographnodecapabilitynova",
+            "target": "recurso-studiographnoderesourcenova",
+            "sourceHandle": null,
+            "targetHandle": null,
+            "label": "produces"
+        }
+    ],
+    "viewport": {
+        "x": 0,
+        "y": 0,
+        "zoom": 0.75
+    },
+    "exportedAt": "2026-08-08T12:50:15+00:00",
+    "voodflowVersion": "1.0.0"
+}

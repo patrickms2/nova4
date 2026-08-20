@@ -1,0 +1,26 @@
+{
+    "name": "recurso",
+    "display_name": "Recurso",
+    "version": "1.0.0",
+    "author": "Voodflow",
+    "description": "Custom node for workflow automation",
+    "category": "data",
+    "tier": "FREE",
+    "display": {
+        "iconType": "heroicon",
+        "icon": "heroicon-o-circle-stack",
+        "color": "blue",
+        "logo": null
+    },
+    "php": {
+        "class": "Recurso",
+        "namespace": "Voodflow\\Voodflow\\Nodes\\Recurso"
+    },
+    "javascript": {
+        "component": "VoodflowNode_Recurso",
+        "bundle": "dist/recurso.js"
+    },
+    "license": {
+        "type": "MIT"
+    }
+}

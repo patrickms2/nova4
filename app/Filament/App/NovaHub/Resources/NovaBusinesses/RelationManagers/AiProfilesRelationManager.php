@@ -1,0 +1,39 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Filament\App\NovaHub\Resources\NovaBusinesses\RelationManagers;
+
+use App\Filament\App\NovaHub\Resources\NovaAiProfiles\Schemas\NovaAiProfileForm;
+use App\Filament\App\NovaHub\Resources\NovaAiProfiles\Tables\NovaAiProfilesTable;
+use Filament\Actions\CreateAction;
+use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Schemas\Schema;
+use Filament\Tables\Table;
+
+final class AiProfilesRelationManager extends RelationManager
+{
+    protected static string $relationship = 'aiProfiles';
+
+    protected static ?string $title = 'IA';
+
+    protected static ?string $recordTitleAttribute = 'name';
+
+    public function form(Schema $schema): Schema
+    {
+        return NovaAiProfileForm::configure($schema);
+    }
+
+    public function table(Table $table): Table
+    {
+        return NovaAiProfilesTable::configure($table)
+            ->headerActions([
+                CreateAction::make()
+                    ->mutateDataUsing(function (array $data): array {
+                        $data['nova_business_id'] = $this->getOwnerRecord()->id;
+
+                        return $data;
+                    }),
+            ]);
+    }
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Filament Performance Audit"
+  short_description: "Audit Filament panels for performance risks"
+  default_prompt: "Use $filament-performance-audit to review this Filament code for concrete performance issues."

@@ -1,0 +1,117 @@
+<?php
+
+namespace App\Filament\TourAdmin\Resources;
+
+use Filament\Support\Icons\Heroicon;
+
+use App\Filament\TourAdmin\Resources\TourBookingResource\Pages;
+use App\Models\TourBooking;
+use Archilex\AdvancedTables\AdvancedTables;
+use Filament\Actions;
+use Filament\Resources\Resource;
+use Filament\Schemas\Schema as Form;
+use Filament\Tables;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+
+class TourBookingResource extends Resource
+{
+    use AdvancedTables;
+
+    protected static ?string $model = TourBooking::class;
+
+    protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentCheck;
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Reservas';
+    protected static ?string $navigationLabel = 'Tours';
+
+    protected static ?int $navigationSort = 11;
+
+    public static function canAccess(): bool
+    {
+        return true;
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return true;
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery();
+    }
+
+    /*return parent::getEloquentQuery()
+    ->whereHas('tour', function ($query) {
+        $query->where('admin_id', auth()->id());
+    });*/
+
+    public static function form(Form $form): Form
+    {
+        return $form
+            ->schema([
+            ]);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                Tables\Columns\TextColumn::make('id')
+                    ->label('ID')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('tour.name')
+                    ->numeric(),
+                Tables\Columns\TextColumn::make('tour.activities.name')
+                    ->label('Activities')
+                    ->formatStateUsing(fn ($state, $record) => $record->tour->activities->pluck('name')->join(', ')
+                    ),
+                Tables\Columns\TextColumn::make('user.first_name'),
+                Tables\Columns\TextColumn::make('cost'),
+                Tables\Columns\TextColumn::make('booking.status')
+                    ->label('Status'),
+                Tables\Columns\TextColumn::make('booking.payment_status')
+                    ->label('payment status'),
+                Tables\Columns\TextColumn::make('booking.discount_amount')
+                    ->label('discount'),
+                Tables\Columns\TextColumn::make('number_of_adults'),
+                Tables\Columns\TextColumn::make('number_of_children'),
+            ])
+            ->filters([
+                //
+            ])
+            ->actions([
+                Actions\ViewAction::make(),
+                Actions\EditAction::make(),
+            ])
+            ->toolbarActions([
+                Actions\BulkActionGroup::make([
+                    Actions\DeleteBulkAction::make()->deselectRecordsAfterCompletion(),
+                ]),
+            ]);
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            //
+        ];
+    }
+
+    public static function canCreate(): bool
+    {
+        return true;
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => Pages\ListTourBookings::route('/'),
+            'create' => Pages\CreateTourBooking::route('/create'),
+            'view' => Pages\ViewTourBooking::route('/{record}'),
+            'edit' => Pages\EditTourBooking::route('/{record}/edit'),
+        ];
+    }
+}

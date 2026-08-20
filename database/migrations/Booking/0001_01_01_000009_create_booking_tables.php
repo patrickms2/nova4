@@ -1,0 +1,135 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        // Bookings table
+        Schema::create('bookings', function (Blueprint $table) {
+            $table->id('id');
+            $table->string('booking_reference')->unique()->notNull();
+            $table->foreignId('user_id')->constrained('users', 'id')->onDelete('cascade');
+            $table->enum('booking_type', ['Tour', 'Hotel', 'Taxi', 'Restaurant', 'Package', 'Rental'])->notNull();
+            $table->dateTime('booking_date')->default(now());
+            $table->enum('status', ['Pending', 'Confirmed', 'Cancelled', 'Completed'])->default('Pending');
+            $table->decimal('total_price', 10, 2)->notNull();
+            $table->decimal('discount_amount', 10, 2)->default(0);
+            $table->enum('payment_status', ['Pending', 'Paid', 'Refunded', 'Failed'])->default('Pending');
+            $table->text('special_requests')->nullable();
+            $table->text('cancellation_reason')->nullable();
+            $table->dateTime('last_updated')->default(now());
+        });
+
+        // Tour Bookings table
+        Schema::create('tour_bookings', function (Blueprint $table) {
+            $table->id('id');
+            $table->foreignId('booking_id')->constrained('bookings', 'id')->onDelete('cascade');
+            $table->foreignId('tour_id')->constrained('tours', 'id');
+            $table->foreignId('schedule_id')->constrained('tour_schedules', 'id');
+            $table->integer('number_of_adults')->notNull()->default(1);
+            $table->integer('number_of_children')->notNull()->default(0);
+            $table->foreignId('guide_id')->nullable()->constrained('users', 'id');
+        });
+
+        // Hotel Bookings table
+        Schema::create('hotel_bookings', function (Blueprint $table) {
+            $table->id('id');
+            $table->foreignId('booking_id')->constrained('bookings', 'id')->onDelete('cascade');
+            $table->foreignId('hotel_id')->constrained('hotels', 'id');
+            $table->foreignId('room_type_id')->constrained('room_types', 'id');
+            $table->date('check_in_date')->notNull();
+            $table->date('check_out_date')->notNull();
+            $table->integer('number_of_rooms')->notNull()->default(1);
+            $table->integer('number_of_guests')->notNull();
+        });
+
+        // Restaurant Bookings table
+        Schema::create('restaurant_bookings', function (Blueprint $table) {
+            $table->id('id');
+            $table->foreignId('booking_id')->constrained('bookings', 'id')->onDelete('cascade');
+            $table->foreignId('restaurant_id')->constrained('restaurants', 'id');
+            $table->foreignId('table_id')->nullable()->constrained('restaurant_tables', 'id');
+            $table->date('reservation_date')->notNull();
+            $table->time('reservation_time')->notNull();
+            $table->integer('number_of_guests')->notNull();
+            $table->integer('duration')->default(120)->comment('Duration in minutes');
+        });
+
+        // Taxi Bookings table
+        Schema::create('taxi_bookings', function (Blueprint $table) {
+            $table->id('id');
+            $table->foreignId('booking_id')->constrained('bookings', 'id')->onDelete('cascade');
+            $table->foreignId('taxi_service_id')->constrained('taxi_services', 'id');
+            $table->foreignId('vehicle_type_id')->constrained('vehicle_types', 'id');
+            $table->foreignId('trip_id')->nullable()->constrained();
+            $table->foreignId('vehicle_id')->nullable()->constrained('vehicles', 'id');
+            $table->foreignId('driver_id')->references('id')->on('drivers')->onDelete('cascade');
+            $table->foreignId('pickup_location_id')->nullable()->constrained('locations', 'id');
+            $table->foreignId('dropoff_location_id')->nullable()->constrained('locations', 'id');
+            $table->dateTime('pickup_date_time')->notNull();
+            $table->enum('type_of_booking', ['one_way', 'round_trip', 'hourly'])->default('one_way');
+            $table->decimal('estimated_distance', 10, 2)->nullable();
+            $table->integer('duration_hours')->nullable();       // for hourly
+            $table->dateTime('return_time')->nullable();         // for round-trip
+            $table->enum('status', ['pending', 'confirmed', 'cancelled', 'completed'])->default('pending');
+            $table->boolean('is_scheduled')->default(false);
+            $table->boolean('is_shared')->default(false);        // for shared taxi booking
+            $table->integer('passenger_count')->default(1);      // number of passengers in this booking
+            $table->integer('max_additional_passengers')->nullable(); // max additional passengers allowed for shared rides
+        });
+
+        // Package Bookings table
+        Schema::create('package_bookings', function (Blueprint $table) {
+            $table->id('id');
+            $table->foreignId('booking_id')->constrained('bookings', 'id')->onDelete('cascade');
+            $table->foreignId('package_id')->constrained('travel_packages', 'id');
+            $table->date('start_date')->notNull();
+            $table->integer('number_of_adults')->notNull()->default(1);
+            $table->integer('number_of_children')->notNull()->default(0);
+        });
+        Schema::create('rental_bookings', function (Blueprint $table) {
+            $table->foreignId('booking_id')->primary()->constrained('bookings')->onDelete('cascade');
+
+            $table->unsignedBigInteger('customer_id');
+            $table->foreign('customer_id')->references('id')->on('users');
+
+            $table->unsignedInteger('vehicle_id');
+            $table->foreign('vehicle_id')->references('id')->on('rental_vehicles');
+
+            $table->unsignedBigInteger('office_id');
+            $table->foreign('office_id')->references('id')->on('rental_offices');
+
+            $table->date('pickup_date');
+            $table->date('return_date');
+            $table->decimal('daily_rate', 8, 2);
+            $table->decimal('total_price', 10, 2);
+
+            $table->enum('status', ['reserved', 'active', 'completed', 'cancelled'])
+                ->default('reserved');
+
+            $table->timestamps();
+        });
+
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('package_bookings');
+        Schema::dropIfExists('taxi_bookings');
+        Schema::dropIfExists('restaurant_bookings');
+        Schema::dropIfExists('hotel_bookings');
+        Schema::dropIfExists('tour_bookings');
+        Schema::dropIfExists('rental_bookings');
+        Schema::dropIfExists('bookings');
+    }
+};

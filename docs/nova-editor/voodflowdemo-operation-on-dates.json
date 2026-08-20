@@ -1,0 +1,120 @@
+{
+    "title": "Operation on dates",
+    "author": "admin",
+    "description": "Format dates",
+    "fingerprint": "fc3895fc-c261-4130-9290-a2c250d29d33",
+    "nodes": [
+        {
+            "id": "dummy_data_node-2e96355f-b7ec-4559-8566-063348573ef1",
+            "type": "dummy_data_node",
+            "position": {
+                "x": -600,
+                "y": -50
+            },
+            "data": {
+                "label": "Event Data",
+                "description": "Record with a date field",
+                "data_type": "json",
+                "content": "{\n  \"event\": \"Workshop\",\n  \"created_at\": \"2026-04-01 14:30:00\",\n  \"organizer\": \"Alice\"\n}",
+                "icon": "heroicon-o-document-arrow-down",
+                "iconType": "heroicon",
+                "color": "emerald",
+                "display_name": "Dummy Data",
+                "isNew": true,
+                "isExpanded": true,
+                "positioning": {
+                    "input": false,
+                    "output": true
+                },
+                "logoUrl": null,
+                "logoMissing": false
+            },
+            "style": null
+        },
+        {
+            "id": "format_date-57808dbc-2091-4e82-8a02-b1ea07b5abfa",
+            "type": "format_date",
+            "position": {
+                "x": 0,
+                "y": -50
+            },
+            "data": {
+                "label": "Format Date IT",
+                "description": "Convert to Italian format + add 30 days",
+                "input_date": "{{created_at}}",
+                "output_format": "d\/m\/Y H:i",
+                "timezone": "Europe\/Rome",
+                "add_days": 30,
+                "add_hours": 1,
+                "add_minutes": 0,
+                "icon": "heroicon-o-wrench-screwdriver",
+                "iconType": "heroicon",
+                "color": "emerald",
+                "display_name": "Format Date",
+                "isNew": true,
+                "isExpanded": true,
+                "logoUrl": null,
+                "logoMissing": false,
+                "_v": 3
+            },
+            "style": null
+        },
+        {
+            "id": "data_viewer_node-a8a66775-a752-4522-95f0-e65438df6db2",
+            "type": "data_viewer_node",
+            "position": {
+                "x": 650,
+                "y": -50
+            },
+            "data": {
+                "label": "Formatted Date",
+                "description": "Date reformatted and shifted",
+                "view_mode": "auto",
+                "icon": "heroicon-o-table-cells",
+                "iconType": "heroicon",
+                "color": "slate",
+                "display_name": "Data Viewer",
+                "isNew": true,
+                "logoUrl": null,
+                "logoMissing": false,
+                "visibleColumns": [
+                    "formatted_date",
+                    "iso_8601",
+                    "timestamp",
+                    "timezone"
+                ],
+                "display_keys": [
+                    "formatted_date",
+                    "iso_8601",
+                    "timestamp",
+                    "timezone"
+                ],
+                "_v": 4
+            },
+            "style": null
+        }
+    ],
+    "edges": [
+        {
+            "id": "edummy_data_node-2e96355f-b7ec-4559-8566-063348573ef1-format_date-57808dbc-2091-4e82-8a02-b1ea07b5abfa",
+            "source": "dummy_data_node-2e96355f-b7ec-4559-8566-063348573ef1",
+            "target": "format_date-57808dbc-2091-4e82-8a02-b1ea07b5abfa",
+            "sourceHandle": null,
+            "targetHandle": null
+        },
+        {
+            "id": "eformat_date-57808dbc-2091-4e82-8a02-b1ea07b5abfa-data_viewer_node-a8a66775-a752-4522-95f0-e65438df6db2",
+            "source": "format_date-57808dbc-2091-4e82-8a02-b1ea07b5abfa",
+            "target": "data_viewer_node-a8a66775-a752-4522-95f0-e65438df6db2",
+            "sourceHandle": null,
+            "targetHandle": null
+        }
+    ],
+    "viewport": {
+        "x": 772.4117647058823,
+        "y": 313.59411764705885,
+        "zoom": 1.0023529411764707
+    },
+    "exportedAt": "2026-08-08T12:00:41+00:00",
+    "voodflowVersion": "1.0.0"
+}

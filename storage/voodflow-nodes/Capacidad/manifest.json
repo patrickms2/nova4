@@ -1,0 +1,26 @@
+{
+    "name": "capacidad",
+    "display_name": "Capacidad",
+    "version": "1.0.0",
+    "author": "Voodflow",
+    "description": "Custom node for workflow automation",
+    "category": "data",
+    "tier": "FREE",
+    "display": {
+        "iconType": "heroicon",
+        "icon": "heroicon-o-circle-stack",
+        "color": "emerald",
+        "logo": null
+    },
+    "php": {
+        "class": "Capacidad",
+        "namespace": "Voodflow\\Voodflow\\Nodes\\Capacidad"
+    },
+    "javascript": {
+        "component": "VoodflowNode_Capacidad",
+        "bundle": "dist/capacidad.js"
+    },
+    "license": {
+        "type": "MIT"
+    }
+}

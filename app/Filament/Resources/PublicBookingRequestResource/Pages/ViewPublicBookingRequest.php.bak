@@ -1,0 +1,39 @@
+<?php
+
+namespace App\Filament\Resources\PublicBookingRequestResource\Pages;
+use App\Filament\Resources\PublicBookingRequestResource;
+use Filament\Actions;
+use Filament\Facades\Filament;
+use Filament\Forms\Components\Textarea;
+use Filament\Resources\Pages\ViewRecord;
+class ViewPublicBookingRequest extends ViewRecord
+{
+    protected static string $resource = PublicBookingRequestResource::class;
+    protected function getHeaderActions(): array
+    {
+        return [
+            Actions\Action::make('approve')
+                ->icon('heroicon-o-check-circle')
+                ->color('success')
+                ->visible(fn (): bool => $this->record->status === 'pending')
+                ->requiresConfirmation()
+                ->action(function (): void {
+                    $this->record->approve(Filament::auth()->user());
+                }),
+            Actions\Action::make('cancel')
+                ->icon('heroicon-o-x-circle')
+                ->color('danger')
+                ->form([
+                    Textarea::make('decision_notes')
+                        ->label('Reason')
+                        ->maxLength(1000),
+                ])
+                ->action(function (array $data): void {
+                    $this->record->cancel(
+                        Filament::auth()->user(),
+                        $data['decision_notes'] ?? null,
+                    );
+                }),
+        ];
+    }
+}

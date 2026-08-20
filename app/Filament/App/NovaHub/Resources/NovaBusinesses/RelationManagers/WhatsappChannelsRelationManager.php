@@ -1,0 +1,39 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Filament\App\NovaHub\Resources\NovaBusinesses\RelationManagers;
+
+use App\Filament\App\NovaHub\Resources\NovaWhatsappChannels\Schemas\NovaWhatsappChannelForm;
+use App\Filament\App\NovaHub\Resources\NovaWhatsappChannels\Tables\NovaWhatsappChannelsTable;
+use Filament\Actions\CreateAction;
+use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Schemas\Schema;
+use Filament\Tables\Table;
+
+final class WhatsappChannelsRelationManager extends RelationManager
+{
+    protected static string $relationship = 'whatsappChannels';
+
+    protected static ?string $title = 'WhatsApp';
+
+    protected static ?string $recordTitleAttribute = 'name';
+
+    public function form(Schema $schema): Schema
+    {
+        return NovaWhatsappChannelForm::configure($schema);
+    }
+
+    public function table(Table $table): Table
+    {
+        return NovaWhatsappChannelsTable::configure($table)
+            ->headerActions([
+                CreateAction::make()
+                    ->mutateDataUsing(function (array $data): array {
+                        $data['nova_business_id'] = $this->getOwnerRecord()->id;
+
+                        return $data;
+                    }),
+            ]);
+    }
+}

@@ -1,0 +1,71 @@
+<?php
+
+namespace App\Filament\App\NovaHub\Resources\Usuarios\RelationManagers;
+
+use App\Filament\App\NovaHub\Resources\Taxis\TaxiResource;
+use App\Models\Taxi\Taxi;
+use App\Models\Taxi\TaxistaTaxi;
+use Filament\Actions\AttachAction;
+use Filament\Actions\CreateAction;
+use Filament\Forms\Components\Select;
+use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Schemas\Schema as Form;
+use Filament\Tables\Table;
+
+class TaxisRelationManager extends RelationManager
+{
+    protected static string $relationship = 'taxis';
+
+    public function form0(Form $form): Form
+    {
+        return $form
+            ->schema([
+                Forms\Components\Select::make('recordId')
+                    ->label('Taxi')
+                    ->options(TaxistaTaxi::pluck('matricula', 'id'))
+                    ->required()
+                    ->searchable()
+                    ->preload(),
+
+
+            ]);
+    }
+
+    public function form(Form $form): Form
+    {
+        return (new TaxiResource())->form($form);
+    }
+
+    public function table(Table $table): Table
+    {
+        return (new TaxiResource())
+            ->table($table)
+            ->headerActions([ // Agregar acciones en el encabezado de la tabla
+                CreateAction::make()
+                    // Prellena el formulario para que el Select aparezca con el taxista actual seleccionado
+                    ->fillForm(fn() => [
+                        'usuario_id' => $this->getOwnerRecord()->id,
+                        'licencia' => $this->getOwnerRecord()->licencia,
+                        'estado' => 1,
+
+                        'tipotaxi' => 1,
+
+                    ])
+                    // Asegura que siempre se guarde asociado al taxista actual
+                    ->mutateFormDataUsing(function (array $data): array {
+                        $data['usuario_id'] = $this->getOwnerRecord()->id;
+                        $data['licencia'] = $this->getOwnerRecord()->licencia;
+                        $data['usuario_id'] = $this->getOwnerRecord()->id;
+                        $data['tipotaxi'] = 1;
+                        $data['estado'] = 1;
+
+                        return $data;
+                    }), // Usar slideOver para mejor UX
+                AttachAction::make(),
+            ])
+            ->defaultSort('created_at', 'desc')
+            ->paginated([
+                10, 25, 50
+            ]);
+    }
+}

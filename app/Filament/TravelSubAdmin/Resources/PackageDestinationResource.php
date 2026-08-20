@@ -1,0 +1,113 @@
+<?php
+
+namespace App\Filament\TravelSubAdmin\Resources;
+
+use Filament\Support\Icons\Heroicon;
+use App\Filament\TravelSubAdmin\Resources\PackageDestinationResource\Pages;
+use App\Models\PackageDestination;
+use App\Models\TravelAgency;
+use App\Models\TravelPackage;
+use BackedEnum;
+use Filament\Actions;
+use Filament\Facades\Filament;
+use Filament\Forms;
+use Filament\Resources\Resource;
+use Filament\Schemas\Schema as Form;
+use Filament\Tables;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use UnitEnum;
+use Archilex\AdvancedTables\AdvancedTables;
+use Filament\Schemas\Components\Tabs\Tab;
+
+class PackageDestinationResource extends Resource
+{
+    protected static ?string $model = PackageDestination::class;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedMap;
+    protected static string|UnitEnum|null $navigationGroup = 'Paquetes';
+    protected static ?string $navigationParentGroup = 'Catálogo';
+    public static function canAccess(): bool
+    {
+        return true;
+
+        return Filament::auth()->check()
+            && Filament::auth()->user()->role === 'sub_admin'
+            && Filament::auth()->user()->section === 'tour';
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return true;
+
+        return Filament::auth()->check()
+            && Filament::auth()->user()->role === 'sub_admin'
+            && Filament::auth()->user()->section === 'tour';
+    }
+
+    public static function form(Form $form): Form
+        {
+
+        return $form
+            ->schema([
+                Forms\Components\Select::make('package_id')
+                    ->label('Choose Package')
+                    ->options(function () {
+                        $agency_id = TravelAgency::where('admin_id', auth()->id())->value('id');
+                        return TravelPackage::where('agency_id', $agency_id)
+                            ->pluck('name', 'id');
+                    })
+                    ->searchable()
+                    ->required(),
+                Forms\Components\Select::make('location_id')
+                    ->label('Location')
+                    ->relationship('location', 'name')->searchable(),
+                Forms\Components\TextInput::make('day_number')
+                    ->required()
+                    ->numeric(),
+                Forms\Components\Textarea::make('description')
+                    ->columnSpanFull(),
+                Forms\Components\TextInput::make('duration')
+                    ->maxLength(255)
+                    ->default(null),
+            ]);
+        }
+    public static function table(Table $table): Table 
+    {
+        return $table
+            ->columns([
+                Tables\Columns\TextColumn::make('package.name')
+                    ->numeric()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('location.name').
+                Tables\Columns\TextColumn::make('day_number').
+                Tables\Columns\TextColumn::make('duration')
+                    ->searchable(),
+            ])
+            ->filters([
+                            ])
+
+            ->actions([
+                Actions\ViewAction::make(),
+                Actions\EditAction::make(),
+                            ])
+
+            ->toolbarActions([
+                Actions\BulkActionGroup::make([
+                    Actions\DeleteBulkAction::make()->deselectRecordsAfterCompletion(),
+                ]),            ]);
+    }
+    public static function getRelations(): array
+    {
+        return [
+            //
+        ];
+    }
+    public static function getPages(): array {
+            return [ 'index' => Pages\ListPackageDestinations::route('/'),
+            'create' => Pages\CreatePackageDestination::route('/create'),
+            'view' => Pages\ViewPackageDestination::route('/{record}'),
+            'edit' => Pages\EditPackageDestination::route('/{record}/edit'),
+                        ];
+    }
+
+}

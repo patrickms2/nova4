@@ -1,0 +1,321 @@
+{
+    "title": "NOVA — Restaurante",
+    "author": "nova",
+    "description": "Capacidades, recursos y acciones reales de la plantilla de negocio 'Restaurante' (studio.blueprint.restaurant), reconstruidos desde GraphBuilder.",
+    "fingerprint": "87fabe0b-df2c-42b1-8f65-641f16274f91",
+    "nodes": [
+        {
+            "id": "capacidad-studiographnodecapabilityhome",
+            "type": "capacidad",
+            "position": {
+                "x": 0,
+                "y": 0
+            },
+            "data": {
+                "label": "Inicio",
+                "description": "NOVA Address: studio.graph.node.capability.home",
+                "color": "emerald",
+                "display_name": "Capacidad",
+                "id": "capacidad-studiographnodecapabilityhome"
+            },
+            "style": null
+        },
+        {
+            "id": "capacidad-studiographnodecapabilityreservations",
+            "type": "capacidad",
+            "position": {
+                "x": 280,
+                "y": 0
+            },
+            "data": {
+                "label": "Reservas",
+                "description": "NOVA Address: studio.graph.node.capability.reservations",
+                "color": "emerald",
+                "display_name": "Capacidad",
+                "id": "capacidad-studiographnodecapabilityreservations"
+            },
+            "style": null
+        },
+        {
+            "id": "recurso-studiographnoderesourcereserva",
+            "type": "recurso",
+            "position": {
+                "x": 560,
+                "y": 0
+            },
+            "data": {
+                "label": "Reserva",
+                "description": "NOVA Address: studio.graph.node.resource.reserva",
+                "color": "blue",
+                "display_name": "Recurso",
+                "id": "recurso-studiographnoderesourcereserva"
+            },
+            "style": null
+        },
+        {
+            "id": "accion-studiographnodeactionrecibir-y-gestionar-reservas",
+            "type": "accion",
+            "position": {
+                "x": 840,
+                "y": 0
+            },
+            "data": {
+                "label": "Recibir y gestionar reservas",
+                "description": "NOVA Address: studio.graph.node.action.recibir-y-gestionar-reservas",
+                "color": "amber",
+                "display_name": "Accion",
+                "id": "accion-studiographnodeactionrecibir-y-gestionar-reservas"
+            },
+            "style": null
+        },
+        {
+            "id": "capacidad-studiographnodecapabilitycustomers",
+            "type": "capacidad",
+            "position": {
+                "x": 0,
+                "y": 180
+            },
+            "data": {
+                "label": "Clientes",
+                "description": "NOVA Address: studio.graph.node.capability.customers",
+                "color": "emerald",
+                "display_name": "Capacidad",
+                "id": "capacidad-studiographnodecapabilitycustomers"
+            },
+            "style": null
+        },
+        {
+            "id": "recurso-studiographnoderesourcecliente",
+            "type": "recurso",
+            "position": {
+                "x": 280,
+                "y": 180
+            },
+            "data": {
+                "label": "Cliente",
+                "description": "NOVA Address: studio.graph.node.resource.cliente",
+                "color": "blue",
+                "display_name": "Recurso",
+                "id": "recurso-studiographnoderesourcecliente"
+            },
+            "style": null
+        },
+        {
+            "id": "capacidad-studiographnodecapabilitypayments",
+            "type": "capacidad",
+            "position": {
+                "x": 560,
+                "y": 180
+            },
+            "data": {
+                "label": "Pagos",
+                "description": "NOVA Address: studio.graph.node.capability.payments",
+                "color": "emerald",
+                "display_name": "Capacidad",
+                "id": "capacidad-studiographnodecapabilitypayments"
+            },
+            "style": null
+        },
+        {
+            "id": "recurso-studiographnoderesourcepago",
+            "type": "recurso",
+            "position": {
+                "x": 840,
+                "y": 180
+            },
+            "data": {
+                "label": "Pago",
+                "description": "NOVA Address: studio.graph.node.resource.pago",
+                "color": "blue",
+                "display_name": "Recurso",
+                "id": "recurso-studiographnoderesourcepago"
+            },
+            "style": null
+        },
+        {
+            "id": "accion-studiographnodeactionregistrar-cobros",
+            "type": "accion",
+            "position": {
+                "x": 0,
+                "y": 360
+            },
+            "data": {
+                "label": "Registrar cobros",
+                "description": "NOVA Address: studio.graph.node.action.registrar-cobros",
+                "color": "amber",
+                "display_name": "Accion",
+                "id": "accion-studiographnodeactionregistrar-cobros"
+            },
+            "style": null
+        },
+        {
+            "id": "capacidad-studiographnodecapabilityreports",
+            "type": "capacidad",
+            "position": {
+                "x": 280,
+                "y": 360
+            },
+            "data": {
+                "label": "Informes",
+                "description": "NOVA Address: studio.graph.node.capability.reports",
+                "color": "emerald",
+                "display_name": "Capacidad",
+                "id": "capacidad-studiographnodecapabilityreports"
+            },
+            "style": null
+        },
+        {
+            "id": "recurso-studiographnoderesourceinforme",
+            "type": "recurso",
+            "position": {
+                "x": 560,
+                "y": 360
+            },
+            "data": {
+                "label": "Informe",
+                "description": "NOVA Address: studio.graph.node.resource.informe",
+                "color": "blue",
+                "display_name": "Recurso",
+                "id": "recurso-studiographnoderesourceinforme"
+            },
+            "style": null
+        },
+        {
+            "id": "accion-studiographnodeactiongenerar-informes",
+            "type": "accion",
+            "position": {
+                "x": 840,
+                "y": 360
+            },
+            "data": {
+                "label": "Generar informes",
+                "description": "NOVA Address: studio.graph.node.action.generar-informes",
+                "color": "amber",
+                "display_name": "Accion",
+                "id": "accion-studiographnodeactiongenerar-informes"
+            },
+            "style": null
+        },
+        {
+            "id": "capacidad-studiographnodecapabilitynova",
+            "type": "capacidad",
+            "position": {
+                "x": 0,
+                "y": 540
+            },
+            "data": {
+                "label": "NOVA",
+                "description": "NOVA Address: studio.graph.node.capability.nova",
+                "color": "emerald",
+                "display_name": "Capacidad",
+                "id": "capacidad-studiographnodecapabilitynova"
+            },
+            "style": null
+        },
+        {
+            "id": "recurso-studiographnoderesourcenova",
+            "type": "recurso",
+            "position": {
+                "x": 280,
+                "y": 540
+            },
+            "data": {
+                "label": "NOVA",
+                "description": "NOVA Address: studio.graph.node.resource.nova",
+                "color": "blue",
+                "display_name": "Recurso",
+                "id": "recurso-studiographnoderesourcenova"
+            },
+            "style": null
+        }
+    ],
+    "edges": [
+        {
+            "id": "xy-edge__capacidad-studiographnodecapabilityreservations-recurso-studiographnoderesourcereserva",
+            "source": "capacidad-studiographnodecapabilityreservations",
+            "target": "recurso-studiographnoderesourcereserva",
+            "sourceHandle": null,
+            "targetHandle": null,
+            "label": "produces"
+        },
+        {
+            "id": "xy-edge__capacidad-studiographnodecapabilityreservations-accion-studiographnodeactionrecibir-y-gestionar-reservas",
+            "source": "capacidad-studiographnodecapabilityreservations",
+            "target": "accion-studiographnodeactionrecibir-y-gestionar-reservas",
+            "sourceHandle": null,
+            "targetHandle": null,
+            "label": "supports"
+        },
+        {
+            "id": "xy-edge__capacidad-studiographnodecapabilitycustomers-recurso-studiographnoderesourcecliente",
+            "source": "capacidad-studiographnodecapabilitycustomers",
+            "target": "recurso-studiographnoderesourcecliente",
+            "sourceHandle": null,
+            "targetHandle": null,
+            "label": "produces"
+        },
+        {
+            "id": "xy-edge__capacidad-studiographnodecapabilitypayments-recurso-studiographnoderesourcepago",
+            "source": "capacidad-studiographnodecapabilitypayments",
+            "target": "recurso-studiographnoderesourcepago",
+            "sourceHandle": null,
+            "targetHandle": null,
+            "label": "produces"
+        },
+        {
+            "id": "xy-edge__capacidad-studiographnodecapabilitypayments-accion-studiographnodeactionregistrar-cobros",
+            "source": "capacidad-studiographnodecapabilitypayments",
+            "target": "accion-studiographnodeactionregistrar-cobros",
+            "sourceHandle": null,
+            "targetHandle": null,
+            "label": "supports"
+        },
+        {
+            "id": "xy-edge__capacidad-studiographnodecapabilityreports-recurso-studiographnoderesourceinforme",
+            "source": "capacidad-studiographnodecapabilityreports",
+            "target": "recurso-studiographnoderesourceinforme",
+            "sourceHandle": null,
+            "targetHandle": null,
+            "label": "produces"
+        },
+        {
+            "id": "xy-edge__capacidad-studiographnodecapabilityreports-accion-studiographnodeactiongenerar-informes",
+            "source": "capacidad-studiographnodecapabilityreports",
+            "target": "accion-studiographnodeactiongenerar-informes",
+            "sourceHandle": null,
+            "targetHandle": null,
+            "label": "supports"
+        },
+        {
+            "id": "xy-edge__capacidad-studiographnodecapabilitynova-recurso-studiographnoderesourcenova",
+            "source": "capacidad-studiographnodecapabilitynova",
+            "target": "recurso-studiographnoderesourcenova",
+            "sourceHandle": null,
+            "targetHandle": null,
+            "label": "produces"
+        },
+        {
+            "id": "xy-edge__recurso-studiographnoderesourcecliente-recurso-studiographnoderesourcereserva",
+            "source": "recurso-studiographnoderesourcecliente",
+            "target": "recurso-studiographnoderesourcereserva",
+            "sourceHandle": null,
+            "targetHandle": null,
+            "label": "tiene"
+        },
+        {
+            "id": "xy-edge__recurso-studiographnoderesourcereserva-recurso-studiographnoderesourcepago",
+            "source": "recurso-studiographnoderesourcereserva",
+            "target": "recurso-studiographnoderesourcepago",
+            "sourceHandle": null,
+            "targetHandle": null,
+            "label": "se cobra con"
+        }
+    ],
+    "viewport": {
+        "x": 0,
+        "y": 0,
+        "zoom": 0.75
+    },
+    "exportedAt": "2026-08-08T12:50:15+00:00",
+    "voodflowVersion": "1.0.0"
+}

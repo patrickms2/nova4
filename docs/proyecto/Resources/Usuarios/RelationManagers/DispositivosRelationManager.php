@@ -1,0 +1,264 @@
+<?php
+
+namespace App\Filament\App\Resources\Usuarios\RelationManagers;
+
+use App\Filament\Forms\Components\SelectPlus;
+use App\Models\Taxi\Device;
+use App\Services\TraccarService;
+use Filament\Actions\Action;
+use Filament\Actions\AttachAction;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\DetachAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
+use Filament\Forms;
+use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Schemas\Schema as Form;
+use Filament\Tables;
+use Filament\Tables\Table;
+
+class DispositivosRelationManager extends RelationManager
+{
+    protected static string $relationship = 'devices';
+
+    protected static ?string $recordTitleAttribute = 'name';
+    protected static ?string $title = 'Dispositivos';
+
+    public function form(Form $schema): Form
+    {
+        return $schema
+            ->components([
+
+
+                SelectPlus::make('taxista_id')
+                    ->label('Taxista')
+                    ->forRelationship('taxista', 'nombre')
+                    ->createForm([
+                        \Filament\Forms\Components\TextInput::make('nombre')->required(),
+                        \Filament\Forms\Components\TextInput::make('cif')->label('NIF'),
+                        \Filament\Forms\Components\Toggle::make('estado_id')->label('Activo')->default(1),
+                    ])
+                    ->editForm([
+                        \Filament\Forms\Components\TextInput::make('nombre')->required(),
+                        \Filament\Forms\Components\TextInput::make('cif')->label('NIF'),
+                        \Filament\Forms\Components\Toggle::make('estado_id')->label('Activo'),
+                    ])
+                    ->mutateCreateData(fn(array $data) => $data + ['estado_id' => $data['estado_id'] ?? 1])
+                    ->smartPreload(200)
+                    ->live()
+                    ->reactive(),
+
+                SelectPlus::make('taxi_id')
+                    ->label('Taxi')
+                    ->forModel(\App\Models\Taxi::class, 'matricula')
+                    // Filtro dependiente por taxista seleccionado:
+                    ->options(function (\Filament\Schemas\Components\Utilities\Get $get) {
+                        return \App\Models\Taxi::query()
+                            ->when($get('taxista_id'), fn($q, $t) => $q->where('usuario_id', $t))
+                            ->orderBy('matricula')
+                            ->pluck('matricula', 'id')
+                            ->toArray();
+                    })
+                    ->createForm(function () {
+                        return [
+                            \Filament\Forms\Components\TextInput::make('matricula')->required()->maxLength(32),
+                            // Asignar automáticamente el dueño desde el taxista elegido
+                            \Filament\Forms\Components\TextInput::make('usuario_id')
+                                ->default(fn(\Filament\Schemas\Components\Utilities\Get $get) => $get('taxista_id')),
+                            \Filament\Forms\Components\Toggle::make('estado')->label('Activo')->default(1),
+                        ];
+                    })
+                    ->editForm([
+                        \Filament\Forms\Components\TextInput::make('matricula')->required()->maxLength(32),
+                        \Filament\Forms\Components\Toggle::make('estado')->label('Activo'),
+                    ])
+                    ->mutateCreateData(fn(array $data) => $data + ['estado' => $data['estado'] ?? 1])
+                    ->smartPreload(200)
+                    ->live()
+                    ->reactive(),
+
+                Forms\Components\TextInput::make('name')
+                    ->label('Nombre')
+                    ->required()
+                    ->maxLength(255),
+                Forms\Components\TextInput::make('unique_id')
+                    ->label('UID')
+                    ->required()
+                    ->default(fn(\Filament\Schemas\Components\Utilities\Get $get) => $get('taxista_id'))
+                    ->maxLength(255),
+                Forms\Components\Toggle::make('disabled')
+                    ->label('Estado')
+                    ->default(1),
+            ]);
+    }
+
+    public function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                Tables\Columns\TextColumn::make('id')
+                    ->label('ID')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('usuario.nombre')
+                    ->label('Usuario')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('name')
+                    ->label('Nombre')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('unique_id')
+                    ->label('UID')
+                    ->searchable(),
+                Tables\Columns\BadgeColumn::make('status')
+                    ->label('Online')
+                    ->colors([
+                        'success' => 'online',
+                        'warning' => 'offline',
+                        'danger' => 'unknown',
+                    ]),
+                Tables\Columns\TextColumn::make('category')
+                    ->label('Tipo')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('last_update')
+                    ->label('Últ. Sinc.')
+                    ->dateTime()
+                    ->sortable(),
+                Tables\Columns\IconColumn::make('disabled')
+                    ->label('Estado')
+                    ->boolean(),
+            ])
+            ->filters([
+                Tables\Filters\SelectFilter::make('status')
+                    ->options([
+                        'online' => 'Online',
+                        'offline' => 'Offline',
+                        'unknown' => 'Unknown',
+                    ]),
+                Tables\Filters\SelectFilter::make('category')
+                    ->options([
+                        'default' => 'Default',
+                        'car' => 'Car',
+                        'truck' => 'Truck',
+                        'motorcycle' => 'Motorcycle',
+                        'person' => 'Person',
+                    ]),
+                Tables\Filters\TernaryFilter::make('disabled')
+                    ->label('Disabled'),
+            ])
+            ->actions([
+                ViewAction::make(),
+                EditAction::make(),
+                Action::make('sync')
+                    ->icon('heroicon-o-arrow-path')
+                    ->action(function () {
+                        static::syncDevicesFromTraccar();
+                    })
+                    ->requiresConfirmation()
+                    ->modalHeading('Sincronizar Dispositivos')
+                    ->modalDescription('Sincronizar dispositivos con Traccar. Continuar?'),
+            ])
+            ->bulkActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                ]),
+            ])
+            ->recordActions([
+                AttachAction::make()
+                    ->label('Asociar')
+                    ->modalHeading('Asociar Dispositivo')
+                ,
+                Action::make('sync_all')
+                    ->label('Sincronizar con Traccar')
+                    ->icon('heroicon-o-arrow-path')
+                    ->action(function (Device $record) {
+                        $email = $this->getOwnerRecord()->email;
+                        $password = $this->getOwnerRecord()->password;
+                        static::syncDevicesFromTraccar($email, $password);
+                    })
+                    ->requiresConfirmation()
+                    ->modalHeading('Sincronizar Todos mis Dispositivos')
+                    ->modalDescription('Sincronizar con Traccar?'),
+                EditAction::make(),
+                DetachAction::make(),
+                DeleteAction::make(),
+            ])
+            ->headerActions([
+
+                AttachAction::make()
+                    ->label('Asociar')
+                    ->modalHeading('Asociar Dispositivo')
+                ,
+                CreateAction::make()
+                    // Prellena el formulario para que el Select aparezca con el taxista actual seleccionado
+                    ->fillForm(fn() => [
+                        'name' => 'GPS de ' . $this->getOwnerRecord()->nombre . ' ' . $this->getOwnerRecord()->licencia,
+                        'unique_id' => $this->getOwnerRecord()->id . '_' . '1',
+                        'status' => 'unknown',
+                        'usuario_id' => $this->getOwnerRecord()->id,
+                        'taxista_id' => $this->getOwnerRecord()->id,
+
+
+                    ])
+                    // Asegura que siempre se guarde asociado al taxista actual
+                    ->mutateFormDataUsing(function (array $data): array {
+                        $data['usuario_id'] = $this->getOwnerRecord()->id;
+                        $data['name'] = $this->getOwnerRecord()->licencia;
+                        $data['taxista_id'] = $this->getOwnerRecord()->id;
+                        return $data;
+                    }),
+                Action::make('vertraccar')
+                    ->label('GPS Mapa')
+                    ->url('/admin/map-page')
+                    ->openUrlInNewTab(true)
+                    ->icon('heroicon-o-map'),
+
+                Action::make('traccar')
+                    ->label('Traccar')
+                    ->url('https://demo.traccar.org/')
+                    ->openUrlInNewTab(true)
+                    ->icon('heroicon-o-arrow-path'),
+            ]);
+    }
+
+    protected static function syncDevicesFromTraccar($email, $pass): void
+    {
+        $traccarService = app(TraccarService::class);
+
+        if (!$traccarService->ensureAuthenticated()) {
+            return;
+        }
+
+        $devices = $traccarService->getDevices();
+        foreach ($devices as $deviceData) {
+            Device::updateOrCreate(
+                ['traccar_id' => $deviceData['id']],
+                [
+                    'name' => $deviceData['name'],
+                    'unique_id' => $deviceData['uniqueId'],
+                    'status' => $deviceData['status'] ?? 'unknown',
+                    'last_update' => isset($deviceData['lastUpdate']) ? new \DateTime($deviceData['lastUpdate']) : null,
+                    'position_id' => $deviceData['positionId'] ?? null,
+                    'group_id' => $deviceData['groupId'] ?? null,
+                    'phone' => $deviceData['phone'] ?? null,
+                    'model' => $deviceData['model'] ?? null,
+                    'contact' => $deviceData['contact'] ?? null,
+                    'category' => $deviceData['category'] ?? 'default',
+                    'disabled' => $deviceData['disabled'] ?? false,
+                    'expires_at' => isset($deviceData['expirationTime']) ? new \DateTime($deviceData['expirationTime']) : null,
+                    'attributes' => $deviceData['attributes'] ?? [],
+                ]
+            );
+        }
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            //
+        ];
+    }
+}

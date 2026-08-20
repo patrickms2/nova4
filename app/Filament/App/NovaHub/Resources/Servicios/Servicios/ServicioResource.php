@@ -1,0 +1,646 @@
+<?php
+
+namespace App\Filament\App\NovaHub\Resources\Servicios\Servicios;
+use Filament\Support\Icons\Heroicon;
+
+use App\Filament\App\NovaHub\Resources\Servicios\ServiciosCluster\ServiciosCluster;
+
+use App\Filament\App\NovaHub\Resources\Servicios\Servicios\Pages;
+
+use App\Filament\Support\baseresource;
+use App\Models\Taxi\Departamento;
+use App\Models\Taxi\EstadosServicio;
+use App\Models\Taxi\EstadosUsuario;
+use App\Models\Taxi\Municipio;
+use App\Models\Taxi\Servicio;
+use App\Models\Taxi\Taxi;
+use App\Models\Taxi\Taxista;
+use App\Models\Taxi\TipoTaxis;
+use App\Models\Taxi\Usuario;
+use App\Models\Taxi\Hotel;
+use App\Models\Taxi\Pago;
+
+use App\Models\Taxi\TipoUsuario;
+use App\Enums\ServicioEstado;
+use Carbon\Carbon;
+use Filament\Forms;
+use Filament\Actions;
+use Filament\Actions\Action;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\BulkAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
+use Filament\Actions\ReplicateAction;
+use Filament\Schemas\Schema as Form;
+
+use Filament\Pages\Enums\SubNavigationPosition;
+use Filament\Resources\Resource;
+use Filament\Support\Enums\Width;
+use Filament\Tables;
+use Filament\Indicator;
+use Filament\Tables\Enums\FiltersLayout;
+use Filament\Tables\Grouping\Group;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
+
+//use Archilex\AdvancedTables\Filters\SelectFilter;
+use Archilex\AdvancedTables\Filters\TextFilter;
+use Archilex\AdvancedTables\Filters\AdvancedFilter;
+use Archilex\AdvancedTables\Filters\BooleanFilter;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
+use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Section;
+
+use Archilex\AdvancedTables\Filters\DateFilter;
+use Illuminate\Support\Collection;
+use UnitEnum;
+use BackedEnum;
+use Filament\Facades\Filament;
+use Filament\Tables\Columns\BadgeColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ImageColumn;
+use Filament\Tables\Columns\BooleanColumn;
+
+use Filament\Tables\Columns\TagsColumn;
+use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\TimePicker;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\ColorPicker;
+use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TagsInput;
+use Filament\Forms\Components\Checkbox;
+use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
+use App\Filament\Forms\Components\SelectPlus;
+
+class ServicioResource extends baseresource
+{
+    protected static ?string $model = Servicio::class;
+
+    // protected static string | BackedEnum | null $navigationIcon  = Heroicon::OutlinedRectangleStack;
+    protected static ?string $navigationLabel = "Servicios";
+    protected static ?int $navigationSort = -4;
+    protected static string $userIdColumn = 'taxista_id';
+
+
+    protected static ?SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
+
+    public static function form(Form $form): Form
+    {
+        return $form
+            ->schema([
+                Tabs::make('Servicio Details')
+                    ->columnSpanFull()
+
+                    ->tabs([
+                        Tab::make('Servicio')
+                            ->columns(2)
+                            ->icon(Heroicon::OutlinedInformationCircle)
+                            ->schema([
+                                Section::make('Detalles Servicio')
+                                    ->icon(Heroicon::OutlinedClipboard)
+                                    ->compact()
+                                    ->columns(2)
+                                    ->columnSpanFull()
+                                    ->schema([
+                                        SelectPlus::make('municipio_id')
+                                            ->label('Municipio')
+                                            ->forRelationship('municipio', 'nombre')
+                                            ->createForm([
+                                                \Filament\Forms\Components\TextInput::make('nombre')->required(),
+                                                \Filament\Forms\Components\Toggle::make('estado')->label('Activo')->default(1),
+                                                \Filament\Forms\Components\ColorPicker::make('color')->label('Color'),
+                                            ])
+                                            ->editForm([
+                                                \Filament\Forms\Components\TextInput::make('nombre')->required(),
+                                                \Filament\Forms\Components\Toggle::make('estado')->label('Activo'),
+                                                \Filament\Forms\Components\ColorPicker::make('color')->label('Color'),
+                                            ])
+                                            ->mutateCreateData(fn (array $data) => $data + ['estado' => $data['estado'] ?? 1])
+                                            ->smartPreload(200)
+                                            ->required()
+                                            ->live()
+                                            ->afterStateUpdated(function (\Filament\Schemas\Components\Utilities\Set $set) {
+                                                $set('usuario_id', null);
+                                            })
+                                        ->live()
+                                        ->preload(),
+
+// Hotel: MUY IMPORTANTE mantener forRelationship aunque filtres con options()
+                                        SelectPlus::make('usuario_id')
+                                            ->label('Hotel')
+                                            ->forModel(Usuario::class)
+                                            ->options(function (\Filament\Schemas\Components\Utilities\Get $get) {
+                                                return \App\Models\Taxi\Usuario::query()
+                                                    ->when($get('municipio_id'), fn ($q, $m) => $q->where('municipio_id', $m)->where('tipo_id', 2))
+                                                    ->orderBy('nombre')
+                                                    ->pluck('nombre', 'id')
+                                                    ->toArray();
+                                            })
+                                            ->createForm(function () {
+                                                return [
+                                                    \Filament\Forms\Components\TextInput::make('nombre')->label('Nombre')->required(),
+                                                    \Filament\Forms\Components\Hidden::make('municipio_id')
+                                                        ->default(fn (\Filament\Schemas\Components\Utilities\Get $get) => $get('municipio_id')),
+                                                    \Filament\Forms\Components\Toggle::make('estado')->label('Activo')->default(1),
+                                                ];
+                                            })
+                                            ->editForm([
+                                                \Filament\Forms\Components\TextInput::make('nombre')->required(),
+                                                \Filament\Forms\Components\Toggle::make('estado')->label('Activo'),
+                                            ])
+                                            ->mutateCreateData(fn (array $data) => $data + ['estado' => $data['estado'] ?? 1])
+                                            ->smartPreload(200)
+                                            ->required()
+                                            ->searchable()
+                                            ->live()
+                                            ->live(),
+
+
+
+
+                                        TextInput::make('nombre')
+                                            ->live()
+                                            ->live()
+                                            ->label('Descripción')
+                                            ->maxLength(255)
+                                            ->default(' '),
+                                        TextInput::make('habitacion')
+                                            ->label("Nª habitacion:")
+                                            ->maxLength(32)
+                                            ->default(null),
+                                        Select::make('estado_id')
+                                            ->label('Estado')
+                                            ->relationship('estado', 'nombre')->searchable()
+                                            ->required()
+                                            //->visible(fn (Get $get): bool => $get('estado_id') !== 1)
+                                            ->default(1)
+                                            ->live(),
+                                    ])
+                            ]),
+                        Tab::make('Taxi') ->icon(Heroicon::OutlinedCalendar)
+                            ->schema([
+                                Section::make('Detalles Taxi')
+                                    ->icon(Heroicon::OutlinedClipboard)
+                                    ->compact()
+                                    ->columns(2)
+                                    ->columnSpanFull()
+                                    ->schema([
+                                        // Dentro de la pestaña "Taxi" en la sección "Detalles Taxi":
+                                        SelectPlus::make('tipotaxi_id')
+                                            ->label('Tipo')
+                                            ->forRelationship('tipotaxi', 'nombre')
+                                            ->createForm([
+                                                \Filament\Forms\Components\TextInput::make('nombre')->required(),
+                                                \Filament\Forms\Components\Toggle::make('estado')->label('Activo')->default(1),
+                                                \Filament\Forms\Components\ColorPicker::make('color')->label('Color'),
+                                            ])
+                                            ->editForm([
+                                                \Filament\Forms\Components\TextInput::make('nombre')->required(),
+                                                \Filament\Forms\Components\Toggle::make('estado')->label('Activo'),
+                                                \Filament\Forms\Components\ColorPicker::make('color')->label('Color'),
+                                            ])
+                                            ->options(function (\Filament\Schemas\Components\Utilities\Get $get) {
+                                                return \App\Models\Taxi\TipoTaxi::query()->where('version', 1)->where('estado', 1)
+                                                    ->orderBy('nombre')
+                                                    ->pluck('nombre', 'id')
+                                                    ->toArray();
+                                            })
+                                            ->mutateCreateData(fn (array $data) => $data + ['estado' => $data['estado'] ?? 1, 'version' => 1])
+                                            ->smartPreload(200)
+                                            ->required()
+                                            ->default(1)
+                                            ->smartPreload(200)
+                                            ->live()
+                                            ->live()
+                                            ->preload(),
+
+
+
+                                        SelectPlus::make('taxista_id')
+                                            ->label('Taxista')
+                                            ->forRelationship('taxista', 'nombre')
+                                            ->createForm([
+                                                \Filament\Forms\Components\TextInput::make('nombre')->required(),
+                                                \Filament\Forms\Components\TextInput::make('cif')->label('NIF'),
+                                                \Filament\Forms\Components\Toggle::make('estado_id')->label('Activo')->default(1),
+                                            ])
+                                            ->editForm([
+                                                \Filament\Forms\Components\TextInput::make('nombre')->required(),
+                                                \Filament\Forms\Components\TextInput::make('cif')->label('NIF'),
+                                                \Filament\Forms\Components\Toggle::make('estado_id')->label('Activo'),
+                                            ])
+                                            ->mutateCreateData(fn (array $data) => $data + ['estado_id' => $data['estado_id'] ?? 1])
+                                            ->smartPreload(200)
+                                            ->live()
+                                            ->live(),
+
+                                        SelectPlus::make('taxi_id')
+                                            ->label('Taxi')
+                                            ->forModel(\App\Models\Taxi\Taxi::class, 'matricula')
+                                            // Filtro dependiente por taxista seleccionado:
+                                            ->options(function (\Filament\Schemas\Components\Utilities\Get $get) {
+                                                return \App\Models\Taxi\Taxi::query()
+                                                    ->when($get('taxista_id'), fn ($q, $t) => $q->where('usuario_id', $t))
+                                                    ->orderBy('matricula')
+                                                    ->pluck('matricula', 'id')
+                                                    ->toArray();
+                                            })
+                                            ->createForm(function () {
+                                                return [
+                                                    \Filament\Forms\Components\TextInput::make('matricula')->required()->maxLength(32),
+                                                    // Asignar automáticamente el dueño desde el taxista elegido
+                                                    \Filament\Forms\Components\TextInput::make('usuario_id')
+                                                        ->default(fn (\Filament\Schemas\Components\Utilities\Get $get) => $get('taxista_id')),
+                                                    \Filament\Forms\Components\Toggle::make('estado')->label('Activo')->default(1),
+                                                ];
+                                            })
+                                            ->editForm([
+                                                \Filament\Forms\Components\TextInput::make('matricula')->required()->maxLength(32),
+                                                \Filament\Forms\Components\Toggle::make('estado')->label('Activo'),
+                                            ])
+                                            ->mutateCreateData(fn (array $data) => $data + ['estado' => $data['estado'] ?? 1])
+                                            ->smartPreload(200)
+                                            ->live()
+                                            ->live(),
+
+                                    ]),                         ]),
+                Tab::make('Fechas')
+                    ->icon(Heroicon::OutlinedCalendar)
+                    ->schema([
+                        Section::make('Fechas')
+                            ->icon(Heroicon::OutlinedClipboard)
+                            ->compact()
+                            ->columns(2)
+                            ->columnSpanFull()
+                            ->schema([
+                        DateTimePicker::make('fecha_servicio')
+                            ->label('F. Servicio')
+                            ->default(now())
+                            ->required(),
+                        Toggle::make('tarjeta_credito')
+                            ->required()
+                            ->default(0),
+                        Select::make('operador_id')
+                            ->label('Empleado')
+                            ->options(function () {
+                                // Exclude the current category if editing
+                                $query = Usuario::query()->where('tipo_id', '=', 1);
+                                return $query->pluck('nombre', 'id');
+                            })
+                            ->default(1),
+                        ])
+                    ]),
+                Tab::make('Cliente')
+                    ->icon(Heroicon::OutlinedCalendar)
+                    ->schema([
+                        TextInput::make('personas')
+                            ->numeric()
+                            ->default(1),
+                        TextInput::make('nombre_cliente')
+                            ->label('Cliente')
+                            ->maxLength(255)
+                            ->default(null),
+                        TextInput::make('tfno_cliente')
+                            ->label('Telefono')
+                            ->maxLength(100)
+                            ->default(null),
+                        TextInput::make('extras')
+                            ->maxLength(150)
+                            ->default(null),
+                    ]),
+
+                    ]),
+        ]);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->defaultSort('id', 'desc')
+            ->groups([
+                Group::make('usuario.nombre')
+                    ->label('Hotel')
+                    ->titlePrefixedWithLabel(true)
+                    ->collapsible(true),
+                Group::make('municipio.nombre')
+                    ->titlePrefixedWithLabel(false)
+                    ->collapsible(true),
+                Group::make('tipotaxi.nombre')
+                    ->titlePrefixedWithLabel(false)
+                    ->collapsible(true),
+                Group::make('estado.nombre')
+                    ->titlePrefixedWithLabel(false)
+                    ->collapsible(true),
+                Group::make('taxista.nombre')
+                    ->titlePrefixedWithLabel(false)
+                    ->collapsible(true),
+            ])
+            ->columns([
+                TextColumn::make('id')
+                    ->label('ID')
+                    ->sortable(),
+                TextColumn::make('usuario.nombre')
+                    ->label('Empresa')
+                    ->numeric()
+                    ->searchable()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: false),
+                BadgeColumn::make('usuario.nombre')
+                    ->searchable()
+                    ->formatStateUsing(fn (string $state,Get $get,Set $set): string => strtoupper($state))
+                    ->extraAttributes(['style' => 'font-weight: bold'])
+                    ->color(
+                        fn ($record): string => $record->municipio?->color ?? 'gray',
+                    )
+                    ->size('lg')
+                    ->extraAttributes(function ($record) {
+
+                        $color = $record->municipio?->color;
+                        return $color ?
+                            [ 'badge' => "color: {$color}", 'style' => "color: {$color}; font-weight: 600;",'class' => "fi-color fi-size-md fi-color-[{$color}] fi-ta-text-has-badges fi-text-color-900 dark:fi-text-color-200"] : [];
+                    })
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: false)
+                    ->searchable(),
+                TextColumn::make('taxista.nombre')
+                    ->label('Taxista')
+                    ->searchable()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('taxi.matricula')
+                    ->label('Taxi')
+                    ->searchable()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                BadgeColumn::make('municipio.nombre')
+                    ->searchable()
+                    ->formatStateUsing(fn (string $state): string => strtoupper($state))
+                    ->extraAttributes(['style' => 'font-weight: bold'])
+                    ->color(
+                        fn ($record): string => $record->municipio?->color ?? 'gray',
+                    )
+                    ->size('lg')
+                    ->extraAttributes(function ($record) {
+
+                        $color = $record->municipio?->color;
+                        return $color ?
+                            [ 'badge' => "color: {$color}", 'style' => "color: {$color}; font-weight: 600;",'class' => "fi-color fi-size-md fi-color-[{$color}] fi-ta-text-has-badges fi-text-color-900 dark:fi-text-color-200"] : [];
+                    })
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: false)
+                    ->searchable(),
+                TextColumn::make('nombre')
+                    ->label('Desc.')
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                BadgeColumn::make('tipotaxi.nombre')
+                    ->formatStateUsing(fn (string $state): string => strtoupper($state))
+                    ->searchable()
+                    ->extraAttributes(['style' => 'font-weight: bold'])
+                    ->colors([
+                        'danger'  => fn ($record) => $record->tipotaxi_id === 4,
+                        'warning' => fn ($record) => $record->tipotaxi_id === 3,
+                        'success' => fn ($record) => $record->tipotaxi_id === 1,
+                        'info' => fn ($record) => $record->tipotaxi_id === 2,
+                        'gray' => fn ($record) => $record->tipotaxi_id === 5,
+                    ])
+                    ->toggleable(isToggledHiddenByDefault: false),
+
+
+                TextColumn::make('habitacion')
+                    ->toggleable(true)
+                    ->toggleable(isToggledHiddenByDefault: false)
+                    ->searchable(),
+
+                BadgeColumn::make('estado.nombre')
+                    ->searchable()
+                    ->toggleable(true)
+                    ->label('Estado')
+                    ->colors([
+                        'gray' => ServicioEstado::NOATENDIDO->value,
+                        'danger' => [
+                            ServicioEstado::ERROR->value,
+                            ServicioEstado::CANCELADO->value,
+                        ],
+                        'success' => ServicioEstado::TRAMITADO->value,
+                        'warning' => ServicioEstado::RESERVADO->value,
+                        'info' => ServicioEstado::SOLICITADO->value,
+                    ])
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: false),
+
+                TextColumn::make('fecha_servicio')
+                    ->toggleable(true)
+                    ->dateTime()
+                    //->formatStateUsing(fn ($state) => $state->toFormattedDateString())
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: false),
+
+                TextColumn::make('fecha_terminado')
+                    ->toggleable(true)
+                    //->formatStateUsing(fn ($state) => $state->toFormattedDateString())
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('nombre_cliente')
+                    ->toggleable(true)
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('tfno_cliente')
+                    ->toggleable(true)
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('bookingId')
+                    ->toggleable(true)
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                TextColumn::make('extras')
+                    ->toggleable(true)
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+            ])
+            ->filters([
+                SelectFilter::make('estado_id')
+                    ->label('Estado')
+                    ->options(function () {
+                        return EstadosServicio::query()
+                            ->orderBy('nombre')
+                            ->pluck('nombre', 'id');
+                    })
+                    ->searchable()
+                    ->preload(),
+
+                SelectFilter::make('municipio_id')
+                    ->label('Municipio')
+                    ->options(function () {
+                        return Municipio::query()
+                            ->orderBy('nombre')
+                            ->pluck('nombre', 'id');
+                    })
+                    ->searchable()
+                    ->preload(),
+                SelectFilter::make('usuario_id')
+                    ->label('Hotel')
+                    ->relationship('usuario', 'nombre')
+                    ->searchable()
+                    ->preload(),
+                SelectFilter::make('taxista_id')
+                    ->label('Taxista')
+                    ->relationship('taxista', 'nombre')
+                    ->searchable()
+                    ->preload(),
+                SelectFilter::make('operador_id')
+                    ->label('Operador')
+                    ->relationship('operador', 'nombre')
+                    ->searchable()
+                    ->preload(),
+
+                SelectFilter::make('tipotaxi_id')
+                    ->label('Tipo de Taxi')
+                    ->options(function () {
+                        return TipoTaxis::query()
+                            ->orderBy('nombre')
+                            ->pluck('nombre', 'id');
+                    })
+                    ->searchable()
+                    ->preload(),
+                DateFilter::make('created_at')
+                    ->label('Fecha')
+                    ->columns(2)
+                    ->form([
+                        DatePicker::make('from')
+                            ->label("Desde: ")
+                            //->label(fn () => $this->fromLabel)
+                            ->live()
+                            ->native(false)
+                            //  ->default(fn () => $this->defaultFromDate)
+                            ->maxDate(function (Get $get) {
+                                return $get('until');
+                            })
+                            ->afterStateUpdated(function (Set $set, $state) {
+                                if (! $state) {
+                                    $set('until', null);
+                                }
+                            }),
+                        DatePicker::make('until')
+                            ->label("Hasta: ")
+                            //->label(fn () => $this->untilLabel)
+                            ->live()
+                            ->native(false)
+                            //->default(fn () => $this->defaultUntilDate)
+                            ->minDate(function (Get $get) {
+                                return $get('from');
+                            }),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['created_from'],
+                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
+                            )
+                            ->when(
+                                $data['created_until'],
+                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
+                            );
+
+                    })
+                    ->indicateUsing(function (array $data): array {
+                        $indicators = [];
+
+                        $fromDateFormatted = filled($data['from'] ?? null);
+                            //? Carbon::parse($data['from'])->toDefaultDateFormat()
+                            //: null;
+
+                        $untilDateFormatted = filled($data['until'] ?? null);
+                            //? Carbon::parse($data['until'])->toDefaultDateFormat()
+                            //: null;
+
+                        if ($fromDateFormatted && $untilDateFormatted) {
+                            $indicators[] = \Filament\Tables\Filters\Indicator::make( 'Fecha: ' . $fromDateFormatted . ' - ' . $untilDateFormatted);
+                        } else {
+                            if ($fromDateFormatted) {
+                                $indicators[] = Indicator::make($this->fromLabel . ': ' . $fromDateFormatted)
+                                    ->removeField('from');
+                            }
+
+                            if ($untilDateFormatted) {
+                                $indicators[] = Indicator::make($this->untilLabel . ': ' . $untilDateFormatted)
+                                    ->removeField('until');
+                            }
+                        }
+
+                        return $indicators;
+                    })
+
+            ], layout: FiltersLayout::Modal)
+            ->filtersFormSchema(fn (array $filters): array => [
+                Section::make()
+                    ->schema([
+                        $filters['usuario_id'],
+                        $filters['municipio_id'],
+                        $filters['tipotaxi_id'],
+                        $filters['taxista_id'],
+                        $filters['operador_id'],
+                        $filters['estado_id'],
+                        $filters['created_at'],
+                    ])
+                    ->columns(3)
+                    ->columnSpanFull(),
+            ])
+            ->filtersFormWidth(Width::ThreeExtraLarge)
+
+            ->actions([
+                EditAction::make("edita"),
+            ])
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    BulkAction::make('Cambiar Hotel')
+                        ->icon(Heroicon::PencilSquare)
+                        ->schema([
+                            Select::make('usuario_id')
+                                ->label('Hoteles')
+                                ->options(function () {
+                                    // Exclude the current category if editing
+                                    $query = Hotel::query()->where('estado_id', '=', 1);
+                                    return $query->pluck('nombre', 'id');
+                                })
+                                ->required(),
+                        ])
+                        ->action(function (\Illuminate\Database\Eloquent\Collection $records, array $data): void {
+                            $records->each->update(['usuario_id' => $data['usuario_id']]);
+                        })
+                        ->deselectRecordsAfterCompletion(),
+                    DeleteBulkAction::make()->deselectRecordsAfterCompletion(),
+                ]),
+            ]);
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+
+
+        ];
+    }
+/*public static function getNavigationSort(): int { return 2; }*/
+    public static function getPages(): array
+    {
+        return [
+            'index' => Pages\ListServicios::route('/'),
+        ];
+    }
+}

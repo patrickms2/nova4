@@ -1,0 +1,73 @@
+<?php
+
+namespace App\Filament\Resources\ServerResource\RelationManagers;
+
+use Filament\Actions;
+use Filament\Forms;
+use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Schemas\Schema as Form;
+use Filament\Tables;
+use Filament\Tables\Table;
+
+class PromptsRelationManager extends RelationManager
+{
+    protected static string $relationship = 'prompts';
+
+    protected static ?string $title = 'Prompts';
+
+    public function form(Form $schema): Form
+    {
+        return $schema->schema([
+            Forms\Components\TextInput::make('name')
+                ->required()
+                ->placeholder('code-review'),
+            Forms\Components\TextInput::make('title')
+                ->placeholder('Code Review Assistant'),
+            Forms\Components\Textarea::make('description')
+                ->rows(2),
+            Forms\Components\Toggle::make('is_active')
+                ->default(true),
+        ]);
+    }
+
+    public function table(Table $table): Table
+    {
+        return $table
+            ->recordTitleAttribute('name')
+            ->columns([
+                Tables\Columns\TextColumn::make('name')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('title')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('arguments_count')
+                    ->label('Args')
+                    ->getStateUsing(fn ($record): int => count($record->arguments ?? []))
+                    ->badge()
+                    ->color('info'),
+                Tables\Columns\TextColumn::make('messages_count')
+                    ->label('Messages')
+                    ->getStateUsing(fn ($record): int => count($record->messages ?? []))
+                    ->color('success'),
+                Tables\Columns\IconColumn::make('is_active')
+                    ->boolean(),
+            ])
+            ->filters([
+                Tables\Filters\TernaryFilter::make('is_active'),
+            ])
+            ->headerActions([
+                Actions\CreateAction::make(),
+            ])
+            ->actions([
+                Actions\EditAction::make(),
+                Actions\DeleteAction::make(),
+            ])
+            ->toolbarActions([
+                Actions\BulkActionGroup::make([
+                    Actions\DeleteBulkAction::make()->deselectRecordsAfterCompletion(),
+                ]),
+            ])
+            ->defaultSort('sort_order')
+            ->reorderable('sort_order');
+    }
+}

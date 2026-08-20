@@ -1,0 +1,140 @@
+<?php
+
+namespace App\Filament\Resources;
+
+use App\Filament\Resources\ExternalPaymentResource\Pages;
+use App\Models\ExternalPayment;
+use Filament\Actions;
+use Filament\Forms;
+use Filament\Resources\Resource;
+use Filament\Schemas;
+use Filament\Schemas\Schema as Form;
+use Filament\Tables;
+use Filament\Tables\Columns\Summarizers\Sum;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Carbon;
+
+class ExternalPaymentResource extends Resource
+{
+    protected static ?string $model = ExternalPayment::class;
+
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-credit-card';
+
+    protected static ?int $navigationSort = 24;
+
+    protected static string $title = 'Pagos Externos';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Reservas';
+    protected static ?string $navigationParentGroup = 'Reservas';
+
+    protected static ?string $navigationLabel = 'Payments';
+
+    public static function form(Form $schema): Form
+    {
+        return $schema->schema([
+            Schemas\Components\Section::make('Payment')
+                ->schema([
+                    Forms\Components\Select::make('server_id')->relationship('server', 'name')->required()->searchable()->preload(),
+                    Forms\Components\Select::make('external_source_id')->relationship('externalSource', 'source_label')->required()->searchable()->preload(),
+                    Forms\Components\TextInput::make('business_name'),
+                    Forms\Components\TextInput::make('source_platform')->required(),
+                    Forms\Components\TextInput::make('source_label')->required(),
+                    Forms\Components\TextInput::make('external_id')->required(),
+                    Forms\Components\TextInput::make('external_token'),
+                    Forms\Components\TextInput::make('external_receipt_number'),
+                    Forms\Components\TextInput::make('service_name'),
+                    Forms\Components\TextInput::make('customer_name'),
+                    Forms\Components\TextInput::make('customer_email')->email(),
+                    Forms\Components\TextInput::make('processor'),
+                    Forms\Components\TextInput::make('payment_method'),
+                    Forms\Components\TextInput::make('kind'),
+                    Forms\Components\TextInput::make('status'),
+                    Forms\Components\TextInput::make('amount')->numeric(),
+                    Forms\Components\TextInput::make('currency')->maxLength(3),
+                    Forms\Components\DateTimePicker::make('paid_at'),
+                ])->columns(2),
+        ]);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->defaultSort('id', 'desc')
+            ->columns([
+                Tables\Columns\TextColumn::make('id')
+                    ->label('ID')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('paid_at')->dateTime()->sortable(),
+                Tables\Columns\TextColumn::make('amount')
+                    ->money()
+                    ->sortable()
+                    ->summarize([
+                        Sum::make()->money(),
+                    ]),
+                Tables\Columns\TextColumn::make('currency')->toggleable(),
+                Tables\Columns\TextColumn::make('status')->badge()->sortable(),
+                Tables\Columns\TextColumn::make('processor')->badge()->sortable(),
+                Tables\Columns\TextColumn::make('payment_method')->badge()->toggleable()->sortable(),
+                Tables\Columns\TextColumn::make('service_name')->searchable()->sortable(),
+                Tables\Columns\TextColumn::make('customer_name')->label('Customer')->searchable()->sortable(),
+                Tables\Columns\TextColumn::make('source_label')->label('Source')->badge()->searchable()->sortable(),
+                Tables\Columns\TextColumn::make('server.name')->label('Server')->searchable()->sortable(),
+                Tables\Columns\TextColumn::make('last_synced_at')->dateTime()->toggleable()->sortable(),
+            ])
+            ->filters([
+                Tables\Filters\Filter::make('paid_at')
+                    ->label('Paid date')
+                    ->schema([
+                        Forms\Components\DatePicker::make('paid_from')
+                            ->placeholder(fn ($state): string => 'Dec 18, '.now()->subYear()->format('Y')),
+                        Forms\Components\DatePicker::make('paid_until')
+                            ->placeholder(fn ($state): string => now()->format('M d, Y')),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['paid_from'] ?? null,
+                                fn (Builder $query, $date): Builder => $query->whereDate('paid_at', '>=', $date),
+                            )
+                            ->when(
+                                $data['paid_until'] ?? null,
+                                fn (Builder $query, $date): Builder => $query->whereDate('paid_at', '<=', $date),
+                            );
+                    })
+                    ->indicateUsing(function (array $data): array {
+                        $indicators = [];
+                        if ($data['paid_from'] ?? null) {
+                            $indicators['paid_from'] = 'Paid from '.Carbon::parse($data['paid_from'])->toFormattedDateString();
+                        }
+                        if ($data['paid_until'] ?? null) {
+                            $indicators['paid_until'] = 'Paid until '.Carbon::parse($data['paid_until'])->toFormattedDateString();
+                        }
+
+                        return $indicators;
+                    }),
+                Tables\Filters\SelectFilter::make('business_name')->options(fn (): array => ExternalPayment::query()->distinct()->pluck('business_name', 'business_name')->filter()->all()),
+                Tables\Filters\SelectFilter::make('source_platform')->options(fn (): array => ExternalPayment::query()->distinct()->pluck('source_platform', 'source_platform')->all()),
+                Tables\Filters\SelectFilter::make('source_label')->options(fn (): array => ExternalPayment::query()->distinct()->pluck('source_label', 'source_label')->all()),
+                Tables\Filters\SelectFilter::make('server')->relationship('server', 'name'),
+                Tables\Filters\SelectFilter::make('processor')->options(fn (): array => ExternalPayment::query()->distinct()->pluck('processor', 'processor')->filter()->all()),
+                Tables\Filters\SelectFilter::make('status')->options(fn (): array => ExternalPayment::query()->distinct()->pluck('status', 'status')->filter()->all()),
+            ])
+            ->actions([
+                Actions\EditAction::make(),
+            ])
+            ->bulkActions([
+                Actions\DeleteBulkAction::make(),
+            ]);
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => Pages\ListExternalPayments::route('/'),
+            'calendar' => Pages\CalendarExternalPayments::route('/calendar'),
+            'create' => Pages\CreateExternalPayment::route('/create'),
+            'edit' => Pages\EditExternalPayment::route('/{record}/edit'),
+        ];
+    }
+}

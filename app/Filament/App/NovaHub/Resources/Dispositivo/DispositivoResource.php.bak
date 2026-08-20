@@ -1,0 +1,449 @@
+<?php
+
+namespace App\Filament\App\NovaHub\Resources\Dispositivo;
+
+use App\Filament\Support\baseresource;
+use App\Filament\App\NovaHub\Resources\Dispositivo\Pages;
+
+use App\Models\Taxi\Position;
+use App\Models\Taxi\Usuario;
+use App\Models\Taxi\UsuarioDispositivo;
+use Carbon\Carbon;
+use Filament\Actions\AttachAction;
+use Filament\Forms;
+use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
+use Filament\Forms\Components\ToggleButtons;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
+use Filament\Schemas\Schema as Form;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
+use App\Models\Taxi\Device;
+
+use Filament\Actions\BulkActionGroup;
+use App\Services\TraccarService;
+
+use Filament\Actions\BulkAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
+use Filament\Actions\CreateAction;
+use Filament\Actions\Action;
+
+use Filament\Actions\ReplicateAction;
+use Filament\Notifications\Notification;
+use Filament\Resources\Resource;
+use Filament\Support\Enums\Width;
+use Filament\Tables;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
+use ThingsTelemetry\Traccar\Enums\DeviceCategory;
+use UnitEnum;
+use BackedEnum;
+use App\Filament\Widgets\TrackarStatsWidget;
+
+use LaraZeus\FilamentLocationPickrField\Forms\Components\LocationPickr;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
+use Illuminate\Http\Client\Response;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Cookie;
+use Carbon\CarbonImmutable;
+use CodeWithDennis\SimpleMap\Components\Actions\SimpleMap;
+use Illuminate\Contracts\View\View;
+
+class DispositivoResource extends baseresource
+{
+    protected static ?string $model = Device::class;
+
+    protected static string | BackedEnum | null $navigationIcon  = 'heroicon-o-device-phone-mobile';
+
+    protected static string | UnitEnum | null $navigationGroup = 'Taxis';
+
+    protected static ?string $navigationLabel = 'Dispositivos';
+
+    protected static ?string $modelLabel = 'Dispositivo GPS';
+
+    protected static ?string $pluralModelLabel = 'Dispositivos GPS';
+
+    protected static ?int $navigationSort = 1;
+    public $gpsLogs;
+
+    public static function getWidgets(): array
+    {
+        return [
+            TrackarStatsWidget::class,
+        ];
+    }
+    public static function form(Form $form): Form
+    {
+        return $form
+            ->schema([
+                Select::make('usuario_id')
+                    ->label('Usuario')
+                    ->relationship('usuario', 'nombre')
+                    ->required()
+                    ->live()
+                    ->preload()
+                    ->reactive()
+                    ->afterStateUpdated(function ($state, Set $set, Get $get) {
+                        if (! $state | $state == null) {
+                            return;
+                        }
+
+                        $usuarioId = $get('usuario_id');
+                        if (! $usuarioId) {
+                            return;
+                        }
+                        $set('name', Usuario::find($usuarioId)->nombre ?? null);
+                        $set('unique_id', $usuarioId);
+
+
+                    }),
+                TextInput::make('name')
+                    ->label('Nombre')
+                    ->live()
+                    ->reactive()
+                    ->default(function(Get $get){
+                        return $get('name');
+                        //$nombre = Usuario::query()->where('id', $get('usuario_id'))->pluck('nombre');
+                        //return $nombre[0];
+                    })
+                    ->maxLength(255),
+                Forms\Components\TextInput::make('unique_id')
+                    ->label('UID')
+                    ->required()
+                    ->default(fn (Get $get) => $get('usuario_id'))
+                    ->maxLength(255),
+                Forms\Components\Select::make('category')
+                    ->label('Tipo')
+                    ->options([
+                        'default' => 'Default',
+                        'bus' => 'Bus',
+                        'car' => 'Car',
+                        'motorcycle' => 'Motorcycle',
+                        'offroad' => 'Offroad',
+                        'person' => 'Person',
+                        'pickup' => 'Pickup',
+                        'van' => 'Van',
+                    ])
+                    ->default('car'),
+                Forms\Components\Radio::make('status')
+                    ->options([
+                        'online' => 'online',
+                        'offline' => 'offline',
+                        'unknown' => 'unknown',
+                    ])
+                    ->label('Estado')
+                ->default('unknown'),
+            ]);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                Tables\Columns\TextColumn::make('id')
+                    ->label('ID')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('usuario.nombre')
+                    ->label('Usuario')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('name')
+                    ->label('Nombre')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('unique_id')
+                    ->label('UID')
+                    ->searchable(),
+                Tables\Columns\BadgeColumn::make('status')
+                    ->label('Online')
+                    ->colors([
+                        'success' => 'online',
+                        'warning' => 'offline',
+                        'danger' => 'unknown',
+                    ]),
+                Tables\Columns\TextColumn::make('category')
+                    ->label('Tipo')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('last_update')
+                    ->label('Últ. Sinc.')
+                    ->dateTime()
+                    ->sortable(),
+                Tables\Columns\IconColumn::make('disabled')
+                    ->label('Estado')
+                    ->boolean(),
+            ])
+            ->filters([
+                Tables\Filters\SelectFilter::make('status')
+                    ->options([
+                        'online' => 'Online',
+                        'offline' => 'Offline',
+                        'unknown' => 'Unknown',
+                    ]),
+                Tables\Filters\SelectFilter::make('category')
+                    ->options([
+                        'default' => 'Default',
+                        'car' => 'Car',
+                        'truck' => 'Truck',
+                        'motorcycle' => 'Motorcycle',
+                        'person' => 'Person',
+                    ]),
+                Tables\Filters\TernaryFilter::make('disabled')
+                    ->label('Disabled'),
+            ])
+            ->bulkActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+
+                    BulkAction::make('Eliminar Sync')
+                        ->requiresConfirmation()
+                        ->action(function (Collection $records, array $data): void {
+
+                            $records->each->delete(['id' => $data['id']]);
+
+                            $traccarService = app(TraccarService::class);
+
+                            if (!$traccarService->isAuthenticated()) {
+                                $traccarService->login('patrickms@gmail.com', 'W1p1k40011');
+                            }
+
+                            $device = $traccarService->deleteDevice($id);
+
+                            Notification::make()
+                                ->title('Eliminado GPS')
+                                ->success()
+                                ->send();
+                        })
+                        ->deselectRecordsAfterCompletion(),
+
+                    BulkAction::make('Actualizar Estado')
+                        ->requiresConfirmation()
+                        ->action(function (Collection $records, array $data): void {
+
+                            $records->each->delete(['id' => $data['id']]);
+
+                            $traccarService = app(TraccarService::class);
+
+                            if (!$traccarService->isAuthenticated()) {
+                                $traccarService->login('patrickms@gmail.com', 'W1p1k40011');
+                            }
+
+                            $device = $traccarService->deleteDevice($id);
+
+                            Notification::make()
+                                ->title('Eliminado GPS')
+                                ->success()
+                                ->send();
+                        })
+                        ->deselectRecordsAfterCompletion(),
+
+                ]),
+            ])
+            ->recordActions([
+                ViewAction::make()
+                ->label(''),
+                EditAction::make()
+                    ->label(''),
+
+                Action::make('pos')
+                    ->icon('heroicon-o-arrow-path')
+                    ->modalHeading('Sincronizar Dispositivos a Traccar')
+                    ->modalContent(
+                        function (Device $record): View {
+
+                            $traccarService = app(TraccarService::class);
+
+                            if (!$traccarService->isAuthenticated()) {
+                                $traccarService->login('patrickms@gmail.com', 'W1p1k40011');
+                            }
+
+                            $traccarService = app(TraccarService::class);
+
+                            $traccarService->login('patrickms@gmail.com', 'W1p1k40011');
+
+                            $cookies = Session::get('traccar_cookies', []);
+
+                            $devices = $traccarService->getPositions($record->traccar_id);
+
+                            return view(
+                                'filament.pages.locations',
+                                ['record' => $record, 'gpsLogs' => $devices],
+                            );
+                        })
+                    ->modalDescription('Sincronizar dispositivos a Traccar. Continuar?')
+                   ,
+                Action::make('sync')
+                    ->icon('heroicon-o-arrow-path')
+                    ->modalHeading('Sincronizar Dispositivos a Traccar')
+                    ->modalDescription('Sincronizar dispositivos a Traccar. Continuar?')
+                    ->action(function (Device $record) {
+                        $traccarService = app(TraccarService::class);
+
+                        if (!$traccarService->isAuthenticated()) {
+                            $traccarService->login('patrickms@gmail.com', 'W1p1k40011');
+                        }
+
+                        $device = $traccarService->newDevice( [
+                            'usuario_id' => $record->uniqueId,
+                            'name' => $record->name,
+                            'unique_id' => $record->uniqueId,
+                            'last_update' => now(),
+                            'model' => $record->name,
+                            'contact' => $record->name,
+                            'category' => 'car',
+                            'disabled' => false,
+                            'attributes' => [],
+                        ]);
+
+                        Notification::make()
+                            ->body('Dispositivos creado')
+                            ->color('success')
+                            ->send();
+                    }),
+                Action::make('traccar')
+                    ->icon('heroicon-o-arrow-path')
+                    ->action(function () {
+                        static::syncDevicesFromTraccar();
+                    })
+                    ->requiresConfirmation()
+                    ->modalHeading('Sincronizar Dispositivos')
+                    ->modalDescription('Sincronizar dispositivos con Traccar. Continuar?'),
+
+                BulkAction::make('Sync')
+                    ->requiresConfirmation()
+                    ->action(function (Collection $records): void {
+                        dd($records);
+                        // Do something with the collection of `$records` data
+                    }),
+            ])
+            ->headerActions([
+                Action::make('vertraccar')
+                    ->label('GPS Mapa')
+                    ->url('/admin/map-page')
+                    ->openUrlInNewTab(true)
+                    ->icon('heroicon-o-map'),
+
+                Action::make('sync_all')
+                    ->label('Sincronizar con Traccar')
+                    ->icon('heroicon-o-arrow-path')
+                    ->action(function () {
+                        $traccarService = app(TraccarService::class);
+
+                            $traccarService->login('patrickms@gmail.com', 'W1p1k40011');
+
+                        $cookies = Session::get('traccar_cookies', []);
+
+                        $response = Http::withCookies($cookies, parse_url($traccarService->baseUrl, PHP_URL_HOST))
+                            ->get($traccarService->baseUrl . '/devices');
+                        $devices = $response->json();
+
+                        foreach ($devices as $deviceData) {
+                            Device::updateOrCreate(
+                                [
+                                    'id' => $deviceData['id'],
+                                    'traccar_id' => $deviceData['id'],
+                                    'name' => $deviceData['name'],
+                                    'usuario_id' => $deviceData['uniqueId'],
+                                    'unique_id' => $deviceData['uniqueId'],
+                                    'status' => $deviceData['status'] ?? 'unknown',
+                                    'last_update' => isset($deviceData['lastUpdate']) ? new \DateTime($deviceData['lastUpdate']) : null,
+                                    'position_id' => $deviceData['positionId'] ?? null,
+                                    'group_id' => $deviceData['groupId'] ?? null,
+                                    'phone' => $deviceData['phone'] ?? null,
+                                    'model' => $deviceData['model'] ?? null,
+                                    'contact' => $deviceData['contact'] ?? null,
+                                    'category' => $deviceData['category'] ?? 'default',
+                                    'disabled' => $deviceData['disabled'] ?? false,
+                                    'expires_at' => isset($deviceData['expirationTime']) ? new \DateTime($deviceData['expirationTime']) : null,
+                                    'attributes' => $deviceData['attributes'] ?? [],
+                                ]
+                            );
+                        }
+                    })
+                    ->modalHeading('Sincronizar Todos mis Dispositivos')
+                    ->modalDescription('Sincronizar con Traccar?'),
+
+                Action::make('delete_all')
+                    ->label('Eliminar Todos mis Dispositivos')
+                    ->icon('heroicon-o-arrow-path')
+                    ->action(function () {
+                        Device::truncate();
+
+                        Notification::make()
+                            ->title('Todos los Dispositivos han sido eliminados')
+                            ->success()
+                            ->send();
+                    })
+                    ->requiresConfirmation()
+                    ->modalHeading('Sincronizar Todos mis Dispositivos')
+                    ->modalDescription('Sincronizar con Traccar?'),
+                Action::make('traccar')
+                    ->label('Traccar')
+                    ->url('http://api.taxisnorteysur.com:8082/')
+                    ->openUrlInNewTab(true)
+            ->icon('heroicon-o-arrow-path'),
+
+            ]);
+    }
+
+    protected static function syncDevicesFromTraccar(): void
+    {
+        $traccarService = app(TraccarService::class);
+
+        if (!$traccarService->isAuthenticated()) {
+            $traccarService->login('patrickms@gmail.com', 'W1p1k40011');
+        }
+        $traccarService->loadCookies();
+
+        $response = Http::withCookies($traccarService->cookies, parse_url($traccarService->baseUrl, PHP_URL_HOST))
+            ->get($traccarService->baseUrl . '/devices');
+
+        $devices = $response->json();
+        dd($devices);
+        $devices = $traccarService->getDevices();
+        foreach ($devices as $deviceData) {
+            Device::updateOrCreate(
+                ['traccar_id' => $deviceData['id']],
+                [
+                    'name' => $deviceData['name'],
+                    'unique_id' => $deviceData['uniqueId'],
+                    'status' => $deviceData['status'] ?? 'unknown',
+                    'last_update' => isset($deviceData['lastUpdate']) ? new \DateTime($deviceData['lastUpdate']) : null,
+                    'position_id' => $deviceData['positionId'] ?? null,
+                    'group_id' => $deviceData['groupId'] ?? null,
+                    'phone' => $deviceData['phone'] ?? null,
+                    'model' => $deviceData['model'] ?? null,
+                    'contact' => $deviceData['contact'] ?? null,
+                    'category' => $deviceData['category'] ?? 'default',
+                    'disabled' => $deviceData['disabled'] ?? false,
+                    'expires_at' => isset($deviceData['expirationTime']) ? new \DateTime($deviceData['expirationTime']) : null,
+                    'attributes' => $deviceData['attributes'] ?? [],
+                ]
+            );
+        }
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            //
+        ];
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => Pages\ListDevices::route('/'),
+            //'create' => Pages\CreateDevice::route('/create'),
+            //'edit' => Pages\EditDevice::route('/{record}/edit'),
+        ];
+    }
+}

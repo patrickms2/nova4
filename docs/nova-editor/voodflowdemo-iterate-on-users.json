@@ -1,0 +1,318 @@
+{
+    "title": "Iterate on users",
+    "author": "admin",
+    "description": "Use the foreach node to iterate on user informations",
+    "fingerprint": "7ab425d7-3da3-46c4-91c7-2cd85b0a9731",
+    "nodes": [
+        {
+            "id": "manual_trigger_node-5e194c94-f655-4671-bf25-d89fbae22df6",
+            "type": "manual_trigger_node",
+            "position": {
+                "x": -1067.8403755868544,
+                "y": -46.713615023474176
+            },
+            "data": {
+                "label": "Manual Trigger",
+                "description": "Run workflow manually",
+                "icon": "heroicon-o-hand-raised",
+                "iconType": "heroicon",
+                "color": "amber",
+                "display_name": "Manual Trigger",
+                "isNew": true,
+                "isExpanded": false,
+                "positioning": {
+                    "input": false,
+                    "output": true
+                },
+                "logoUrl": null,
+                "logoMissing": false,
+                "test_payload": "{}",
+                "_v": 2
+            },
+            "style": {
+                "boxShadow": "",
+                "transition": "box-shadow 2s ease-out 0.3s ease-out"
+            }
+        },
+        {
+            "id": "dummy_data_node-c434713f-e88d-400f-83be-af2c0703ddba",
+            "type": "dummy_data_node",
+            "position": {
+                "x": -600,
+                "y": -50
+            },
+            "data": {
+                "label": "Users List",
+                "description": "Array of users",
+                "data_type": "json",
+                "content": "{\n  \"data\": [\n    { \"id\": 1, \"name\": \"Alice\", \"email\": \"alice@example.com\" },\n    { \"id\": 2, \"name\": \"Bob\", \"email\": \"bob@example.com\" },\n    { \"id\": 3, \"name\": \"Charlie\", \"email\": \"charlie@example.com\" }\n  ]\n}",
+                "icon": "heroicon-o-document-arrow-down",
+                "iconType": "heroicon",
+                "color": "emerald",
+                "display_name": "Dummy Data",
+                "isNew": true,
+                "isExpanded": true,
+                "positioning": {
+                    "input": false,
+                    "output": true
+                },
+                "logoUrl": null,
+                "logoMissing": false
+            },
+            "style": {
+                "boxShadow": "",
+                "transition": "box-shadow 2s ease-out 0.3s ease-out"
+            }
+        },
+        {
+            "id": "for_each_node-6767eeb9-51f2-44cb-b675-28745cb00ccf",
+            "type": "for_each_node",
+            "position": {
+                "x": 0,
+                "y": -50
+            },
+            "data": {
+                "label": "For Each User",
+                "description": "Iterate over data array",
+                "array_field": "data",
+                "max_iterations": 100,
+                "icon": "heroicon-o-arrow-path",
+                "iconType": "heroicon",
+                "color": "yellow",
+                "display_name": "ForEach",
+                "isNew": true,
+                "isExpanded": true,
+                "logoUrl": null,
+                "logoMissing": false
+            },
+            "style": {
+                "boxShadow": "",
+                "transition": "box-shadow 2s ease-out 0.3s ease-out"
+            }
+        },
+        {
+            "id": "expression_node-4fe49f91-e16a-4482-8bf8-b4ae87730dd2",
+            "type": "expression_node",
+            "position": {
+                "x": 600,
+                "y": -50
+            },
+            "data": {
+                "label": "Create Greeting",
+                "description": "Build a welcome message for each user",
+                "expressions": [
+                    {
+                        "field": "greeting",
+                        "expression": "\"Welcome, \" ~ {{name}} ~ \"!\""
+                    },
+                    {
+                        "field": "summary",
+                        "expression": "{{name}} ~ \" (\" ~ {{email}} ~ \")\""
+                    }
+                ],
+                "pass_through_input": true,
+                "evaluation_mode": "per_record",
+                "icon": "heroicon-o-command-line",
+                "iconType": "heroicon",
+                "color": "emerald",
+                "display_name": "Expression",
+                "isNew": true,
+                "isExpanded": true,
+                "logoUrl": null,
+                "logoMissing": false,
+                "_v": 1
+            },
+            "style": {
+                "boxShadow": "",
+                "transition": "box-shadow 2s ease-out 0.3s ease-out"
+            }
+        },
+        {
+            "id": "system_notification-3f90dcf9-1022-4394-87b3-0891281eeb81",
+            "type": "system_notification",
+            "position": {
+                "x": 1130,
+                "y": -56
+            },
+            "data": {
+                "label": "Notify Admin",
+                "description": "Send greeting to admin user",
+                "title": "{{greeting}}",
+                "body": "Processed user: {{summary}}",
+                "status": "success",
+                "icon_name": "",
+                "icon_color": "",
+                "duration_ms": null,
+                "channels": [
+                    "database"
+                ],
+                "dispatch_database_event": true,
+                "recipient_user_id": "1",
+                "icon": "heroicon-o-bell",
+                "iconType": "heroicon",
+                "color": "indigo",
+                "display_name": "System Notification",
+                "isNew": true,
+                "isExpanded": true,
+                "logoUrl": null,
+                "logoMissing": false
+            },
+            "style": {
+                "boxShadow": "",
+                "transition": "box-shadow 2s ease-out 0.3s ease-out"
+            }
+        },
+        {
+            "id": "data_viewer_node-c7a981ff-e316-4780-b183-01a57c886350",
+            "type": "data_viewer_node",
+            "position": {
+                "x": 595.8776755111319,
+                "y": 593.2643044101821
+            },
+            "data": {
+                "label": "Data Viewer",
+                "description": "",
+                "view_mode": "auto",
+                "isNew": true,
+                "icon": "heroicon-o-table-cells",
+                "iconType": "heroicon",
+                "logoUrl": null,
+                "logoMissing": false,
+                "color": "slate",
+                "display_name": "Data Viewer",
+                "id": "data_viewer_node-c7a981ff-e316-4780-b183-01a57c886350",
+                "visibleColumns": [
+                    "id",
+                    "name",
+                    "email",
+                    "item.id",
+                    "item.name",
+                    "item.email",
+                    "index",
+                    "_loop.index"
+                ],
+                "display_keys": [
+                    "name",
+                    "email"
+                ],
+                "_v": 2
+            },
+            "style": {
+                "boxShadow": "",
+                "transition": "box-shadow 2s ease-out 0.3s ease-out"
+            }
+        },
+        {
+            "id": "sticky_note-1775724598901",
+            "type": "sticky_note",
+            "position": {
+                "x": -478.04317231627033,
+                "y": -278.84404708226975
+            },
+            "data": {
+                "content": "You can simulate data with the dummy node, useful to test workflow before getting data from an external source for example",
+                "color": "yellow",
+                "fontSize": "large"
+            },
+            "style": {
+                "width": 220,
+                "height": 203
+            }
+        },
+        {
+            "id": "sticky_note-1775724662566",
+            "type": "sticky_note",
+            "position": {
+                "x": 115,
+                "y": -200
+            },
+            "data": {
+                "content": "Foreach node make an iteration on the data object",
+                "color": "yellow",
+                "fontSize": "large"
+            },
+            "style": {
+                "width": 220,
+                "height": 104
+            }
+        },
+        {
+            "id": "sticky_note-1775724708272",
+            "type": "sticky_note",
+            "position": {
+                "x": 308.28370359775585,
+                "y": 648.6320452585319
+            },
+            "data": {
+                "content": "The Viewer node is convenient during workflow testing: it uses very few resources and automatically traverses the flow to retrieve data. However, despite its low resource usage, it is not recommended to keep it in production.",
+                "color": "pink",
+                "fontSize": "large"
+            },
+            "style": {
+                "width": 220,
+                "height": 302
+            }
+        },
+        {
+            "id": "sticky_note-1775724803768",
+            "type": "sticky_note",
+            "position": {
+                "x": 736.0231479245085,
+                "y": -238.40767409285203
+            },
+            "data": {
+                "content": "Use the Expression node to create new variables by combining and processing data.",
+                "color": "blue",
+                "fontSize": "large"
+            },
+            "style": {
+                "width": 220,
+                "height": 154
+            }
+        }
+    ],
+    "edges": [
+        {
+            "id": "emanual_trigger_node-5e194c94-f655-4671-bf25-d89fbae22df6-dummy_data_node-c434713f-e88d-400f-83be-af2c0703ddba",
+            "source": "manual_trigger_node-5e194c94-f655-4671-bf25-d89fbae22df6",
+            "target": "dummy_data_node-c434713f-e88d-400f-83be-af2c0703ddba",
+            "sourceHandle": null,
+            "targetHandle": null
+        },
+        {
+            "id": "edummy_data_node-c434713f-e88d-400f-83be-af2c0703ddba-for_each_node-6767eeb9-51f2-44cb-b675-28745cb00ccf",
+            "source": "dummy_data_node-c434713f-e88d-400f-83be-af2c0703ddba",
+            "target": "for_each_node-6767eeb9-51f2-44cb-b675-28745cb00ccf",
+            "sourceHandle": null,
+            "targetHandle": null
+        },
+        {
+            "id": "efor_each_node-6767eeb9-51f2-44cb-b675-28745cb00ccf-expression_node-4fe49f91-e16a-4482-8bf8-b4ae87730dd2",
+            "source": "for_each_node-6767eeb9-51f2-44cb-b675-28745cb00ccf",
+            "target": "expression_node-4fe49f91-e16a-4482-8bf8-b4ae87730dd2",
+            "sourceHandle": null,
+            "targetHandle": null
+        },
+        {
+            "id": "eexpression_node-4fe49f91-e16a-4482-8bf8-b4ae87730dd2-system_notification-3f90dcf9-1022-4394-87b3-0891281eeb81",
+            "source": "expression_node-4fe49f91-e16a-4482-8bf8-b4ae87730dd2",
+            "target": "system_notification-3f90dcf9-1022-4394-87b3-0891281eeb81",
+            "sourceHandle": null,
+            "targetHandle": null
+        },
+        {
+            "id": "xy-edge__for_each_node-6767eeb9-51f2-44cb-b675-28745cb00ccf-data_viewer_node-c7a981ff-e316-4780-b183-01a57c886350",
+            "source": "for_each_node-6767eeb9-51f2-44cb-b675-28745cb00ccf",
+            "target": "data_viewer_node-c7a981ff-e316-4780-b183-01a57c886350",
+            "sourceHandle": null,
+            "targetHandle": null
+        }
+    ],
+    "viewport": {
+        "x": 851.7429104484872,
+        "y": 229.39210680416807,
+        "zoom": 0.6648594751942839
+    },
+    "exportedAt": "2026-08-08T12:00:41+00:00",
+    "voodflowVersion": "1.0.0"
+}

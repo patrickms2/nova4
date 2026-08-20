@@ -1,0 +1,227 @@
+{
+    "title": "Route with dot notation",
+    "author": "admin",
+    "description": "Get value from nested data structures",
+    "fingerprint": "0454a0d2-0c00-4902-994d-983c07f40b34",
+    "nodes": [
+        {
+            "id": "manual_trigger_node-417a0787-b7dd-45b1-a9f4-a9f77b122e4e",
+            "type": "manual_trigger_node",
+            "position": {
+                "x": -1200,
+                "y": 0
+            },
+            "data": {
+                "label": "Manual Trigger",
+                "description": "Manually trigger workflow execution",
+                "icon": "heroicon-o-hand-raised",
+                "iconType": "heroicon",
+                "color": "amber",
+                "display_name": "Manual Trigger",
+                "isNew": true,
+                "isExpanded": true,
+                "positioning": {
+                    "input": false,
+                    "output": true
+                },
+                "logoUrl": null,
+                "logoMissing": false,
+                "test_payload": "{}",
+                "_v": 1
+            },
+            "style": null
+        },
+        {
+            "id": "dummy_data_node-172b6bf6-b2a6-4b61-924d-7ec027df2ba6",
+            "type": "dummy_data_node",
+            "position": {
+                "x": -650,
+                "y": 0
+            },
+            "data": {
+                "label": "Single Order",
+                "description": "One order with nested payment info",
+                "data_type": "json",
+                "content": "{\n  \"order_id\": 1042,\n  \"customer\": \"Alice\",\n  \"amount\": 89.97,\n  \"purchased_at\": \"2026-03-28T10:15:00Z\",\n  \"payment\": {\n    \"method\": \"credit_card\",\n    \"status\": \"success\"\n  },\n  \"shipping\": {\n    \"carrier\": \"DHL\",\n    \"tracking\": \"DHL-98765\"\n  }\n}",
+                "icon": "heroicon-o-document-arrow-down",
+                "iconType": "heroicon",
+                "color": "emerald",
+                "display_name": "Dummy Data",
+                "isNew": true,
+                "isExpanded": true,
+                "positioning": {
+                    "input": false,
+                    "output": true
+                },
+                "logoUrl": null,
+                "logoMissing": false
+            },
+            "style": null
+        },
+        {
+            "id": "switch_node-8d565a74-185b-442f-986f-46f1fe31d096",
+            "type": "switch_node",
+            "position": {
+                "x": -50,
+                "y": 0
+            },
+            "data": {
+                "label": "Payment Status",
+                "description": "Route by payment.status",
+                "field": "payment.status",
+                "cases": [
+                    {
+                        "id": "case_success",
+                        "operator": "equals",
+                        "value": "success"
+                    },
+                    {
+                        "id": "case_pending",
+                        "operator": "equals",
+                        "value": "pending"
+                    },
+                    {
+                        "id": "case_failed",
+                        "operator": "equals",
+                        "value": "failed"
+                    }
+                ],
+                "icon": "heroicon-o-arrows-pointing-out",
+                "iconType": "heroicon",
+                "color": "yellow",
+                "display_name": "Switch",
+                "isNew": true,
+                "isExpanded": true,
+                "logoUrl": null,
+                "logoMissing": false
+            },
+            "style": {
+                "zIndex": 1000
+            }
+        },
+        {
+            "id": "data_viewer_node-8349e83a-7d21-4700-aec3-f85296239e84",
+            "type": "data_viewer_node",
+            "position": {
+                "x": 650,
+                "y": -300
+            },
+            "data": {
+                "label": "SUCCESS",
+                "description": "Paid orders land here",
+                "icon": "heroicon-o-table-cells",
+                "iconType": "heroicon",
+                "color": "slate",
+                "display_name": "Data Viewer",
+                "isNew": true,
+                "isExpanded": false,
+                "logoUrl": null,
+                "logoMissing": false
+            },
+            "style": null
+        },
+        {
+            "id": "data_viewer_node-9eae64be-2376-48d9-90ea-0589c3381c86",
+            "type": "data_viewer_node",
+            "position": {
+                "x": 650,
+                "y": 0
+            },
+            "data": {
+                "label": "PENDING",
+                "description": "Awaiting payment confirmation",
+                "icon": "heroicon-o-table-cells",
+                "iconType": "heroicon",
+                "color": "slate",
+                "display_name": "Data Viewer",
+                "isNew": true,
+                "isExpanded": false,
+                "logoUrl": null,
+                "logoMissing": false
+            },
+            "style": null
+        },
+        {
+            "id": "data_viewer_node-30295db5-37bb-44cd-a175-6992eaf2e0e8",
+            "type": "data_viewer_node",
+            "position": {
+                "x": 650,
+                "y": 300
+            },
+            "data": {
+                "label": "FAILED",
+                "description": "Payment failed — needs retry",
+                "icon": "heroicon-o-table-cells",
+                "iconType": "heroicon",
+                "color": "slate",
+                "display_name": "Data Viewer",
+                "isNew": true,
+                "isExpanded": false,
+                "logoUrl": null,
+                "logoMissing": false
+            },
+            "style": null
+        },
+        {
+            "id": "sticky_note-1775812387236",
+            "type": "sticky_note",
+            "position": {
+                "x": 115,
+                "y": -150
+            },
+            "data": {
+                "content": "Use dot notation to access sub elements",
+                "color": "yellow",
+                "fontSize": "large"
+            },
+            "style": {
+                "width": 220,
+                "height": 104
+            }
+        }
+    ],
+    "edges": [
+        {
+            "id": "emanual_trigger_node-417a0787-b7dd-45b1-a9f4-a9f77b122e4e-dummy_data_node-172b6bf6-b2a6-4b61-924d-7ec027df2ba6",
+            "source": "manual_trigger_node-417a0787-b7dd-45b1-a9f4-a9f77b122e4e",
+            "target": "dummy_data_node-172b6bf6-b2a6-4b61-924d-7ec027df2ba6",
+            "sourceHandle": null,
+            "targetHandle": null
+        },
+        {
+            "id": "edummy_data_node-172b6bf6-b2a6-4b61-924d-7ec027df2ba6-switch_node-8d565a74-185b-442f-986f-46f1fe31d096",
+            "source": "dummy_data_node-172b6bf6-b2a6-4b61-924d-7ec027df2ba6",
+            "target": "switch_node-8d565a74-185b-442f-986f-46f1fe31d096",
+            "sourceHandle": null,
+            "targetHandle": null
+        },
+        {
+            "id": "eswitch_node-8d565a74-185b-442f-986f-46f1fe31d096-case_case_success-data_viewer_node-8349e83a-7d21-4700-aec3-f85296239e84",
+            "source": "switch_node-8d565a74-185b-442f-986f-46f1fe31d096",
+            "target": "data_viewer_node-8349e83a-7d21-4700-aec3-f85296239e84",
+            "sourceHandle": "case_case_success",
+            "targetHandle": null
+        },
+        {
+            "id": "eswitch_node-8d565a74-185b-442f-986f-46f1fe31d096-case_case_pending-data_viewer_node-9eae64be-2376-48d9-90ea-0589c3381c86",
+            "source": "switch_node-8d565a74-185b-442f-986f-46f1fe31d096",
+            "target": "data_viewer_node-9eae64be-2376-48d9-90ea-0589c3381c86",
+            "sourceHandle": "case_case_pending",
+            "targetHandle": null
+        },
+        {
+            "id": "eswitch_node-8d565a74-185b-442f-986f-46f1fe31d096-case_case_failed-data_viewer_node-30295db5-37bb-44cd-a175-6992eaf2e0e8",
+            "source": "switch_node-8d565a74-185b-442f-986f-46f1fe31d096",
+            "target": "data_viewer_node-30295db5-37bb-44cd-a175-6992eaf2e0e8",
+            "sourceHandle": "case_case_failed",
+            "targetHandle": null
+        }
+    ],
+    "viewport": {
+        "x": 0,
+        "y": 0,
+        "zoom": 0.7
+    },
+    "exportedAt": "2026-08-08T12:00:41+00:00",
+    "voodflowVersion": "1.0.0"
+}

@@ -1,0 +1,32 @@
+{
+  "name": "clickup",
+  "description": "ClickUp workspace management, task operations, and project coordination through MCP integration.",
+  "transport": {
+    "type": "stdio",
+    "command": "node",
+    "args": [
+      "/Users/Shared/WWW/novahub/mcp/clickup-mcp-server/dist/index.js"
+    ],
+    "env": {
+      "CLICKUP_API_KEY": "${CLICKUP_API_KEY}"
+    }
+  },
+  "metadata": {
+    "api_documentation": "https://developer.clickup.com/",
+    "required_permissions": [
+      "tasks:read",
+      "tasks:write",
+      "spaces:read",
+      "teams:read"
+    ],
+    "validation": [
+      "curl -H \"Authorization: $CLICKUP_API_KEY\" https://api.clickup.com/api/v2/team"
+    ],
+    "best_for": [
+      "task management",
+      "project coordination",
+      "workspace organization",
+      "team collaboration"
+    ]
+  }
+}

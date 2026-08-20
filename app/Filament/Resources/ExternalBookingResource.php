@@ -1,0 +1,315 @@
+<?php
+
+namespace App\Filament\Resources;
+
+use Filament\Support\Icons\Heroicon;
+
+use App\Filament\Resources\ExternalBookingResource\Pages;
+use App\Models\ExternalBooking;
+use App\Models\PublicBookingRequest;
+use App\Services\ExternalSync\ExternalSyncManager;
+use Filament\Actions;
+use Filament\Forms;
+use Filament\Notifications\Notification;
+use Filament\Resources\Resource;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema as Form;
+use Filament\Tables;
+use Filament\Tables\Table;
+use Illuminate\Support\Facades\Http;
+
+class ExternalBookingResource extends Resource
+{
+    protected static ?string $model = ExternalBooking::class;
+
+    protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedCalendarDays;
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Reservas';
+    protected static ?string $navigationParentGroup = 'Reservas';
+
+    protected static ?int $navigationSort = 2;
+    protected static ?string $navigationLabel = 'Sync Reservas';
+
+    protected static bool $shouldRegisterNavigation = false;
+
+    public static function form(Form $form): Form
+    {
+        return $form->schema([
+            Section::make('Booking')
+                ->schema([
+                    Forms\Components\Select::make('server_id')->relationship('server', 'name')->required()->searchable()->preload(),
+                    Forms\Components\Select::make('external_source_id')->relationship('externalSource', 'source_label')->required()->searchable()->preload(),
+                    Forms\Components\TextInput::make('business_name'),
+                    Forms\Components\TextInput::make('source_platform')->required(),
+                    Forms\Components\TextInput::make('source_label')->required(),
+                    Forms\Components\TextInput::make('external_id')->required(),
+                    Forms\Components\TextInput::make('booking_type')->required(),
+                    Forms\Components\TextInput::make('status'),
+                    Forms\Components\TextInput::make('payment_status'),
+                    Forms\Components\TextInput::make('customer_name'),
+                    Forms\Components\TextInput::make('customer_email')->email(),
+                    Forms\Components\TextInput::make('customer_phone'),
+                    Forms\Components\TextInput::make('service_name'),
+                    Forms\Components\DateTimePicker::make('starts_at'),
+                    Forms\Components\TextInput::make('total')->numeric(),
+                    Forms\Components\TextInput::make('currency')->maxLength(3),
+                ])->columns(2),
+        ]);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->defaultSort('id', 'desc')
+            ->columns([
+                Tables\Columns\TextColumn::make('id')
+                    ->label('ID')
+                    ->searchable()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: false),
+                Tables\Columns\TextColumn::make('customer_name')->label('Customer')->searchable()->sortable()
+                    ->toggleable(isToggledHiddenByDefault: false),
+                Tables\Columns\TextColumn::make('booking_type')->badge()->sortable()
+                    ->toggleable(isToggledHiddenByDefault: false),
+                Tables\Columns\TextColumn::make('resource_type')
+                    ->label('Resource')
+                    ->badge()
+                    ->formatStateUsing(fn (?string $state, ExternalBooking $record): ?string => $state ?: $record->externalSource?->resource_type)
+                    ->toggleable(isToggledHiddenByDefault: false),
+                Tables\Columns\TextColumn::make('target_model')
+                    ->label('Model')
+                    ->formatStateUsing(fn (?string $state, ExternalBooking $record): ?string => $state ?: $record->externalSource?->target_model)
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('service_name')->searchable()->sortable()
+                    ->toggleable(isToggledHiddenByDefault: false),
+                Tables\Columns\TextColumn::make('origin')
+                    ->label('Origen')
+                    ->state(fn (ExternalBooking $record): ?string => data_get($record->metadata, 'raw.pickup_address') ?: data_get($record->metadata, 'raw.origin'))
+                    ->searchable(query: fn (Builder $query, string $search): Builder => $query->where('metadata', 'like', '%'.$search.'%'))
+                    ->toggleable(isToggledHiddenByDefault: false),
+                Tables\Columns\TextColumn::make('destination')
+                    ->label('Destino')
+                    ->state(fn (ExternalBooking $record): ?string => data_get($record->metadata, 'raw.dropoff_address') ?: data_get($record->metadata, 'raw.destination'))
+                    ->searchable(query: fn (Builder $query, string $search): Builder => $query->where('metadata', 'like', '%'.$search.'%'))
+                    ->toggleable(isToggledHiddenByDefault: false),
+                Tables\Columns\TextColumn::make('starts_at')->dateTime()->sortable()
+                    ->toggleable(isToggledHiddenByDefault: false),
+                Tables\Columns\TextColumn::make('status')->badge()->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('payment_status')
+                    ->badge()
+                    ->formatStateUsing(fn (?string $state): string => match ($state) {
+                        'fully_paid', 'paid' => 'Pagado',
+                        'not_paid', 'pending', 'unpaid', null, '' => 'No Pagado',
+                        'partially_paid' => 'Parcialmente pagado',
+                        default => $state,
+                    })
+                    ->placeholder('—')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: false),
+                Tables\Columns\TextColumn::make('source_label')->label('Source')->badge()->searchable()->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('business_name')->searchable()->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('total')
+                    ->money(fn (ExternalBooking $record): string => $record->currency ?: 'EUR')
+                    ->placeholder('—')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: false),
+                Tables\Columns\TextColumn::make('source_platform')->badge()->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('server.name')->label('Server')->searchable()->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('last_synced_at')->dateTime()->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('created_at')->dateTime()->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+            ])
+            ->filters([
+                Tables\Filters\SelectFilter::make('business_name')->options(fn (): array => ExternalBooking::query()->distinct()->pluck('business_name', 'business_name')->filter()->all()),
+                Tables\Filters\SelectFilter::make('source_platform')->options(fn (): array => ExternalBooking::query()->distinct()->pluck('source_platform', 'source_platform')->all()),
+                Tables\Filters\SelectFilter::make('source_label')->options(fn (): array => ExternalBooking::query()->distinct()->pluck('source_label', 'source_label')->all()),
+                Tables\Filters\SelectFilter::make('server')->relationship('server', 'name')->searchable(),
+                Tables\Filters\SelectFilter::make('resource_type')
+                    ->options(fn (): array => ExternalBooking::query()->distinct()->pluck('resource_type', 'resource_type')->filter()->all()),
+                Tables\Filters\SelectFilter::make('target_model')
+                    ->options(fn (): array => ExternalBooking::query()->distinct()->pluck('target_model', 'target_model')->filter()->all()),
+                Tables\Filters\SelectFilter::make('booking_type')->options(fn (): array => ExternalBooking::query()->distinct()->pluck('booking_type', 'booking_type')->all()),
+                Tables\Filters\SelectFilter::make('status')->options(fn (): array => ExternalBooking::query()->distinct()->pluck('status', 'status')->filter()->all()),
+                Tables\Filters\SelectFilter::make('payment_status')->options(fn (): array => ExternalBooking::query()->distinct()->pluck('payment_status', 'payment_status')->filter()->all()),
+            ])
+            ->actions([
+                Actions\Action::make('pay_redsys')
+                    ->label('Pay')
+                    ->icon(Heroicon::OutlinedCreditCard)
+                    ->color('warning')
+                    ->openUrlInNewTab()
+                    ->visible(function (ExternalBooking $record): bool {
+                        if ($record->source_platform !== 'latepoint') {
+                            return false;
+                        }
+                        if (($record->resource_type ?? '') !== 'tour_booking') {
+                            return false;
+                        }
+                        $paid = strtolower((string) ($record->payment_status ?? ''));
+
+                        return $paid === '' || $paid === 'pending' || $paid === 'unpaid' || $paid === 'not_paid';
+                    })
+                    ->disabled(function (ExternalBooking $record): bool {
+                        return ! PublicBookingRequest::query()
+                            ->where('remote_source_platform', 'latepoint')
+                            ->where('remote_external_id', (string) $record->external_id)
+                            ->where(function ($query) {
+                                $query->whereNull('payment_status')->orWhere('payment_status', '!=', 'paid');
+                            })
+                            ->exists();
+                    })
+                    ->url(function (ExternalBooking $record): ?string {
+                        $request = PublicBookingRequest::query()
+                            ->where('remote_source_platform', 'latepoint')
+                            ->where('remote_external_id', (string) $record->external_id)
+                            ->where(function ($query) {
+                                $query->whereNull('payment_status')->orWhere('payment_status', '!=', 'paid');
+                            })
+                            ->latest('id')
+                            ->first();
+                        if (! $request) {
+                            return null;
+                        }
+
+                        return route('public.redsys.start', ['request' => $request->id]);
+                    })
+                    ->action(function (ExternalBooking $record): void {
+                        Notification::make()
+                            ->title('No linked request')
+                            ->body('This external booking has no linked PublicBookingRequest to pay from.')
+                            ->danger()
+                            ->send();
+                    }),
+                Actions\Action::make('export_chbs')
+                    ->label('Export CHBS')
+                    ->icon(Heroicon::OutlinedArrowUpTray)
+                    ->color('success')
+                    ->visible(fn (ExternalBooking $record): bool => $record->source_platform === 'woo' && ($record->resource_type ?? '') === 'tour_route')
+                    ->action(function (ExternalBooking $record): void {
+                        $source = $record->externalSource;
+
+                        if (! $source) {
+                            Notification::make()
+                                ->title('Missing source')
+                                ->body('This booking has no external source.')
+                                ->danger()
+                                ->send();
+
+                            return;
+                        }
+
+                        $raw = data_get($record->metadata, 'raw', []);
+                        $startsAt = $record->starts_at;
+                        $amount = $record->total ?: data_get($raw, 'total');
+                        $payload = [
+                            'nova_route_token' => $record->external_id,
+                            'origin' => data_get($raw, 'pickup_address'),
+                            'destination' => data_get($raw, 'dropoff_address', $record->service_name),
+                            'pickup_date' => $startsAt?->timezone('Europe/Madrid')->toDateString(),
+                            'pickup_time' => $startsAt?->timezone('Europe/Madrid')->format('H:i'),
+                            'passengers' => $record->party_size ?: data_get($raw, 'participants', 1),
+                            'customer_name' => $record->customer_name,
+                            'customer_email' => $record->customer_email,
+                            'customer_phone' => $record->customer_phone,
+                            'route_id' => data_get($raw, 'service_id'),
+                            'route_name' => $record->service_name,
+                            'amount' => $amount,
+                            'payment_order' => data_get($raw, 'payment_order'),
+                            'payment_reference' => data_get($raw, 'payment_reference'),
+                            'product_id' => data_get($raw, 'woocommerce.product_id') ?: data_get($raw, 'product_id'),
+                        ];
+
+                        $request = Http::baseUrl(rtrim((string) ($source->api_url ?: $source->base_url), '/'))
+                            ->acceptJson()
+                            ->connectTimeout(10)
+                            ->timeout(30);
+
+                        if (str_ends_with((string) parse_url((string) ($source->api_url ?: $source->base_url), PHP_URL_HOST), '.test')) {
+                            $request = $request->withoutVerifying();
+                        }
+
+                        $localHeader = data_get($source->settings, 'local_header') ?: data_get($source->server?->metadata, 'local_header');
+                        $localHeaderName = data_get($localHeader, 'name');
+                        $localHeaderValue = data_get($localHeader, 'value') ?: env((string) data_get($localHeader, 'env'));
+
+                        if (! blank($localHeaderName) && ! blank($localHeaderValue)) {
+                            $request = $request->withHeaders([(string) $localHeaderName => (string) $localHeaderValue]);
+                        }
+
+                        $response = $request->post('wp-json/taxilanz-mcp/v1/chauffeur/bookings', $payload)->throw()->json();
+                        $chbsId = data_get($response, 'id');
+                        $wooOrderId = data_get($response, 'woocommerce.order_id');
+                        $paymentExternalId = $wooOrderId ? 'woo-order-'.$wooOrderId : 'redsys-'.$record->external_id;
+
+                        $record->forceFill([
+                            'metadata' => array_merge($record->metadata ?? [], [
+                                'taxilanz_chbs_export' => [
+                                    'booking_id' => $chbsId,
+                                    'woo_order_id' => $wooOrderId,
+                                    'exported_at' => now()->toISOString(),
+                                    'response' => $response,
+                                ],
+                            ]),
+                            'admin_url' => $chbsId ? rtrim((string) $source->base_url, '/').'/wp-admin/post.php?post='.(int) $chbsId.'&action=edit' : $record->admin_url,
+                            'source_updated_at' => now(),
+                        ])->save();
+
+                        app(ExternalSyncManager::class)->upsertPayment($source, [
+                            'external_id' => $paymentExternalId,
+                            'external_token' => data_get($raw, 'payment_order'),
+                            'external_receipt_number' => data_get($raw, 'payment_reference'),
+                            'external_order_id' => $wooOrderId,
+                            'external_booking_id' => $chbsId ?: $record->external_id,
+                            'external_service_id' => data_get($raw, 'service_id'),
+                            'service_name' => $record->service_name,
+                            'resource_type' => 'tour_route',
+                            'target_model' => 'tour_booking',
+                            'customer_name' => $record->customer_name,
+                            'customer_email' => $record->customer_email,
+                            'processor' => 'redsys',
+                            'payment_method' => 'redsys',
+                            'kind' => 'payment',
+                            'status' => 'paid',
+                            'amount' => $amount,
+                            'currency' => $record->currency ?: 'EUR',
+                            'paid_at' => now(),
+                            'metadata' => [
+                                'external_booking_id' => $record->id,
+                                'nova_external_id' => $record->external_id,
+                                'taxilanz_chbs_booking_id' => $chbsId,
+                                'taxilanz_woo_order_id' => $wooOrderId,
+                                'response' => $response,
+                            ],
+                            'source_updated_at' => now(),
+                            'source_fingerprint' => sha1(json_encode(['taxilanz_chbs_export_payment', $record->id, $wooOrderId, $chbsId])),
+                        ]);
+
+                        Notification::make()
+                            ->title('Exported to CHBS')
+                            ->body($chbsId ? 'Created Taxilanz CHBS booking #'.$chbsId : 'Taxilanz accepted the booking export.')
+                            ->success()
+                            ->send();
+                    }),
+                Actions\EditAction::make(),
+            ])
+            ->toolbarActions([
+                Actions\DeleteBulkAction::make()->deselectRecordsAfterCompletion(),
+            ]);
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => Pages\ListExternalBookings::route('/'),
+            'create' => Pages\CreateExternalBooking::route('/create'),
+            'edit' => Pages\EditExternalBooking::route('/{record}/edit'),
+        ];
+    }
+
+}

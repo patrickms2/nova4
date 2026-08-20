@@ -1,0 +1,139 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Filament\App\NovaHub\Resources\NovaBusinesses\RelationManagers;
+
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\EditAction;
+use Filament\Forms\Components\KeyValue;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
+use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
+
+final class ServicesRelationManager extends RelationManager
+{
+    protected static string $relationship = 'services';
+
+    protected static ?string $title = 'Servicios';
+
+    protected static ?string $recordTitleAttribute = 'name';
+
+    public function form(Schema $schema): Schema
+    {
+        return $schema->components([
+            Section::make('Servicio contratado')
+                ->schema([
+                    TextInput::make('name')
+                        ->label('Nombre')
+                        ->required()
+                        ->maxLength(255),
+                    TextInput::make('code')
+                        ->label('Código')
+                        ->maxLength(255),
+                    Select::make('service_type')
+                        ->label('Tipo')
+                        ->required()
+                        ->options([
+                            'whatsapp_bot' => 'WhatsAppBot',
+                            'development' => 'Desarrollo',
+                            'maintenance' => 'Mantenimiento',
+                            'sales' => 'Venta',
+                            'services' => 'Servicios',
+                            'other' => 'Otro',
+                        ])
+                        ->default('services'),
+                    Select::make('status')
+                        ->label('Estado')
+                        ->required()
+                        ->options([
+                            'active' => 'Activo',
+                            'paused' => 'Pausado',
+                            'draft' => 'Borrador',
+                            'cancelled' => 'Cancelado',
+                        ])
+                        ->default('active'),
+                    Toggle::make('has_development')->label('DESARROLLO'),
+                    Toggle::make('has_maintenance')->label('MANTENIMIENTO'),
+                    Toggle::make('has_whatsapp')->label('WA'),
+                    Toggle::make('has_mcp')->label('MCP'),
+                    Toggle::make('has_sales')->label('VENTA'),
+                    Toggle::make('has_services')->label('SERVICIOS')->default(true),
+                    TextInput::make('monthly_amount')
+                        ->label('Cuota mensual')
+                        ->numeric()
+                        ->prefix('€'),
+                    TextInput::make('commission_rate')
+                        ->label('Comisión')
+                        ->numeric()
+                        ->suffix('%'),
+                    Textarea::make('notes')
+                        ->label('Notas')
+                        ->rows(3)
+                        ->columnSpanFull(),
+                    KeyValue::make('settings')
+                        ->label('Configuración')
+                        ->columnSpanFull(),
+                ])
+                ->columns(3),
+        ]);
+    }
+
+    public function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                TextColumn::make('name')
+                    ->label('Servicio')
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('service_type')
+                    ->label('Tipo')
+                    ->badge()
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'whatsapp_bot' => 'WhatsAppBot',
+                        'development' => 'Desarrollo',
+                        'maintenance' => 'Mantenimiento',
+                        'sales' => 'Venta',
+                        'services' => 'Servicios',
+                        default => 'Otro',
+                    }),
+                IconColumn::make('has_development')->label('DES')->boolean(),
+                IconColumn::make('has_maintenance')->label('MAN')->boolean(),
+                IconColumn::make('has_whatsapp')->label('WA')->boolean(),
+                IconColumn::make('has_mcp')->label('MCP')->boolean(),
+                IconColumn::make('has_sales')->label('VENTA')->boolean(),
+                IconColumn::make('has_services')->label('SERV')->boolean(),
+                TextColumn::make('status')
+                    ->label('Estado')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'active' => 'success',
+                        'paused' => 'warning',
+                        'cancelled' => 'danger',
+                        default => 'gray',
+                    }),
+            ])
+            ->headerActions([
+                CreateAction::make()
+                    ->label('Añadir servicio')
+                    ->mutateFormDataUsing(function (array $data): array {
+                        $data['nova_business_id'] = $this->getOwnerRecord()->id;
+
+                        return $data;
+                    }),
+            ])
+            ->recordActions([
+                EditAction::make(),
+                DeleteAction::make(),
+            ]);
+    }
+}

@@ -1,0 +1,191 @@
+{
+    "title": "Conditional route",
+    "author": "admin",
+    "description": "Make decision with IF node",
+    "fingerprint": "7201ca5f-3106-4b57-bddc-d5e80d887211",
+    "nodes": [
+        {
+            "id": "dummy_data_node-6ea92bda-78b9-4cf6-ab26-8e52302583cb",
+            "type": "dummy_data_node",
+            "position": {
+                "x": -600,
+                "y": -50
+            },
+            "data": {
+                "label": "Order Data",
+                "description": "Sample order payload",
+                "data_type": "json",
+                "content": "{\n  \"order_id\": 1042,\n  \"customer\": \"Alice\",\n  \"status\": \"complete\",\n  \"total\": 149.90\n}",
+                "icon": "heroicon-o-document-arrow-down",
+                "iconType": "heroicon",
+                "color": "emerald",
+                "display_name": "Dummy Data",
+                "isNew": true,
+                "isExpanded": true,
+                "positioning": {
+                    "input": false,
+                    "output": true
+                },
+                "logoUrl": null,
+                "logoMissing": false,
+                "_v": 2
+            },
+            "style": null
+        },
+        {
+            "id": "if_node-e40da3d2-c3b0-49fc-9712-399c952612f4",
+            "type": "if_node",
+            "position": {
+                "x": 0,
+                "y": -50
+            },
+            "data": {
+                "label": "Status = completed?",
+                "description": "Route by order status",
+                "conditions": [
+                    {
+                        "column": "status",
+                        "field": "status",
+                        "operator": "=",
+                        "value": "complete",
+                        "logic": "AND",
+                        "value_mode": "select"
+                    }
+                ],
+                "icon": "heroicon-o-arrows-up-down",
+                "iconType": "heroicon",
+                "color": "yellow",
+                "display_name": "If",
+                "isNew": true,
+                "isExpanded": true,
+                "positioning": {
+                    "input": true,
+                    "output": [
+                        {
+                            "id": "true",
+                            "label": "True",
+                            "color": "emerald",
+                            "position": "right"
+                        },
+                        {
+                            "id": "false",
+                            "label": "False",
+                            "color": "rose",
+                            "position": "right"
+                        }
+                    ]
+                },
+                "logoUrl": null,
+                "logoMissing": false,
+                "_v": 5
+            },
+            "style": null
+        },
+        {
+            "id": "data_viewer_node-c080cc4d-6287-4158-883a-e630fee1d887",
+            "type": "data_viewer_node",
+            "position": {
+                "x": 650,
+                "y": -250
+            },
+            "data": {
+                "label": "Completed",
+                "description": "Order is completed",
+                "view_mode": "auto",
+                "icon": "heroicon-o-table-cells",
+                "iconType": "heroicon",
+                "color": "slate",
+                "display_name": "Data Viewer",
+                "isNew": true,
+                "logoUrl": null,
+                "logoMissing": false
+            },
+            "style": null
+        },
+        {
+            "id": "data_viewer_node-d37d0643-b272-4123-a5a3-e6af1e0aa8c7",
+            "type": "data_viewer_node",
+            "position": {
+                "x": 650,
+                "y": 150
+            },
+            "data": {
+                "label": "Not Completed",
+                "description": "Order is not completed",
+                "view_mode": "auto",
+                "icon": "heroicon-o-table-cells",
+                "iconType": "heroicon",
+                "color": "slate",
+                "display_name": "Data Viewer",
+                "isNew": true,
+                "logoUrl": null,
+                "logoMissing": false
+            },
+            "style": null
+        },
+        {
+            "id": "sticky_note-1775725134037",
+            "type": "sticky_note",
+            "position": {
+                "x": -485,
+                "y": -200
+            },
+            "data": {
+                "content": "Try this workflow by changing the status in the dummy data node",
+                "color": "yellow",
+                "fontSize": "large"
+            },
+            "style": {
+                "width": 220,
+                "height": 129
+            }
+        },
+        {
+            "id": "sticky_note-1775725178429",
+            "type": "sticky_note",
+            "position": {
+                "x": 101.03286384976528,
+                "y": -248.88497652582157
+            },
+            "data": {
+                "content": "The IF node is a powerful data analysis and decision-making tool that allows you to route the flow based on defined conditions.",
+                "color": "yellow",
+                "fontSize": "large"
+            },
+            "style": {
+                "width": 220,
+                "height": 178
+            }
+        }
+    ],
+    "edges": [
+        {
+            "id": "edummy_data_node-6ea92bda-78b9-4cf6-ab26-8e52302583cb-if_node-e40da3d2-c3b0-49fc-9712-399c952612f4",
+            "source": "dummy_data_node-6ea92bda-78b9-4cf6-ab26-8e52302583cb",
+            "target": "if_node-e40da3d2-c3b0-49fc-9712-399c952612f4",
+            "sourceHandle": null,
+            "targetHandle": null
+        },
+        {
+            "id": "eif_node-e40da3d2-c3b0-49fc-9712-399c952612f4-true-data_viewer_node-c080cc4d-6287-4158-883a-e630fee1d887",
+            "source": "if_node-e40da3d2-c3b0-49fc-9712-399c952612f4",
+            "target": "data_viewer_node-c080cc4d-6287-4158-883a-e630fee1d887",
+            "sourceHandle": "true",
+            "targetHandle": null
+        },
+        {
+            "id": "eif_node-e40da3d2-c3b0-49fc-9712-399c952612f4-false-data_viewer_node-d37d0643-b272-4123-a5a3-e6af1e0aa8c7",
+            "source": "if_node-e40da3d2-c3b0-49fc-9712-399c952612f4",
+            "target": "data_viewer_node-d37d0643-b272-4123-a5a3-e6af1e0aa8c7",
+            "sourceHandle": "false",
+            "targetHandle": null
+        }
+    ],
+    "viewport": {
+        "x": 711.4117647058823,
+        "y": 304.72823529411767,
+        "zoom": 1.0023529411764707
+    },
+    "exportedAt": "2026-08-08T12:00:41+00:00",
+    "voodflowVersion": "1.0.0"
+}

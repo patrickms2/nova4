@@ -1,0 +1,17 @@
+{
+    "mcpServers": {
+        "tableplus": {
+            "command": "/Applications/Setapp/TablePlus.app/Contents/MacOS/tableplus-mcp",
+            "env": {
+                "TABLEPLUS_MCP_ACCESS_TOKEN": "TP_SA5P9w1BwDQH8V3_e8XjfDnNgVBZkDgf-Pl0mJauql0"
+            }
+        },
+        "clickup": {
+            "command": "npx",
+            "args": [
+                "\"-y\",",
+                "\"@hauptsache.net/clickup-mcp@latest\""
+            ]
+        }
+    }
+}

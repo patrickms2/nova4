@@ -1,0 +1,86 @@
+{
+    "mcpServers": {
+        "tinkerwell": {
+            "command": "/Applications/Tinkerwell.app/Contents/Resources/tinkerwell/mcp/tinkerwell-mcp-arm64"
+        },
+        "filamentphp": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "filamentphp-mcp"
+            ]
+        },
+        "sirvo": {
+            "type": "http",
+            "url": "http://192.168.1.42:3000"
+        },
+        "laravel-boost": {
+            "command": "php",
+            "args": [
+                "artisan",
+                "boost:mcp"
+            ]
+        },
+        "filament-examples": {
+            "type": "http",
+            "url": "https://filamentexamples.com/mcp"
+        },
+        "flowbite": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "flowbite-mcp"
+            ]
+        },
+        "@upstash/context7-mcp": {
+            "command": "npx",
+            "args": [
+                "@upstash/context7-mcp"
+            ]
+        },
+        "magento2": {
+            "command": "/Users/patrickms/Library/Application Support/Herd/config/nvm/versions/node/v20.20.2/bin/node",
+            "args": [
+                "/Users/patrickms/Downloads/novahubmcp/docs/MCP/magento2-mcp/mcp-server.js"
+            ]
+        },
+        "wordpress-studio": {
+            "command": "studio",
+            "args": [
+                "mcp"
+            ]
+        },
+        "nova": {
+            "type": "http",
+            "url": "https://novahub.test/mcp/nova"
+        },
+        "tableplus": {
+            "command": "/Applications/Setapp/TablePlus.app/Contents/MacOS/tableplus-mcp",
+            "env": {
+                "TABLEPLUS_MCP_ACCESS_TOKEN": "TP_SA5P9w1BwDQH8V3_e8XjfDnNgVBZkDgf-Pl0mJauql0"
+            }
+        },
+        "clickup": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@hauptsache.net/clickup-mcp@latest"
+            ],
+            "env": {
+                "CLICKUP_API_KEY": "pk_32602067_GLXBBW8UH2ACUT9VS9FPPR3E23SQEZ1S"
+            }
+        },
+        "elmapicms": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@elmapicms/mcp-server"
+            ],
+            "env": {
+                "ELMAPI_BASE_URL": "https://cms.novagestion.eu/api",
+                "ELMAPI_API_KEY": "9b44isjL7hPlVivMLf2j7V2esG25nTrJU3dg1jCx229a5773",
+                "ELMAPI_PROJECT_ID": "f979afdc-10ff-45d9-9dda-51e7e0692476"
+            }
+        }
+    }
+}

@@ -1,0 +1,80 @@
+{
+    "title": "Send email",
+    "author": "admin",
+    "description": "Send email on new blog post creation",
+    "fingerprint": "8b4334c6-3d15-443b-860a-9eb119fc3cdf",
+    "nodes": [
+        {
+            "id": "trigger-dd972549-ed04-46dc-a7a0-e594f03ed674",
+            "type": "trigger",
+            "position": {
+                "x": 191.78162694063428,
+                "y": 227.13922394723045
+            },
+            "data": {
+                "label": "New blog post",
+                "description": "",
+                "eventClass": "eloquent.created: Firefly\\FilamentBlog\\Models\\Post",
+                "status": "draft",
+                "isNew": true,
+                "icon": "heroicon-o-bolt",
+                "iconType": "heroicon",
+                "logoUrl": null,
+                "logoMissing": false,
+                "color": "amber",
+                "display_name": "Event Trigger",
+                "id": "trigger-dd972549-ed04-46dc-a7a0-e594f03ed674",
+                "_v": 3,
+                "isExpanded": null
+            },
+            "style": null
+        },
+        {
+            "id": "send_mail_node-e5deeede-cb09-4a27-af20-444b07717791",
+            "type": "send_mail_node",
+            "position": {
+                "x": 1000.2343214399044,
+                "y": 186.2638515583268
+            },
+            "data": {
+                "label": "Send Mail",
+                "description": "",
+                "credential_id": "1",
+                "layout_id": "2",
+                "from_email": "noreply@voodflow.com",
+                "from_name": "Voodflow",
+                "to_email": "press@voodflow.com",
+                "subject": "New blog post by {{newsPost.user.name}}",
+                "body": "Hi!\nThe user {{newsPost.user.name}} has sent a new blog's post.\nTitle: {{newsPost.title}}\nIntro: {{newsPost.sub_title}}\nStatus: {{newsPost.status}}",
+                "is_html": true,
+                "isNew": true,
+                "icon": "heroicon-o-envelope",
+                "iconType": "heroicon",
+                "logoUrl": null,
+                "logoMissing": false,
+                "color": "blue",
+                "display_name": "Send Mail",
+                "id": "send_mail_node-e5deeede-cb09-4a27-af20-444b07717791",
+                "_v": 15,
+                "isExpanded": true
+            },
+            "style": null
+        }
+    ],
+    "edges": [
+        {
+            "id": "etrigger-dd972549-ed04-46dc-a7a0-e594f03ed674-send_mail_node-e5deeede-cb09-4a27-af20-444b07717791",
+            "source": "trigger-dd972549-ed04-46dc-a7a0-e594f03ed674",
+            "target": "send_mail_node-e5deeede-cb09-4a27-af20-444b07717791",
+            "sourceHandle": null,
+            "targetHandle": null
+        }
+    ],
+    "viewport": {
+        "x": 65.37213138140282,
+        "y": -132.30321778515417,
+        "zoom": 0.9465240641711231
+    },
+    "exportedAt": "2026-08-08T12:00:41+00:00",
+    "voodflowVersion": "1.0.0"
+}

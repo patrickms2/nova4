@@ -1,0 +1,451 @@
+{
+  "schemaVersion": 1,
+  "nodes": [
+    {
+      "id": "trigger_1",
+      "type": "trigger",
+      "position": { "x": 400, "y": 60 },
+      "data": {
+        "label": "User Message",
+        "triggerType": "user_message",
+        "outputVariable": "user_message"
+      }
+    },
+    {
+      "id": "action_detect_intent",
+      "type": "action",
+      "position": { "x": 400, "y": 200 },
+      "data": {
+        "label": "Detectar Intención (Filament)",
+        "actionKey": "detect-nova-intent",
+        "inputMapping": {
+          "message": "{{user_message}}"
+        },
+        "outputVariable": "intent_result"
+      }
+    },
+    {
+      "id": "action_get_services",
+      "type": "action",
+      "position": { "x": 400, "y": 340 },
+      "data": {
+        "label": "Obtener Tipos de Visita",
+        "actionKey": "call-mcp-tool",
+        "inputMapping": {
+          "server_slug": "la-geria-mcp",
+          "tool_name": "lageria-latepoint-list-services",
+          "input": {}
+        },
+        "outputVariable": "services_result"
+      }
+    },
+    {
+      "id": "action_normalize_services",
+      "type": "action",
+      "position": { "x": 400, "y": 480 },
+      "data": {
+        "label": "Normalizar Servicios",
+        "actionKey": "normalize-mcp-response",
+        "inputMapping": {
+          "raw_response": "{{services_result}}",
+          "server_slug": "la-geria-mcp",
+          "response_type": "services"
+        },
+        "outputVariable": "services_normalized"
+      }
+    },
+    {
+      "id": "send_visit_prompt",
+      "type": "sendMessage",
+      "position": { "x": 400, "y": 620 },
+      "data": {
+        "label": "Preguntar Tipo de Visita",
+        "messageType": "text",
+        "messageContent": "¿Qué tipo de visita guiada prefieres?",
+        "visibility": "final"
+      }
+    },
+    {
+      "id": "collect_visit_type",
+      "type": "collectInput",
+      "position": { "x": 400, "y": 760 },
+      "data": {
+        "label": "Seleccionar Tipo de Visita",
+        "prompt": "Selecciona una opción:",
+        "variableName": "service_id",
+        "inputType": "service",
+        "choices": "{{services_normalized.normalized.services}}",
+        "required": true,
+        "reusePreviousMessage": true
+      }
+    },
+    {
+      "id": "action_map_service_id",
+      "type": "action",
+      "position": { "x": 400, "y": 900 },
+      "data": {
+        "label": "Mapear Service ID",
+        "actionKey": "map-service-id",
+        "inputMapping": {
+          "service_map": "{{services_normalized.normalized.service_map}}",
+          "service_id": "{{service_id}}"
+        },
+        "outputVariable": "service_mapping"
+      }
+    },
+    {
+      "id": "collect_participants",
+      "type": "collectInput",
+      "position": { "x": 400, "y": 1040 },
+      "data": {
+        "label": "Número de Personas",
+        "prompt": "¿Cuántas personas participarán en la visita?",
+        "variableName": "participants",
+        "inputType": "participants",
+        "required": true,
+        "reusePreviousMessage": false
+      }
+    },
+    {
+      "id": "collect_date",
+      "type": "collectInput",
+      "position": { "x": 400, "y": 1040 },
+      "data": {
+        "label": "Seleccionar Fecha",
+        "prompt": "¿Para qué fecha deseas la visita?",
+        "variableName": "visit_date",
+        "inputType": "date",
+        "required": true,
+        "reusePreviousMessage": false
+      }
+    },
+    {
+      "id": "action_mcp",
+      "type": "action",
+      "position": { "x": 400, "y": 1180 },
+      "data": {
+        "label": "Obtener Horarios Disponibles",
+        "actionKey": "check-availability",
+        "inputMapping": {
+          "service_id": "{{service_mapping.service_id}}",
+          "date": "{{visit_date}}",
+          "participants": "{{participants}}"
+        },
+        "outputVariable": "mcp_result"
+      }
+    },
+    {
+      "id": "action_normalize",
+      "type": "action",
+      "position": { "x": 400, "y": 1320 },
+      "data": {
+        "label": "Normalizar Respuesta Visita",
+        "actionKey": "normalize-mcp-response",
+        "inputMapping": {
+          "raw_response": "{{mcp_result}}",
+          "server_slug": "la-geria-mcp",
+          "response_type": "booking"
+        },
+        "outputVariable": "normalized_result"
+      }
+    },
+    {
+      "id": "send_availability",
+      "type": "sendMessage",
+      "position": { "x": 400, "y": 1460 },
+      "data": {
+        "label": "Mostrar Horarios Disponibles",
+        "messageType": "text",
+        "messageContent": "Horarios disponibles para {{visit_type_name}} el {{visit_date}}:\n\n{{normalized_result.normalized}}",
+        "visibility": "final"
+      }
+    },
+    {
+      "id": "collect_time",
+      "type": "collectInput",
+      "position": { "x": 400, "y": 1600 },
+      "data": {
+        "label": "Seleccionar Hora",
+        "prompt": "Selecciona un horario disponible:",
+        "variableName": "visit_time",
+        "inputType": "choice",
+        "choices": "{{normalized_result.choices}}",
+        "required": true,
+        "reusePreviousMessage": false
+      }
+    },
+    {
+      "id": "collect_customer_data",
+      "type": "collectInput",
+      "position": { "x": 400, "y": 1740 },
+      "data": {
+        "label": "Datos del Cliente",
+        "prompt": "Para completar la reserva, necesito tus datos. Por favor, proporciona tu nombre, email y teléfono (ej: Juan Pérez, juan@email.com, +34600111222):",
+        "variableName": "customer_data",
+        "inputType": "text",
+        "required": true,
+        "reusePreviousMessage": false
+      }
+    },
+    {
+      "id": "action_create_booking_request",
+      "type": "action",
+      "position": { "x": 400, "y": 1880 },
+      "data": {
+        "label": "Crear Booking Request",
+        "actionKey": "create-booking-request",
+        "inputMapping": {
+          "service_id": "{{service_mapping.service_id}}",
+          "visit_date": "{{visit_date}}",
+          "visit_time": "{{visit_time}}",
+          "participants": "{{participants}}",
+          "customer_name": "{{customer_data}}",
+          "customer_email": "{{customer_data}}",
+          "customer_phone": "{{customer_data}}"
+        },
+        "outputVariable": "booking_request"
+      }
+    },
+    {
+      "id": "action_create_remote_booking",
+      "type": "action",
+      "position": { "x": 400, "y": 2020 },
+      "data": {
+        "label": "Crear Reserva Remota",
+        "actionKey": "create-remote-booking",
+        "inputMapping": {
+          "request_id": "{{booking_request.request_id}}",
+          "service_id": "{{service_mapping.service_id}}"
+        },
+        "outputVariable": "remote_booking_result"
+      }
+    },
+    {
+      "id": "condition_booking_success",
+      "type": "condition",
+      "position": { "x": 400, "y": 2160 },
+      "data": {
+        "label": "¿Reserva Exitosa?",
+        "leftOperand": "{{remote_booking_result.result}}",
+        "operator": "equals",
+        "rightOperand": "success"
+      }
+    },
+    {
+      "id": "send_payment_link",
+      "type": "sendMessage",
+      "position": { "x": 400, "y": 2300 },
+      "data": {
+        "label": "Enviar Link de Pago",
+        "messageType": "text",
+        "messageContent": "✅ Tu reserva ha sido creada exitosamente.\n\nReferencia: {{booking_request.reference}}\nMonto: {{remote_booking_result.payment_amount_label}}\n\nPara completar tu reserva, realiza el pago aquí: {{remote_booking_result.pay_url}}",
+        "visibility": "final"
+      }
+    },
+    {
+      "id": "send_booking_error",
+      "type": "sendMessage",
+      "position": { "x": 600, "y": 2300 },
+      "data": {
+        "label": "Error en Reserva",
+        "messageType": "text",
+        "messageContent": "❌ Hubo un error al crear tu reserva: {{remote_booking_result.remote_error}}\n\nPor favor, intenta nuevamente o contacta a soporte.",
+        "visibility": "final"
+      }
+    },
+    {
+      "id": "collect_taxi_need",
+      "type": "collectInput",
+      "position": { "x": 400, "y": 2440 },
+      "data": {
+        "label": "¿Necesitas Taxi?",
+        "prompt": "¿Necesitas taxi tras la visita? (si/no)",
+        "variableName": "taxi_needed",
+        "inputType": "choice",
+        "choices": "si,no",
+        "required": true,
+        "reusePreviousMessage": false
+      }
+    },
+    {
+      "id": "condition_taxi",
+      "type": "condition",
+      "position": { "x": 400, "y": 2580 },
+      "data": {
+        "label": "¿Necesita Taxi?",
+        "leftOperand": "{{taxi_needed}}",
+        "operator": "equals",
+        "rightOperand": "si"
+      }
+    },
+    {
+      "id": "collect_taxi_pickup",
+      "type": "collectInput",
+      "position": { "x": 400, "y": 2720 },
+      "data": {
+        "label": "Punto de Recogida",
+        "prompt": "¿Desde dónde te recoge el taxi? (ej: Costa Teguise, Hotel Faro Park, etc.)",
+        "variableName": "taxi_pickup",
+        "inputType": "text",
+        "required": true,
+        "reusePreviousMessage": false
+      }
+    },
+    {
+      "id": "collect_taxi_dropoff",
+      "type": "collectInput",
+      "position": { "x": 400, "y": 2860 },
+      "data": {
+        "label": "Destino",
+        "prompt": "¿A dónde quieres ir tras la visita? (ej: Aeropuerto, Hotel, etc.)",
+        "variableName": "taxi_dropoff",
+        "inputType": "text",
+        "required": true,
+        "reusePreviousMessage": false
+      }
+    },
+    {
+      "id": "collect_taxi_time",
+      "type": "collectInput",
+      "position": { "x": 400, "y": 3000 },
+      "data": {
+        "label": "Hora del Taxi",
+        "prompt": "¿A qué hora necesitas el taxi? (formato: HH:MM)",
+        "variableName": "taxi_time",
+        "inputType": "text",
+        "required": true,
+        "reusePreviousMessage": false
+      }
+    },
+    {
+      "id": "collect_taxi_passengers",
+      "type": "collectInput",
+      "position": { "x": 400, "y": 3140 },
+      "data": {
+        "label": "Pasajeros",
+        "prompt": "¿Cuántos pasajeros?",
+        "variableName": "taxi_passengers",
+        "inputType": "number",
+        "required": true,
+        "reusePreviousMessage": false
+      }
+    },
+    {
+      "id": "action_taxi_mcp",
+      "type": "action",
+      "position": { "x": 400, "y": 3280 },
+      "data": {
+        "label": "Crear Reserva Taxi",
+        "actionKey": "call-mcp-tool",
+        "inputMapping": {
+          "server_slug": "taxilanz-hoteles-laravel-mcp",
+          "tool_name": "booking_create",
+          "input": {
+            "customer_phone": "+34646426442",
+            "customer_name": "Cliente Nova",
+            "pickup_location": "{{taxi_pickup}}",
+            "dropoff_location": "{{taxi_dropoff}}",
+            "date": "{{visit_date}}",
+            "time": "{{taxi_time}}",
+            "passengers": "{{taxi_passengers}}",
+            "payment_method": "card"
+          }
+        },
+        "outputVariable": "taxi_result"
+      }
+    },
+    {
+      "id": "action_normalize_taxi",
+      "type": "action",
+      "position": { "x": 400, "y": 3420 },
+      "data": {
+        "label": "Normalizar Respuesta Taxi",
+        "actionKey": "normalize-mcp-response",
+        "inputMapping": {
+          "raw_response": "{{taxi_result}}",
+          "server_slug": "taxilanz-hoteles-laravel-mcp",
+          "response_type": "booking"
+        },
+        "outputVariable": "taxi_normalized"
+      }
+    },
+    {
+      "id": "send_taxi_confirmation",
+      "type": "sendMessage",
+      "position": { "x": 400, "y": 3560 },
+      "data": {
+        "label": "Confirmar Reserva Taxi",
+        "messageType": "text",
+        "messageContent": "✅ Taxi reservado:\n📍 Recogida: {{taxi_pickup}}\n🏁 Destino: {{taxi_dropoff}}\n⏰ {{visit_date}} a las {{taxi_time}}\n👥 Pasajeros: {{taxi_passengers}}\n\n{{taxi_normalized.normalized}}",
+        "visibility": "final"
+      }
+    },
+    {
+      "id": "send_taxi_skip",
+      "type": "sendMessage",
+      "position": { "x": 400, "y": 2580 },
+      "data": {
+        "label": "Confirmar Visita Sin Taxi",
+        "messageType": "text",
+        "messageContent": "✅ Visita confirmada para {{visit_type_name}} el {{visit_date}}.\n\nNo necesitas taxi. ¡Perfecto!",
+        "visibility": "final"
+      }
+    },
+    {
+      "id": "action_register",
+      "type": "action",
+      "position": { "x": 400, "y": 3700 },
+      "data": {
+        "label": "Registrar en Nova",
+        "actionKey": "register-nova-data",
+        "inputMapping": {
+          "normalized_data": "{{normalized_result.normalized}}",
+          "server_slug": "{{intent_result.server_slug}}",
+          "record_type": "booking",
+          "intent_key": "{{intent_result.intent}}"
+        },
+        "outputVariable": "record_id"
+      }
+    },
+    {
+      "id": "end_1",
+      "type": "end",
+      "position": { "x": 400, "y": 2580 },
+      "data": { "label": "End" }
+    }
+  ],
+  "edges": [
+    { "id": "e1", "source": "trigger_1", "target": "action_detect_intent" },
+    { "id": "e2", "source": "action_detect_intent", "target": "action_get_services" },
+    { "id": "e3", "source": "action_get_services", "target": "action_normalize_services" },
+    { "id": "e4", "source": "action_normalize_services", "target": "send_visit_prompt" },
+    { "id": "e5", "source": "send_visit_prompt", "target": "collect_visit_type" },
+    { "id": "e6", "source": "collect_visit_type", "target": "action_map_service_id" },
+    { "id": "e7", "source": "action_map_service_id", "target": "collect_participants" },
+    { "id": "e8", "source": "collect_participants", "target": "collect_date" },
+    { "id": "e9", "source": "collect_date", "target": "action_mcp" },
+    { "id": "e10", "source": "action_mcp", "target": "action_normalize" },
+    { "id": "e11", "source": "action_normalize", "target": "send_availability" },
+    { "id": "e12", "source": "send_availability", "target": "collect_time" },
+    { "id": "e13", "source": "collect_time", "target": "collect_customer_data" },
+    { "id": "e14", "source": "collect_customer_data", "target": "action_create_booking_request" },
+    { "id": "e15", "source": "action_create_booking_request", "target": "action_create_remote_booking" },
+    { "id": "e16", "source": "action_create_remote_booking", "target": "condition_booking_success" },
+    { "id": "e17", "source": "condition_booking_success", "target": "send_payment_link", "sourceHandle": "yes" },
+    { "id": "e18", "source": "condition_booking_success", "target": "send_booking_error", "sourceHandle": "no" },
+    { "id": "e19", "source": "send_payment_link", "target": "collect_taxi_need" },
+    { "id": "e20", "source": "send_booking_error", "target": "end_1" },
+    { "id": "e21", "source": "collect_taxi_need", "target": "condition_taxi" },
+    { "id": "e22", "source": "condition_taxi", "target": "collect_taxi_pickup", "sourceHandle": "yes" },
+    { "id": "e23", "source": "condition_taxi", "target": "send_taxi_skip", "sourceHandle": "no" },
+    { "id": "e24", "source": "collect_taxi_pickup", "target": "collect_taxi_dropoff" },
+    { "id": "e25", "source": "collect_taxi_dropoff", "target": "collect_taxi_time" },
+    { "id": "e26", "source": "collect_taxi_time", "target": "collect_taxi_passengers" },
+    { "id": "e27", "source": "collect_taxi_passengers", "target": "action_taxi_mcp" },
+    { "id": "e28", "source": "action_taxi_mcp", "target": "action_normalize_taxi" },
+    { "id": "e29", "source": "action_normalize_taxi", "target": "send_taxi_confirmation" },
+    { "id": "e30", "source": "send_taxi_confirmation", "target": "action_register" },
+    { "id": "e31", "source": "send_taxi_skip", "target": "action_register" },
+    { "id": "e32", "source": "action_register", "target": "end_1" }
+  ]
+}

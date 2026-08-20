@@ -1,0 +1,43 @@
+<?php
+
+namespace App\Filament\App\Facturacion\Resources\GastoResource\Tables;
+
+use App\Models\Gasto;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Table;
+
+class GastosTable
+{
+    public static function configure(Table $table): Table
+    {
+        return $table
+            ->columns([
+                TextColumn::make('codigo')->label('Código')->sortable()->searchable(),
+                TextColumn::make('fecha')->date('d/m/Y')->sortable(),
+                TextColumn::make('descripcion')->label('Descripción')->searchable()->wrap(),
+                TextColumn::make('empresa.empresa')->label('Empresa')->sortable()->searchable(),
+                TextColumn::make('proveedor.nombreCorto')->label('Proveedor')->sortable()->searchable(),
+                TextColumn::make('categoria')->label('Categoría')->badge()->sortable(),
+                TextColumn::make('base_imponible')->label('Base')->money('EUR'),
+                TextColumn::make('impuesto')->label('Impuesto')->money('EUR'),
+                TextColumn::make('total')->label('Total')->money('EUR'),
+                TextColumn::make('estado')->label('Estado')->badge()->sortable(),
+                TextColumn::make('metodo_pago')->label('Método de pago'),
+                IconColumn::make('deducible')->label('Deducible')->boolean(),
+            ])
+            ->filters([
+                SelectFilter::make('estado')->options(Gasto::estados()),
+                SelectFilter::make('categoria')->options(Gasto::categorias()),
+            ])
+            ->actions([
+                EditAction::make(),
+            ])
+            ->bulkActions([
+                DeleteBulkAction::make(),
+            ]);
+    }
+}

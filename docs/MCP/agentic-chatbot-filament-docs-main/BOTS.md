@@ -1,0 +1,236 @@
+# Bots
+
+This is the page to share when someone asks what a bot is, how to create one, and how classic RAG behavior differs from workflow-driven behavior.
+
+## What A Bot Is
+
+A bot is one assistant configuration inside Filament Agentic Chatbot.
+
+Think of it as the persisted product definition for one assistant experience. A bot tells the system:
+
+- what the assistant is for
+- which knowledge sources it can use
+- how retrieval should behave
+- whether the parent agent may use tools and workflows
+- which workflow logic may run
+- who can access it
+- how the widget should look
+- which external channel connections may route messages into it
+
+This is why one Laravel + Filament app can run multiple assistants with very different behavior from one panel.
+
+## Runtime Model
+
+By default, a bot runs through the `ParentAgent`. The parent agent keeps the conversation natural and chooses between:
+
+- answering directly from the bot prompt and conversation memory
+- calling `KnowledgeSearchTool` to retrieve source-backed context
+- calling `run_workflow` to start or resume the active workflow
+- using any other registered tool available to that bot
+
+RAG is still important, but it is not the whole chatbot. It is the knowledge capability behind `KnowledgeSearchTool` and workflow Knowledge Base nodes.
+
+The legacy `RagAgent` class remains for compatibility when the parent agent is disabled and for workflow AI nodes that need a focused model call. Do not treat it as the default product architecture.
+
+## A Bot Can Be Simple Or Agentic
+
+### Simple RAG Bot
+
+Use this when you want grounded Q&A over a knowledge base.
+
+Typical flow:
+
+- user asks a question
+- retrieval finds relevant chunks
+- model answers with grounded context
+
+### Agentic Bot
+
+Use this when the assistant needs to do more than answer one message.
+
+Typical flow:
+
+- user starts a conversation
+- workflow asks clarifying questions
+- AI nodes classify or generate content
+- knowledge-base nodes fetch supporting context
+- actions or HTTP requests move the process forward
+
+## What You Can Customize Per Bot
+
+Each bot owns its own:
+
+- name and public ID
+- system prompt and response behavior
+- provider and model
+- retrieval settings
+- allowed domains
+- context areas
+- widget branding and prompts
+- linked sources
+- workflow-driven behavior
+- channel connections for Telegram or Slack when external chat entry points are enabled
+
+## How To Create A Bot
+
+1. Open **RAG Bots** in your Filament panel.
+2. Click **Create**.
+3. Enter a clear **name** and stable **public ID**.
+4. Write the **system prompt** that defines the bot's role.
+5. Select the **provider** and **model**.
+6. Configure **retrieval** settings.
+7. Configure **allowed domains** and **context areas**.
+8. Customize the **widget** title, subtitle, welcome message, and quick prompts.
+9. Save the bot.
+10. Add one or more sources and test retrieval.
+11. If needed, attach or build workflows for multi-step logic.
+
+## Important Bot Fields
+
+### Name
+
+The human-readable label shown in Filament and usually in the widget header.
+
+Use a name that tells the visitor what the assistant is for.
+
+### Public ID
+
+The stable identifier used by the widget and public chat endpoints.
+
+Keep it slug-like because it becomes part of the integration surface.
+
+### System Prompt
+
+The system prompt defines the bot's role, audience, tone, boundaries, and fallback behavior.
+
+It guides the assistant, but it is not a replacement for real source content or workflow logic.
+
+### Provider And Model
+
+Choose the provider and model per bot to optimize for speed, cost, or quality.
+
+The built-in provider picker supports Gemini, OpenAI, Anthropic, xAI, OpenRouter, DeepSeek, Groq, Mistral, Ollama, Azure OpenAI, and OpenAI-compatible gateways. Each provider includes a small curated model list, and the **Manual ID** option lets you enter exact model identifiers from your provider.
+
+Use OpenRouter for routed models such as Qwen or DeepSeek variants without adding a provider-specific integration for each model family. Use **OpenAI-Compatible** when the provider exposes a chat-completions-style API with a custom base URL, such as Qwen DashScope compatible mode or a private gateway. Enter the base URL on the bot, or configure it globally with `RAG_OPENAI_COMPATIBLE_BASE_URL`.
+
+For production examples, see [OpenAI-Compatible Providers](OPENAI_COMPATIBLE_PROVIDERS.md).
+
+### Retrieval Settings
+
+The most important retrieval settings are:
+
+- `top_k`
+- `min_similarity`
+- context budget
+
+These settings strongly influence whether a bot feels grounded, noisy, or too narrow.
+
+### Capability Mode
+
+Capability mode controls what linked workflows may do at runtime:
+
+- `query_only` allows knowledge queries and read-only internal data lookups
+- `write_only` allows structured writes or capture flows, but blocks query behavior
+- `query_and_write` allows both
+
+This matters most once a bot is linked to workflows.
+
+- `query_data_resource` and knowledge search require query capability.
+- `store_submission` requires write capability.
+- `httpRequest` and `apiConnector` treat `GET` as query behavior and `POST` / `PUT` / `PATCH` / `DELETE` as write behavior.
+- Custom workflow actions can opt into capability enforcement by declaring `capability: query` or `capability: write` in `filament-agentic-chatbot.workflow.actions`.
+- Untagged custom actions are not auto-classified, so treat them as application-level responsibility.
+
+### Allowed Internal Data Resources
+
+Bots can opt into specific internal data resources that workflows may read through `query_data_resource`.
+
+Each enabled resource is:
+
+- defined globally in config
+- allow-listed per bot
+- read-only at runtime
+- limited to the declared fields, filters, sort options, and max limit
+
+Use this when a workflow needs safe access to internal business records such as customers, cases, or orders without exposing arbitrary database access.
+
+If you need tenant-aware or actor-aware row filtering, add that through your model scopes or resource design. The registry controls which model fields are exposed, but it does not invent your business-specific authorization rules for you.
+
+### Smart Data Queries
+
+The Behavior tab also includes **Smart Data Queries**. This is the admin-friendly layer above `query_data_resource`.
+
+Admins choose:
+
+- which data sources the bot may read
+- whether generated workflows should accept natural data questions
+- the default and maximum number of records for smart generated query flows
+
+The workflow generator then handles phrases such as "newest workflow", "active products", "cheapest plan", or "highest priced item" by creating a structured query plan and passing it into `query_data_resource`. The runtime still validates all fields, filters, sorting, and limits against the allow-listed resource definition.
+
+### Allowed Domains
+
+Allowed domains limit where the widget can be embedded.
+
+### Context Areas
+
+Context areas help separate experiences such as:
+
+- `public`
+- `member`
+- `admin`
+
+### Widget Settings
+
+Each bot can have its own title, subtitle, welcome message, quick prompts, accent color, style, and compact mode.
+
+## When To Create A Separate Bot
+
+Create a separate bot when you need a different:
+
+- audience
+- source set
+- prompt behavior
+- workflow behavior
+- widget design
+- provider/model combination
+- access policy
+
+## Typical Bot Patterns
+
+### Public Product Guide
+
+Grounded public Q&A over docs and FAQs.
+
+### Sales Qualification Assistant
+
+Guided questions, branching, and escalation for high-intent leads.
+
+### Internal Ops Assistant
+
+Runbook retrieval plus workflow-based triage and action execution.
+
+### Customer-Specific Assistant
+
+Dedicated knowledge, prompting, and branding for a tenant or client.
+
+## Best Practices
+
+- Keep each bot focused on one job and one audience
+- Start with a strong RAG foundation before adding complex workflow logic
+- Use workflows where structure matters, not for every single interaction
+- Give the widget title and subtitle a clear user-facing purpose
+- Test retrieval and workflow branches separately
+- Keep the parent agent enabled unless you explicitly need the legacy direct RAG runtime
+
+## Related Docs
+
+- `CORE_CONCEPTS.md`
+- `AGENT_RUNTIME_ARCHITECTURE.md`
+- `RAG_SOURCES.md`
+- `INGESTION_AND_RETRIEVAL.md`
+- `AGENTIC_WORKFLOWS.md`
+- `CHAT_WIDGET.md`
+- `CHANNELS.md`
+- `API_INTEGRATIONS.md`
+- `OPENAI_COMPATIBLE_PROVIDERS.md`

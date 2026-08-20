@@ -1,0 +1,463 @@
+{
+    "title": "Create blog post",
+    "author": "admin",
+    "description": "Receive external webhook with data and create a new blog post",
+    "fingerprint": "80f990e6-c35c-485e-accc-151a94103c04",
+    "nodes": [
+        {
+            "id": "receive_webhook_node-2ef2db83-c250-42eb-929f-0ac03ad7ce69",
+            "type": "receive_webhook_node",
+            "position": {
+                "x": -533.1712207669918,
+                "y": -795.5421765215835
+            },
+            "data": {
+                "label": "Receive Webhook",
+                "description": "Triggers workflow execution via generic HTTP Webhook",
+                "sample_payload": "{\n  \"title\": \"Titolo di prova\",\n  \"slug\": \"titolo-di-prova\",\n  \"body\": \"<p>Contenuto HTML del post<\/p>\",\n  \"sub_title\": \"Sottotitolo opzionale\",\n  \"category_id\": 1,\n  \"tags\": 1,\n  \"user_id\": 1,\n  \"id\": 1,\n  \"cover_photo_path\": \"\",\n  \"photo_alt_text\": \"\",\n  \"published_at\": \"2026-04-10T12:00:00\",\n  \"scheduled_for\": null\n}",
+                "isNew": true,
+                "icon": "heroicon-o-paper-airplane",
+                "iconType": "heroicon",
+                "logoUrl": null,
+                "logoMissing": false,
+                "color": "amber",
+                "display_name": "Receive Webhook",
+                "id": "receive_webhook_node-2ef2db83-c250-42eb-929f-0ac03ad7ce69",
+                "_v": 12,
+                "_fieldsVersion": 12
+            },
+            "style": null
+        },
+        {
+            "id": "model_update_node-b7437d27-2eb1-4a39-83f0-01671833659e",
+            "type": "model_update_node",
+            "position": {
+                "x": 554.4528591613062,
+                "y": -766.4413070385451
+            },
+            "data": {
+                "label": "Update Model",
+                "description": "",
+                "model": "Firefly\\FilamentBlog\\Models\\Post",
+                "operation": "create",
+                "identifier_field": "id",
+                "identifier_value": "{{id}}",
+                "field_mapping": [
+                    {
+                        "field": "title",
+                        "value": "{{title}}",
+                        "isDynamic": false
+                    },
+                    {
+                        "field": "body",
+                        "value": "{{body}}",
+                        "isDynamic": false
+                    },
+                    {
+                        "field": "user_id",
+                        "value": "{{user_id}}",
+                        "isDynamic": true
+                    },
+                    {
+                        "field": "slug",
+                        "value": "{{slug}}",
+                        "isDynamic": false
+                    },
+                    {
+                        "field": "cover_photo_path",
+                        "value": "{{cover_photo_path}}",
+                        "isDynamic": false
+                    },
+                    {
+                        "field": "photo_alt_text",
+                        "value": "{{photo_alt_text}}",
+                        "isDynamic": false
+                    },
+                    {
+                        "field": "published_at",
+                        "value": "now()",
+                        "isDynamic": true
+                    },
+                    {
+                        "field": "scheduled_for",
+                        "value": "now()",
+                        "isDynamic": true
+                    },
+                    {
+                        "field": "sub_title",
+                        "value": "{{sub_title}}",
+                        "isDynamic": false
+                    },
+                    {
+                        "field": "status",
+                        "value": "pending",
+                        "isDynamic": false
+                    }
+                ],
+                "isNew": true,
+                "icon": "heroicon-o-circle-stack",
+                "iconType": "heroicon",
+                "logoUrl": null,
+                "logoMissing": false,
+                "color": "emerald",
+                "display_name": "Update Model",
+                "id": "model_update_node-b7437d27-2eb1-4a39-83f0-01671833659e",
+                "_v": 52,
+                "_upstreamVersion": 8,
+                "isExpanded": null
+            },
+            "style": null
+        },
+        {
+            "id": "system_notification-e0a765b8-271d-4f84-86c2-fa7aaad88e7d",
+            "type": "system_notification",
+            "position": {
+                "x": 2633.466711477716,
+                "y": -899.7103282877342
+            },
+            "data": {
+                "label": "System Notification",
+                "description": "",
+                "title": "New post",
+                "body": "Hi, the user  {{name}} {{email}} has submitted a new post  for approval.\n\nTitle: {{title}}\nCategory: {{category_name}}\nStatus: {{status}}",
+                "status": "info",
+                "icon": "heroicon-o-bell",
+                "icon_color": null,
+                "persistent": false,
+                "duration_ms": null,
+                "channels": [
+                    "database"
+                ],
+                "dispatch_database_event": true,
+                "recipient_user_id": "1",
+                "isNew": true,
+                "iconType": "heroicon",
+                "logoUrl": null,
+                "logoMissing": false,
+                "color": "indigo",
+                "display_name": "System Notification",
+                "id": "system_notification-e0a765b8-271d-4f84-86c2-fa7aaad88e7d",
+                "_v": 22
+            },
+            "style": null
+        },
+        {
+            "id": "data_model_node-d5cfb0cf-74fa-4eab-af3d-44a530608633",
+            "type": "data_model_node",
+            "position": {
+                "x": 49.01924972389651,
+                "y": -976.352454671287
+            },
+            "data": {
+                "label": "Read Data",
+                "description": "",
+                "model": "App\\Models\\User",
+                "columns": [
+                    "*"
+                ],
+                "filters": [],
+                "order_by": "",
+                "order_direction": "asc",
+                "limit": 1,
+                "offset": 0,
+                "isNew": true,
+                "icon": "heroicon-o-circle-stack",
+                "iconType": "heroicon",
+                "logoUrl": null,
+                "logoMissing": false,
+                "color": "emerald",
+                "display_name": "Data Model",
+                "id": "data_model_node-d5cfb0cf-74fa-4eab-af3d-44a530608633",
+                "conditions": [
+                    {
+                        "column": "id",
+                        "operator": "=",
+                        "value": "3",
+                        "logic": "AND",
+                        "value_mode": "manual"
+                    }
+                ],
+                "_v": 8,
+                "_fieldsVersion": 8,
+                "_upstreamVersion": 8,
+                "isExpanded": null
+            },
+            "style": null
+        },
+        {
+            "id": "merge_node-2c6a83c5-71ae-4ed0-a886-fa4055f82a09",
+            "type": "merge_node",
+            "position": {
+                "x": 2066.29041323112,
+                "y": -970.0684629264102
+            },
+            "data": {
+                "label": "Merge",
+                "description": "",
+                "mergeStrategy": "concat",
+                "isNew": true,
+                "icon": "heroicon-o-arrows-pointing-in",
+                "iconType": "heroicon",
+                "logoUrl": null,
+                "logoMissing": false,
+                "color": "yellow",
+                "display_name": "Merge",
+                "id": "merge_node-2c6a83c5-71ae-4ed0-a886-fa4055f82a09",
+                "mergeKey": "id",
+                "_v": 15,
+                "_upstreamVersion": 6,
+                "waitForAllInputs": true
+            },
+            "style": null
+        },
+        {
+            "id": "sticky_note-1775830099753",
+            "type": "sticky_note",
+            "position": {
+                "x": 172.6439928918992,
+                "y": -1116.8422584998202
+            },
+            "data": {
+                "content": "Get user name and email by id",
+                "color": "yellow",
+                "fontSize": "large"
+            },
+            "style": null
+        },
+        {
+            "id": "sticky_note-1775830131242",
+            "type": "sticky_note",
+            "position": {
+                "x": 687.5748310794726,
+                "y": -885.9051788951238
+            },
+            "data": {
+                "content": "Create the blog post",
+                "color": "yellow",
+                "fontSize": "large"
+            },
+            "style": null
+        },
+        {
+            "id": "sticky_note-1775830141073",
+            "type": "sticky_note",
+            "position": {
+                "x": 1317.5619774330444,
+                "y": -728.5513930670221
+            },
+            "data": {
+                "content": "Assign Categories and tags  to the post\nCategories and Tags, are in a pivot table, is not possible to assign them directly then create a new variable category_name for the payload.",
+                "color": "yellow",
+                "fontSize": "large",
+                "stickyExplicitSize": {
+                    "width": 409,
+                    "height": 172
+                }
+            },
+            "style": null
+        },
+        {
+            "id": "data_viewer_node-b355e872-a156-4b84-8b69-bb8479563a3e",
+            "type": "data_viewer_node",
+            "position": {
+                "x": 999.8934950319222,
+                "y": -1206.6498454883242
+            },
+            "data": {
+                "label": "Data Viewer",
+                "description": "",
+                "view_mode": "auto",
+                "isNew": true,
+                "icon": "heroicon-o-table-cells",
+                "iconType": "heroicon",
+                "logoUrl": null,
+                "logoMissing": false,
+                "color": "slate",
+                "display_name": "Data Viewer",
+                "id": "data_viewer_node-b355e872-a156-4b84-8b69-bb8479563a3e",
+                "visibleColumns": [
+                    "email",
+                    "id"
+                ],
+                "display_keys": [
+                    "email",
+                    "id",
+                    "users"
+                ],
+                "_v": 2,
+                "isExpanded": null
+            },
+            "style": null
+        },
+        {
+            "id": "data_viewer_node-0d1208c5-7378-42c6-bb28-c198dc9709d5",
+            "type": "data_viewer_node",
+            "position": {
+                "x": 2632.864975981681,
+                "y": -1327.887898637148
+            },
+            "data": {
+                "label": "Data Viewer",
+                "description": "",
+                "view_mode": "auto",
+                "isNew": true,
+                "icon": "heroicon-o-table-cells",
+                "iconType": "heroicon",
+                "logoUrl": null,
+                "logoMissing": false,
+                "color": "slate",
+                "display_name": "Data Viewer",
+                "id": "data_viewer_node-0d1208c5-7378-42c6-bb28-c198dc9709d5",
+                "visibleColumns": [
+                    "email",
+                    "id",
+                    "name"
+                ],
+                "display_keys": [
+                    "email",
+                    "id",
+                    "name"
+                ],
+                "_v": 5,
+                "isExpanded": null
+            },
+            "style": null
+        },
+        {
+            "id": "sticky_note-1775832467963",
+            "type": "sticky_note",
+            "position": {
+                "x": 2181.29041323112,
+                "y": -1120.0684629264101
+            },
+            "data": {
+                "content": "Wait all the inputs!!!",
+                "color": "yellow",
+                "fontSize": "large"
+            },
+            "style": null
+        },
+        {
+            "id": "sticky_note-1776068629234",
+            "type": "sticky_note",
+            "position": {
+                "x": -528.6022981777049,
+                "y": -1390.532314269601
+            },
+            "data": {
+                "content": "curl -X POST \"PASTE HERE WEBHOOK ENDPOINT\" \\\n  -H \"Content-Type: application\/json\" \\\n  -H \"Accept: application\/json\" \\\n  --data-binary @- <<'JSON'\n{\n  \"title\": \"Post's title\",\n  \"slug\": \"posts-title\",\n  \"body\": \"<p>Post's <strong>content<\/strong>.<\/p>\",\n  \"sub_title\": \"Subtitle of the post\",\n  \"category_ids\": [1,2],\n  \"tag_ids\": [1,2],\n  \"user_id\": 1,\n  \"id\": 1,\n  \"cover_photo_path\": \"\",\n  \"photo_alt_text\": \"\",\n  \"published_at\": \"2026-04-10T12:00:00\",\n  \"scheduled_for\": null\n}\nJSON",
+                "color": "blue",
+                "fontSize": "large",
+                "stickyExplicitSize": {
+                    "width": 436,
+                    "height": 402
+                }
+            },
+            "style": null
+        },
+        {
+            "id": "sticky_note-1776068651266",
+            "type": "sticky_note",
+            "position": {
+                "x": -786.316583891991,
+                "y": -1388.8894571267454
+            },
+            "data": {
+                "content": "Use this CLI command to simulate a real webhook, change title, subtitle and body",
+                "color": "yellow",
+                "fontSize": "large"
+            },
+            "style": null
+        },
+        {
+            "id": "php_code_node-0fc0c8d1-75a3-4876-bcef-db1e7b13b219",
+            "type": "php_code_node",
+            "position": {
+                "x": 1215.0363366005859,
+                "y": -533.7431554036418
+            },
+            "data": {
+                "label": "Execute PHP",
+                "description": "Run custom PHP code",
+                "code": "use Firefly\\FilamentBlog\\Models\\Post;\n\n$full = $context->getFullContext();\n\n\/\/ ID record creato\/aggiornato dal ModelUpdateNode\n$postId =\n    $input['id']\n    ?? ($input['record']['id'] ?? null)\n    ?? ($full['id'] ?? null)\n    ?? ($full['record']['id'] ?? null);\n\nif (! $postId) {\n    throw new \\RuntimeException('Post ID not found in input\/context.');\n}\n\n$post = Post::query()->find($postId);\n\nif (! $post) {\n    throw new \\RuntimeException(\"Post not found: {$postId}\");\n}\n\n\/\/ IDs arrivati dal webhook (o dal contesto)\n$categoryIds = $full['category_ids'] ?? [];\n$tagIds = $full['tag_ids'] ?? [];\n\n$categoryIds = is_array($categoryIds) ? array_values(array_filter($categoryIds, fn ($v) => is_numeric($v))) : [];\n$tagIds = is_array($tagIds) ? array_values(array_filter($tagIds, fn ($v) => is_numeric($v))) : [];\n\n\/\/ Sync relazioni se esistono\nif (method_exists($post, 'categories')) {\n    $post->categories()->sync($categoryIds);\n}\n\nif (method_exists($post, 'tags')) {\n    $post->tags()->sync($tagIds);\n}\n\n\/\/ Ritorna output “ricco” per i nodi downstream\n$post->refresh();\nif (method_exists($post, 'loadMissing')) {\n    $post->loadMissing(['categories', 'tags']);\n}\n\nreturn array_merge(\n    is_array($input) ? $input : ['input' => $input],\n    [\n        'id' => $post->id,\n        'record' => $post->toArray(),\n        'attached_category_ids' => $categoryIds,\n        'attached_tag_ids' => $tagIds,\n    ]\n);",
+                "output_fields": "",
+                "isNew": true,
+                "icon": "heroicon-o-code-bracket",
+                "iconType": "heroicon",
+                "logoUrl": null,
+                "logoMissing": false,
+                "color": "slate",
+                "display_name": "PHP Code",
+                "id": "php_code_node-0fc0c8d1-75a3-4876-bcef-db1e7b13b219",
+                "outputFields": "",
+                "_v": 1
+            },
+            "style": null
+        }
+    ],
+    "edges": [
+        {
+            "id": "xy-edge__receive_webhook_node-2ef2db83-c250-42eb-929f-0ac03ad7ce69-data_model_node-d5cfb0cf-74fa-4eab-af3d-44a530608633",
+            "source": "receive_webhook_node-2ef2db83-c250-42eb-929f-0ac03ad7ce69",
+            "target": "data_model_node-d5cfb0cf-74fa-4eab-af3d-44a530608633",
+            "sourceHandle": null,
+            "targetHandle": null
+        },
+        {
+            "id": "xy-edge__receive_webhook_node-2ef2db83-c250-42eb-929f-0ac03ad7ce69-model_update_node-b7437d27-2eb1-4a39-83f0-01671833659e",
+            "source": "receive_webhook_node-2ef2db83-c250-42eb-929f-0ac03ad7ce69",
+            "target": "model_update_node-b7437d27-2eb1-4a39-83f0-01671833659e",
+            "sourceHandle": null,
+            "targetHandle": null
+        },
+        {
+            "id": "xy-edge__data_model_node-d5cfb0cf-74fa-4eab-af3d-44a530608633-merge_node-2c6a83c5-71ae-4ed0-a886-fa4055f82a09input-A",
+            "source": "data_model_node-d5cfb0cf-74fa-4eab-af3d-44a530608633",
+            "target": "merge_node-2c6a83c5-71ae-4ed0-a886-fa4055f82a09",
+            "sourceHandle": null,
+            "targetHandle": "input-A"
+        },
+        {
+            "id": "xy-edge__merge_node-2c6a83c5-71ae-4ed0-a886-fa4055f82a09-system_notification-e0a765b8-271d-4f84-86c2-fa7aaad88e7d",
+            "source": "merge_node-2c6a83c5-71ae-4ed0-a886-fa4055f82a09",
+            "target": "system_notification-e0a765b8-271d-4f84-86c2-fa7aaad88e7d",
+            "sourceHandle": null,
+            "targetHandle": null
+        },
+        {
+            "id": "xy-edge__data_model_node-d5cfb0cf-74fa-4eab-af3d-44a530608633-data_viewer_node-b355e872-a156-4b84-8b69-bb8479563a3e",
+            "source": "data_model_node-d5cfb0cf-74fa-4eab-af3d-44a530608633",
+            "target": "data_viewer_node-b355e872-a156-4b84-8b69-bb8479563a3e",
+            "sourceHandle": null,
+            "targetHandle": null
+        },
+        {
+            "id": "xy-edge__merge_node-2c6a83c5-71ae-4ed0-a886-fa4055f82a09-data_viewer_node-0d1208c5-7378-42c6-bb28-c198dc9709d5",
+            "source": "merge_node-2c6a83c5-71ae-4ed0-a886-fa4055f82a09",
+            "target": "data_viewer_node-0d1208c5-7378-42c6-bb28-c198dc9709d5",
+            "sourceHandle": null,
+            "targetHandle": null
+        },
+        {
+            "id": "xy-edge__model_update_node-b7437d27-2eb1-4a39-83f0-01671833659e-php_code_node-0fc0c8d1-75a3-4876-bcef-db1e7b13b219",
+            "source": "model_update_node-b7437d27-2eb1-4a39-83f0-01671833659e",
+            "target": "php_code_node-0fc0c8d1-75a3-4876-bcef-db1e7b13b219",
+            "sourceHandle": null,
+            "targetHandle": null
+        },
+        {
+            "id": "xy-edge__php_code_node-0fc0c8d1-75a3-4876-bcef-db1e7b13b219-merge_node-2c6a83c5-71ae-4ed0-a886-fa4055f82a09input-B",
+            "source": "php_code_node-0fc0c8d1-75a3-4876-bcef-db1e7b13b219",
+            "target": "merge_node-2c6a83c5-71ae-4ed0-a886-fa4055f82a09",
+            "sourceHandle": null,
+            "targetHandle": "input-B"
+        }
+    ],
+    "viewport": {
+        "x": 631.2870790531165,
+        "y": 1347.6202320576253,
+        "zoom": 0.9726549474122849
+    },
+    "exportedAt": "2026-08-08T12:00:41+00:00",
+    "voodflowVersion": "1.0.0"
+}

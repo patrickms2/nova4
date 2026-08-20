@@ -1,0 +1,112 @@
+<?php
+
+namespace App\Filament\TravelSubAdmin\Resources;
+use App\Filament\TravelSubAdmin\Resources\PackageInclusionResource\Pages;
+use App\Models\PackageInclusion;
+use App\Models\TravelAgency;
+use App\Models\TravelPackage;
+use BackedEnum;
+use Filament\Actions;
+use Filament\Facades\Filament;
+use Filament\Forms;
+use Filament\Resources\Resource;
+use Filament\Schemas\Schema as Form;
+use Filament\Tables;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use UnitEnum;
+use Archilex\AdvancedTables\AdvancedTables;
+use Filament\Forms\Components\Tabs\Tab;
+class PackageInclusionResource extends Resource
+{
+    protected static ?string $model = PackageInclusion::class;
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-check-circle';
+    protected static string|UnitEnum|null $navigationGroup = 'Paquetes';
+    protected static ?string $navigationParentGroup = 'Catálogo';
+    public static function canAccess(): bool
+    {
+        return true;
+
+        return Filament::auth()->check()
+            && Filament::auth()->user()->role === 'sub_admin'
+            && Filament::auth()->user()->section === 'tour';
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return true;
+
+        return Filament::auth()->check()
+            && Filament::auth()->user()->role === 'sub_admin'
+            && Filament::auth()->user()->section === 'tour';
+    }
+
+    public static function form(Form $form): Form
+{
+        return $form
+            ->schema([
+                Forms\Components\Select::make('package_id')
+                    ->label('Choose Package')
+                    ->options(function () {
+                        $agency_id = 1;
+                        return TravelPackage::all()
+                            ->pluck('package_name', 'id');
+                    })
+                    ->searchable()
+                    ->required(),
+                Forms\Components\Select::make('inclusion_type')
+                    ->label('Inclusion Type')
+                    ->options([
+                        1 => 'Tour',
+                        2 => 'Hotel',
+                        3 => 'Transport',
+                        4 => 'Meal',
+                        5 => 'Other',
+                    ]),
+                Forms\Components\TextInput::make('description')
+                    ->required()
+                    ->maxLength(255),
+                Forms\Components\Toggle::make('is_highlighted')
+            ]);
+}
+    public static function table(Table $table): Table {
+        return $table
+            ->columns([
+                Tables\Columns\TextColumn::make('package.package_name')
+                    ->numeric()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('inclusion_type'),
+                Tables\Columns\TextColumn::make('description')
+                    ->searchable(),
+                Tables\Columns\IconColumn::make('is_highlighted')
+                    ->boolean(),
+            ])
+            ->filters([
+
+                            ])
+
+            ->actions([
+                Actions\ViewAction::make(),
+                Actions\EditAction::make(),
+
+                
+            ])
+            ->bulkActions([
+                Actions\BulkActionGroup::make([
+                    Actions\DeleteBulkAction::make(),
+                ]),            ]);
+    }
+    public static function getRelations(): array {
+        return [
+            //
+        ];
+        }
+    public static function getPages(): array {
+            return [ 'index' => Pages\ListPackageInclusions::route('/'),
+            'create' => Pages\CreatePackageInclusion::route('/create'),
+            'view' => Pages\ViewPackageInclusion::route('/{record}'),
+            'edit' => Pages\EditPackageInclusion::route('/{record}/edit'),
+                        ];
+}
+
+}

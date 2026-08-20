@@ -1,0 +1,133 @@
+<?php
+
+namespace App\Filament\Resources;
+
+use Filament\Support\Icons\Heroicon;
+
+use App\Filament\Resources\PanelRelationResource\Pages;
+use App\Models\PanelRelation;
+use Filament\Forms;
+use Filament\Schemas\Schema as Form;
+use Filament\Actions;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Repeater\TableColumn;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Component;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
+use Filament\Resources\Resource;
+use Filament\Tables;
+use Filament\Tables\Table;
+use BackedEnum;
+use UnitEnum;
+class PanelRelationResource extends Resource
+{
+    protected static ?string $model = PanelRelation::class;
+
+    protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedBriefcase;
+    protected static string|\UnitEnum|null $navigationGroup = 'Paneles';
+    protected static ?string $navigationParentGroup = 'Nova Hub';
+
+    protected static ?int $navigationSort = 2;
+
+    public static function form(Form $form): Form
+    {
+        return $form
+            ->schema([
+                Forms\Components\Select::make('panel_id')
+                    ->relationship('panel', 'name')
+                    ->required()
+                    ->searchable()
+                    ->preload(),
+                Forms\Components\Select::make('type')
+                    ->options([
+                        'belongsTo' => 'Belongs To',
+                        'hasMany' => 'Has Many',
+                        'hasOne' => 'Has One',
+                        'belongsToMany' => 'Belongs To Many',
+                    ])
+                    ->required(),
+                Forms\Components\TextInput::make('related_model')
+                    ->required()
+                    ->maxLength(255),
+                Forms\Components\TextInput::make('foreign_key')
+                    ->maxLength(255),
+                Forms\Components\TextInput::make('local_key')
+                    ->maxLength(255),
+                Forms\Components\TextInput::make('method_name')
+                    ->maxLength(255),
+                Forms\Components\KeyValue::make('relation_config')
+                    ->label('Relation Configuration')
+                    ->keyLabel('Option')
+                    ->valueLabel('Value')
+                    ->addActionLabel('Add option'),
+            ]);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                Tables\Columns\TextColumn::make('panel.name')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('type')
+                    ->searchable()
+                    ->sortable()
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'belongsTo' => 'primary',
+                        'hasMany' => 'success',
+                        'hasOne' => 'warning',
+                        'belongsToMany' => 'info',
+                    }),
+                Tables\Columns\TextColumn::make('related_model')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('foreign_key')
+                    ->searchable()
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('method_name')
+                    ->searchable()
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('created_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+            ])
+            ->filters([
+                Tables\Filters\SelectFilter::make('panel')
+                    ->relationship('panel', 'name')
+                    ->searchable()
+                    ->preload(),
+                Tables\Filters\SelectFilter::make('type')
+                    ->options([
+                        'belongsTo' => 'Belongs To',
+                        'hasMany' => 'Has Many',
+                        'hasOne' => 'Has One',
+                        'belongsToMany' => 'Belongs To Many',
+                    ]),
+            ])
+            ->actions([
+                Actions\EditAction::make(),
+                Actions\DeleteAction::make(),
+            ])
+            ->toolbarActions([
+                Actions\BulkActionGroup::make([
+                    Actions\DeleteBulkAction::make()->deselectRecordsAfterCompletion(),
+                ]),
+            ]);
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => Pages\ListPanelRelations::route('/'),
+            'create' => Pages\CreatePanelRelation::route('/create'),
+            'edit' => Pages\EditPanelRelation::route('/{record}/edit'),
+        ];
+    }
+}

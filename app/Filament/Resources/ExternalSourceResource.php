@@ -1,0 +1,165 @@
+<?php
+
+namespace App\Filament\Resources;
+
+use Filament\Support\Icons\Heroicon;
+
+use App\Filament\Resources\ExternalSourceResource\Pages;
+use App\Models\ExternalSource;
+use App\Services\ExternalSync\ExternalSourceSynchronizer;
+use Filament\Actions;
+use Filament\Actions\Action;
+use Filament\Forms;
+use Filament\Notifications\Notification;
+use Filament\Resources\Resource;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema as Form;
+use Filament\Tables;
+use Filament\Tables\Table;
+use Illuminate\Http\Client\RequestException;
+use UnitEnum;
+
+class ExternalSourceResource extends Resource
+{
+    protected static ?string $model = ExternalSource::class;
+
+    protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedLink;
+
+    protected static ?int $navigationSort = 5;
+    protected static ?string $navigationLabel = 'Tipos de Productos';
+
+    protected static string|UnitEnum|null $navigationGroup = 'Productos';
+    protected static ?string $navigationParentGroup = 'Catálogo';
+
+    protected static bool $shouldRegisterNavigation = true;
+
+    public static function form(Form $schema): Form
+    {
+        return $schema->schema([
+            Section::make('Source')
+                ->schema([
+
+                ])->columns(2),
+            Section::make('Settings')
+                ->schema([
+                    Forms\Components\KeyValue::make('settings'),
+                    Forms\Components\Textarea::make('last_sync_error')->disabled()->columnSpanFull(),
+                ])
+                ->collapsed(),
+        ]);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->defaultSort('id', 'desc')
+            ->columns([
+                Tables\Columns\TextColumn::make('id')
+                    ->label('ID')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('source_label')->searchable()->sortable()->badge(),
+                Tables\Columns\TextColumn::make('business_name')->searchable()->sortable(),
+                Tables\Columns\TextColumn::make('source_platform')->badge()->sortable(),
+                Tables\Columns\TextColumn::make('resource_type')
+                    ->label('Resource')
+                    ->badge(),
+                Tables\Columns\TextColumn::make('target_model')
+                    ->label('Model'),
+                Tables\Columns\TextColumn::make('capability')
+                    ->toggleable(isToggledHiddenByDefault: true)
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('server.name')->searchable()->sortable(),
+                Tables\Columns\TextColumn::make('status')->badge()->sortable(),
+                Tables\Columns\TextColumn::make('last_sync_finished_at')->dateTime()->sortable(),
+                Tables\Columns\TextColumn::make('last_sync_failed_at')->dateTime()->sortable()->toggleable(),
+            ])
+            ->filters([
+                Tables\Filters\SelectFilter::make('source_platform')->options(fn (): array => ExternalSource::query()->distinct()->pluck('source_platform', 'source_platform')->all()),
+                Tables\Filters\SelectFilter::make('resource_type')->options(fn (): array => ExternalSource::query()->distinct()->pluck('resource_type', 'resource_type')->filter()->all()),
+                Tables\Filters\SelectFilter::make('target_model')->options(fn (): array => ExternalSource::query()->distinct()->pluck('target_model', 'target_model')->filter()->all()),
+                Tables\Filters\SelectFilter::make('business_name')->options(fn (): array => ExternalSource::query()->distinct()->pluck('business_name', 'business_name')->filter()->all()),
+                Tables\Filters\SelectFilter::make('server')->relationship('server', 'name')->searchable(),
+                Tables\Filters\SelectFilter::make('status')->options(['active' => 'Active', 'paused' => 'Paused', 'failed' => 'Failed']),
+            ])
+            ->actions([
+                Action::make('syncExternalSource')
+                    ->label('Sync')
+                    ->icon(Heroicon::OutlinedArrowPath)
+                    ->action(fn (ExternalSource $record): mixed => self::syncExternalSource($record, false)),
+                Action::make('fullSyncExternalSource')
+                    ->label('Full sync')
+                    ->icon(Heroicon::OutlinedArrowPathRoundedSquare)
+                    ->requiresConfirmation()
+                    ->action(fn (ExternalSource $record): mixed => self::syncExternalSource($record, true)),
+                Actions\EditAction::make(),
+            ])
+            ->toolbarActions([
+                Actions\DeleteBulkAction::make()->deselectRecordsAfterCompletion(),
+            ]);
+    }
+
+    private static function syncExternalSource(ExternalSource $source, bool $fullSync): void
+    {
+        try {
+            app(ExternalSourceSynchronizer::class)->sync($source, $fullSync);
+            Notification::make()
+                ->title($fullSync ? 'Full sync completed' : 'Sync completed')
+                ->body("Processed {$source->source_label}.")
+                ->success()
+                ->send();
+        } catch (RequestException $exception) {
+            Notification::make()
+                ->title('Sync failed')
+                ->body(self::syncFailureMessage($source, $exception))
+                ->danger()
+                ->send();
+        }
+    }
+
+    private static function syncFailureMessage(ExternalSource $source, RequestException $exception): string
+    {
+        $status = $exception->response->status();
+        $message = $exception->response->json('message')
+            ?? $exception->response->json('code')
+            ?? $exception->getMessage();
+
+        return "Could not sync {$source->source_label}. Remote returned HTTP {$status}: {$message}";
+    }
+
+    private static function resourceTypeOptions(): array
+    {
+        return [
+            'hotel' => 'Hotel',
+            'restaurant' => 'Restaurant',
+            'tour_route' => 'Tour route',
+            'tour_visit' => 'Tour visit',
+            'taxi' => 'Taxi',
+            'restaurant_booking' => 'Restaurant booking',
+            'tour_booking' => 'Tour booking',
+            'taxi_booking' => 'Taxi booking',
+            'travel_booking' => 'Travel booking',
+            'wine_product' => 'Wine product',
+            'aloe_product' => 'Aloe product',
+            'generic_product' => 'Generic product',
+        ];
+    }
+
+    private static function targetModelOptions(): array
+    {
+        return [
+            'tour' => 'Tour',
+            'taxi_service' => 'Taxi service',
+            'external_catalog_item' => 'External catalog item',
+        ];
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => Pages\ListExternalSources::route('/'),
+            'create' => Pages\CreateExternalSource::route('/create'),
+            'edit' => Pages\EditExternalSource::route('/{record}/edit'),
+        ];
+    }
+}

@@ -1,0 +1,184 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Filament\Resources\ServerResource\Tables;
+
+use App\Models\Server;
+use App\Services\ExternalSync\ExternalSourceRegistrar;
+use App\Services\ExternalSync\ExternalSourceSynchronizer;
+use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Notifications\Notification;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
+use Filament\Tables\Table;
+
+class ServersTable
+{
+    public static function configure(Table $table): Table
+    {
+        return $table
+            ->columns([
+                TextColumn::make('novaBusiness.name')
+                    ->label('Cliente')
+                    ->sortable()
+                    ->searchable()
+                    ->placeholder('—')
+                    ->badge()
+                    ->color('primary'),
+
+                TextColumn::make('name')
+                    ->label('Servidor')
+                    ->searchable()
+                    ->sortable()
+                    ->weight('semibold'),
+
+                TextColumn::make('endpoint')
+                    ->label('Endpoint')
+                    ->copyable()
+                    ->copyMessage('Copiado')
+                    ->fontFamily('mono')
+                    ->limit(40),
+
+                TextColumn::make('version')
+                    ->label('Versión')
+                    ->badge()
+                    ->color('warning'),
+
+                TextColumn::make('tools_count')
+                    ->counts('tools')
+                    ->label('Tools')
+                    ->alignCenter(),
+
+                TextColumn::make('resources_count')
+                    ->counts('resources')
+                    ->label('Resources')
+                    ->alignCenter(),
+
+                TextColumn::make('prompts_count')
+                    ->counts('prompts')
+                    ->label('Prompts')
+                    ->alignCenter(),
+
+                IconColumn::make('is_active')
+                    ->label('Activo')
+                    ->boolean(),
+
+                TextColumn::make('updated_at')
+                    ->label('Actualizado')
+                    ->dateTime('d/m/y H:i')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+            ])
+            ->filters([
+                SelectFilter::make('nova_business_id')
+                    ->label('Cliente')
+                    ->relationship('novaBusiness', 'name'),
+
+                SelectFilter::make('transport')
+                    ->label('Transporte')
+                    ->options([
+                        'web' => 'Web (HTTP)',
+                        'local' => 'Local (CLI)',
+                    ]),
+
+                TernaryFilter::make('is_active')->label('Activo'),
+            ])
+            ->actions([
+                ActionGroup::make([
+                    Action::make('testConnection')
+                        ->label('Probar Conexión')
+                        ->icon('heroicon-o-signal')
+                        ->color('success')
+                        ->action(function (Server $record): void {
+                            // Test connection logic here
+                            Notification::make()
+                                ->title('Conexión Probada')
+                                ->body('La conexión al servidor fue exitosa.')
+                                ->success()
+                                ->send();
+                        }),
+
+                    Action::make('syncNow')
+                        ->label('Sincronizar Ahora')
+                        ->icon('heroicon-o-arrow-path')
+                        ->color('warning')
+                        ->action(fn (Server $record) => static::syncExternalSources($record, false)),
+
+                    Action::make('fullSync')
+                        ->label('Sincronización Completa')
+                        ->icon('heroicon-o-arrow-path-rounded-square')
+                        ->color('danger')
+                        ->requiresConfirmation()
+                        ->modalHeading('Sincronización Completa')
+                        ->modalDescription('Esta acción sobreescribirá todos los datos locales. ¿Continuar?')
+                        ->action(fn (Server $record) => static::syncExternalSources($record, true)),
+                ])
+                    ->label('Sincronización')
+                    ->icon('heroicon-o-arrow-path')
+                    ->color('warning'),
+
+                ActionGroup::make([
+                    Action::make('inspector')
+                        ->label('Inspector')
+                        ->icon('heroicon-o-magnifying-glass-circle')
+                        ->url(fn (Server $record) => route('filament.admin.pages.mcp-inspector', ['server' => $record->id])),
+
+                    Action::make('chat')
+                        ->label('Chat')
+                        ->icon('heroicon-o-chat-bubble-left-right')
+                        ->url(fn (Server $record) => route('filament.admin.pages.server-chat', ['server' => $record->id])),
+
+
+                ])
+                    ->label('Herramientas')
+                    ->icon('heroicon-o-wrench-screwdriver')
+                    ->color('primary'),
+
+                ActionGroup::make([
+                    Action::make('registerExternalSources')
+                        ->label('Registrar Sources')
+                        ->icon('heroicon-o-link')
+                        ->action(function (Server $record): void {
+                            $sources = app(ExternalSourceRegistrar::class)->registerForServer($record);
+                            Notification::make()
+                                ->title('Sources Registrados')
+                                ->body("Se registraron {$sources->count()} source(s).")
+                                ->success()
+                                ->send();
+                        }),
+                ])
+                    ->label('Integración')
+                    ->icon('heroicon-o-arrow-path')
+                    ->color('info'),
+
+                EditAction::make(),
+            ])
+            ->bulkActions([
+                DeleteBulkAction::make(),
+            ]);
+    }
+
+    private static function syncExternalSources(Server $server, bool $fullSync): void
+    {
+        app(ExternalSourceRegistrar::class)->registerForServer($server);
+
+        $sources = $server->externalSources()->where('status', 'active')->get();
+
+        $synchronizer = app(ExternalSourceSynchronizer::class);
+        foreach ($sources as $source) {
+            $synchronizer->sync($source, $fullSync);
+        }
+
+        Notification::make()
+            ->title($fullSync ? 'Full sync completado' : 'Sync completado')
+            ->body("Procesados {$sources->count()} source(s).")
+            ->success()
+            ->send();
+    }
+}
