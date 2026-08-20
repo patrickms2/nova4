@@ -2,6 +2,8 @@
 
 namespace App\Providers\Filament;
 
+use App\Support\Nova\NovaFilamentMenuBuilder;
+
 use Agroezinger\FilamentNavigationEnhanced\NavigationEnhancedPlugin;
 use App\Enums\TablerIcon;
 use Voodflow\Voodflow\VoodflowPlugin;
@@ -113,7 +115,7 @@ class CommunityPanelProvider extends PanelProvider
             SchemaIconAlias::COMPONENTS_WIZARD_COMPLETED_STEP => TablerIcon::Check,
         ]);
 
-      
+
 
         FilamentView::registerRenderHook(
             PanelsRenderHook::GLOBAL_SEARCH_AFTER,
@@ -145,6 +147,7 @@ class CommunityPanelProvider extends PanelProvider
             ->default()
             ->id('community')
             ->path('community')
+            ->navigation(fn (\Filament\Navigation\NavigationBuilder $builder) => app(NovaFilamentMenuBuilder::class)->build($builder, 'community', 'manager'))
             ->login()
             ->sidebarCollapsibleOnDesktop()
             ->colors([
@@ -161,7 +164,7 @@ class CommunityPanelProvider extends PanelProvider
            ->navigationGroups([
                 NavigationGroup::make(fn () => 'Mantenimiento')
                                     ->icon('heroicon-o-wrench-screwdriver')
-                    ->collapsible(true),            
+                    ->collapsible(true),
                 NavigationGroup::make(fn () => 'Propietarios')
                                     ->icon('heroicon-o-pencil')
                     ->collapsible(true),
@@ -195,12 +198,14 @@ class CommunityPanelProvider extends PanelProvider
                                     NavigationGroup::make(fn () => 'Tourist')
                                     ->icon('heroicon-o-pencil')->collapsed(),
             ])
-                /*->discoverResources(in: app_path('Filament/App/Facturacion/Resources'), for: 'App\Filament\App\Facturacion\Resources')*/
-           /* ->discoverResources(in: 'app/Filament/App/Rentals/Resources', for: 'App\\Filament\\App\\Rentals\\Resources')*/
+                ->discoverResources(in: app_path('Filament/App/Facturacion/Resources'), for: 'App\Filament\App\Facturacion\Resources')
+            ->discoverResources(in: 'app/Filament/App/Rentals/Resources', for: 'App\\Filament\\App\\Rentals\\Resources')
             /*->discoverPages(in: 'app/Filament/App/Rentals/Pages', for: 'App\\Filament\\App\\Rentals\\Pages')*/
             ->discoverResources(in: 'app/Filament/App/Resources/Announcements', for: 'App\\Filament\\App\\Resources\\Announcements')
             // ->discoverResources(in: 'app/Filament/App/Resources', for: 'App\\Filament\\App\\Resources')
             ->discoverPages(in: app_path('Filament/App/Facturacion/Pages'), for: 'App\\Filament\\App\\Facturacion\\Pages')
+            ->discoverClusters(in: app_path('Filament/App/Facturacion'), for: 'App\\Filament\\App\\Facturacion')
+            ->discoverClusters(in: app_path('Filament/App/Rentals'), for: 'App\\Filament\\App\\Rentals')
 
                                   ->discoverResources(in: app_path('Nova/NovaHub/Resources'), for: 'Nova\\NovaHub\\Resources')
                        ->discoverResources(in: app_path('Nova/Domotics/Resources'), for: 'Nova\\Domotics\\Resources')
@@ -227,7 +232,7 @@ class CommunityPanelProvider extends PanelProvider
             ->resources([
 AnnouncementResource::class,
             ])
-           
+
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
@@ -282,7 +287,7 @@ AnnouncementResource::class,
 
 
 
-                    
+
                     ])
 
                     // Hide actions registered in the global registry by name. Plugin-scoped
@@ -294,14 +299,14 @@ AnnouncementResource::class,
                     // Skip the auto-generated "Create {Resource}" entries entirely.
                     ->disableCreateActions(),
                 FilamentFullCalendarPlugin::make(),
-  
+
 
                 KanbanBuilder::make(),
                 AdvancedTablesPlugin::make()
                     ->userViewsEnabled(false),
                 NavigationEnhancedPlugin::make(),
 
-                
+
                 DrilldownSidebarPlugin::make()
                     ->drilledGroups([
                         'Nova Property',

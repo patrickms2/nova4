@@ -18,6 +18,20 @@ use App\Services\Staff\StaffApiClient;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
+use App\Contracts\ExternalNotificationClientInterface;
+use App\Contracts\Magento\OrderSyncServiceInterface;
+use App\Contracts\Magento\Parsers\InvoiceParserInterface;
+use App\Contracts\Magento\Parsers\ShipmentParserInterface;
+use App\Events\SlaBreached;
+use App\Events\SlaBreachImminent;
+use App\Listeners\SendSlaBreachNotification;
+use App\Models\Order;
+use App\Observers\OrderObserver;
+use App\Services\ExternalNotificationClient;
+use App\Services\Magento\OrderSyncService;
+use App\Services\Magento\Parsers\InvoiceParser;
+use App\Services\Magento\Parsers\ShipmentParser;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -25,6 +39,12 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Register any application services.
      */
+    public array $bindings = [
+        OrderSyncServiceInterface::class => OrderSyncService::class,
+        InvoiceParserInterface::class => InvoiceParser::class,
+        ShipmentParserInterface::class => ShipmentParser::class,
+        ExternalNotificationClientInterface::class => ExternalNotificationClient::class,
+    ];
     public function register(): void
     {
         $this->app->singleton(PricingStrategyInterface::class, function () {
@@ -78,6 +98,25 @@ class AppServiceProvider extends ServiceProvider
                 new Executors\WebsiteDiscoveryExecutor,
             ]);
         });
+
+        // MagentoApiClient is not bound globally as it requires a MagentoStore instance
+        // Create via new MagentoApiClient($store) when needed
+
+        $this->app->singleton(\App\Contracts\Magento\MagentoApiClientInterface::class, function ($app) {
+            // This is a fallback binder. It's problematic because it needs a MagentoStore.
+            // However, parsers need it in their constructor.
+            // In most cases, the client should be injected or created with a store.
+
+            // If we're in a context where we have a store (like SyncMagentoOrdersJob),
+            // we should ideally bind the specific instance.
+
+            // For now, to satisfy the DI of parsers, we return a proxy or handle it in the parser.
+            // BETTER: Inject the API client into the parser methods, not constructor,
+            // OR use a factory.
+
+            throw new \RuntimeException("MagentoApiClientInterface cannot be resolved without a MagentoStore.");
+        });
+
     }
 
     /**
@@ -95,6 +134,12 @@ class AppServiceProvider extends ServiceProvider
         if (str_contains(request()->getHost(), 'trycloudflare.com')) {
             URL::forceScheme('https');
         }
+        // Register Order observer for SLA deadline calculation
+        Order::observe(OrderObserver::class);
+
+        // Register SLA breach event listeners
+        Event::listen(SlaBreachImminent::class, [SendSlaBreachNotification::class, 'handleImminent']);
+        Event::listen(SlaBreached::class, [SendSlaBreachNotification::class, 'handleBreached']);
 
     }
 }

@@ -2,6 +2,8 @@
 
 namespace App\Providers\Filament;
 
+use App\Support\Nova\NovaFilamentMenuBuilder;
+
 use Agroezinger\FilamentNavigationEnhanced\NavigationEnhancedPlugin;
 use App\Enums\TablerIcon;
 use Archilex\AdvancedTables\Plugin\AdvancedTablesPlugin;
@@ -139,7 +141,7 @@ class FactPanelProvider extends PanelProvider
             ])
 
             ->resources([
-                
+
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->discoverWidgets(in: app_path('Filament/App/Widgets'), for: 'App\Filament\App\Widgets')

@@ -67,6 +67,20 @@ use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 use LivewireFilemanager\Filemanager\Http\Controllers\Files\FileController;
 use App\Livewire\Nova\CapabilityComposer;
+
+
+use App\Models\MagentoOrderSync;
+// JSON Viewer for MagentoOrderSync raw data
+Route::get('/magento-order-sync/{id}/json', function ($id) {
+    $sync = MagentoOrderSync::findOrFail($id);
+
+    return view('magento-order-sync-json', [
+        'sync' => $sync,
+        'json' => json_encode($sync->raw_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+    ]);
+})->name('magento-order-sync.json');
+
+
 Route::get('/studio/capabilities', CapabilityComposer::class)->name('nova.studio.capabilities');
 Route::view('/comunigest-front', 'comunigest.front')->name('comunigest.front');
 

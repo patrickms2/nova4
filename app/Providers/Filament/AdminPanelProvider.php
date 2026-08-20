@@ -2,6 +2,8 @@
 
 namespace App\Providers\Filament;
 
+use App\Support\Nova\NovaFilamentMenuBuilder;
+
 use Agroezinger\FilamentNavigationEnhanced\NavigationEnhancedPlugin;
 use App\Enums\TablerIcon;
 use Voodflow\Voodflow\VoodflowPlugin;
@@ -214,6 +216,8 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
+            ->navigation(fn (\Filament\Navigation\NavigationBuilder $builder) => app(NovaFilamentMenuBuilder::class)->build($builder, 'admin', 'manager'))
+
             ->login()
             ->sidebarCollapsibleOnDesktop()
             ->colors([

@@ -23,6 +23,10 @@ return [
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
     ],
+    'magento' => [
+        'base_url' => env('MAGENTO_URL'),
+        'access_token' => env('MAGENTO_TOKEN'),
+    ],
 
     'resend' => [
         'key' => env('RESEND_API_KEY'),

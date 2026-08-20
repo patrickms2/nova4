@@ -2,6 +2,8 @@
 
 namespace App\Providers\Filament;
 
+use App\Support\Nova\NovaFilamentMenuBuilder;
+
 use App\Models\Property;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -27,12 +29,14 @@ class DomoticsPanelProvider extends PanelProvider
         return $panel
             ->id('domotics')
             ->path('domotics')
+            ->navigation(fn (\Filament\Navigation\NavigationBuilder $builder) => app(NovaFilamentMenuBuilder::class)->build($builder, 'domotics', 'manager'))
+
             ->login()
             ->colors([
                 'primary' => Color::Emerald,
             ])
-            ->discoverResources(in: app_path('Filament/Domotics/Resources'), for: 'App\Filament\Domotics\Resources')
-            ->discoverPages(in: app_path('Filament/Domotics/Pages'), for: 'App\Filament\Domotics\Pages')
+            ->discoverResources(in: app_path('Filament/App/Rental/Domotics/Resources'), for: 'App\Filament\App\Rental\Domotics\Resources')
+            ->discoverPages(in: app_path('Filament/App/Rental/Domotics/Pages'), for: 'App\Filament\App\Rental\Domotics\Pages')
             ->pages([
                 Dashboard::class,
             ])

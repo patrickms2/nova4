@@ -6,7 +6,6 @@ namespace App\Models;
 use Archilex\AdvancedTables\Concerns\HasViews;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Models\Contracts\HasName;
-use Filament\Models\Contracts\HasTenants;
 use Filament\Panel;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Collection;
@@ -20,13 +19,16 @@ use Illuminate\Database\Eloquent\Relations\MorphToMany;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
 use Marcelodelgado\Announcements\Traits\HasAnnouncements;
 use Kirschbaum\Commentions\Contracts\Commenter;
 use App\Models\Announcement;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Builder;
-class User extends Authenticatable implements FilamentUser, HasName, HasTenants, MustVerifyEmail, Commenter
+use Filament\Models\Contracts\HasDefaultTenant;
+use Filament\Models\Contracts\HasTenants;
+use Laravel\Sanctum\HasApiTokens;
+
+class User extends Authenticatable implements FilamentUser, HasName, HasTenants, HasDefaultTenant, MustVerifyEmail, Commenter
 {
     use HasAnnouncements;
     use HasApiTokens, HasFactory, Notifiable;
@@ -107,18 +109,31 @@ class User extends Authenticatable implements FilamentUser, HasName, HasTenants,
         return true;
     }
 
+    public function tenants(): BelongsToMany
+    {
+        return $this->belongsToMany(Tenant::class)
+            ->withPivot('role')
+            ->withTimestamps();
+    }
+
+    public function latestTenant(): BelongsTo
+    {
+        return $this->belongsTo(Tenant::class, 'latest_tenant_id');
+    }
+
     public function getTenants(Panel $panel): Collection
     {
-        $shared = $this->properties;
-        $owned = $this->ownedProperties()->whereNotIn('properties.id', $shared->pluck('id'))->get();
-
-        return $shared->merge($owned);
+        return $this->tenants;
     }
 
     public function canAccessTenant(Model $tenant): bool
     {
-        return $this->properties->contains($tenant)
-            || $tenant instanceof Property && $tenant->owner_id === $this->id;
+        return $this->tenants()->whereKey($tenant)->exists();
+    }
+
+    public function getDefaultTenant(Panel $panel): ?Model
+    {
+        return $this->latestTenant ?? $this->tenants->first();
     }
 
     public function setFullNameAttribute(): string

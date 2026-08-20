@@ -11,7 +11,8 @@
             : 0;
     $communityPortalName = $portalType === 'owner' ? $person->display_name : $employee->name;
     $communityPortalInitials = str($communityPortalName)->explode(' ')->filter()->take(2)->map(fn ($part) => str($part)->substr(0, 1))->join('');
-@endphp
+
+    @endphp
 
 <div
     data-community-portal
@@ -171,7 +172,7 @@
         @if ($portalType === 'owner')
             @php
                 $ownerCards = [
-                    ['properties', 'PROPIEDADES', $person->properties->count(), 'Unidades', '⌂', 'cyan'],
+                    ['properties', 'PROPIEDADES', $person->properties->count(), 'Propiedades', '⌂', 'cyan'],
                     ['documents', 'DOCUMENTOS', $documents->count(), 'PDFs y archivos', '▤', 'amber'],
                     ['fees', 'CUOTAS', $fees->where('status', '!=', 'paid')->count(), 'Pendientes', '€', 'emerald'],
                     ['appointments', 'CITAS', $appointments->count(), 'Próximas', '□', 'blue'],
@@ -227,12 +228,12 @@
 
 
             @if ($section === 'home')
-              <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
-                @foreach ($employeeCards as [$key, $label, $count, $description, $icon, $tone])
-                    @php $toneClass = match ($tone) { 'violet' => 'border-violet-500/25 bg-violet-500/10 text-violet-400', 'cyan' => 'border-cyan-500/25 bg-cyan-500/10 text-cyan-400', 'blue' => 'border-blue-500/25 bg-blue-500/10 text-blue-400', 'emerald' => 'border-emerald-500/25 bg-emerald-500/10 text-emerald-400', default => 'border-red-500/25 bg-red-500/10 text-red-400' }; @endphp
-                    <button wire:key="employee-card-{{ $key }}" wire:click="show('{{ $key }}')" class="min-h-32 rounded-2xl border p-4 text-left shadow-xl transition {{ $section === $key ? 'border-red-500/70 bg-[#20252b]' : 'border-white/10 bg-[#161b21] hover:border-white/25' }}"><div class="flex justify-between gap-3"><div><p class="text-[10px] font-bold tracking-[0.18em] text-gray-400">{{ $label }}</p><p class="mt-3 text-3xl font-light">{{ $count }}</p></div><span class="flex h-11 w-11 items-center justify-center rounded-xl border text-xl font-bold {{ $toneClass }}">{{ $icon }}</span></div><p class="mt-2 text-xs text-gray-500">{{ $description }}</p></button>
-                @endforeach
-            </div>
+                <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+                    @foreach ($employeeCards as [$key, $label, $count, $description, $icon, $tone])
+                        @php $toneClass = match ($tone) { 'violet' => 'border-violet-500/25 bg-violet-500/10 text-violet-400', 'cyan' => 'border-cyan-500/25 bg-cyan-500/10 text-cyan-400', 'blue' => 'border-blue-500/25 bg-blue-500/10 text-blue-400', 'emerald' => 'border-emerald-500/25 bg-emerald-500/10 text-emerald-400', default => 'border-red-500/25 bg-red-500/10 text-red-400' }; @endphp
+                        <button wire:key="employee-card-{{ $key }}" wire:click="show('{{ $key }}')" class="min-h-32 rounded-2xl border p-4 text-left shadow-xl transition {{ $section === $key ? 'border-red-500/70 bg-[#20252b]' : 'border-white/10 bg-[#161b21] hover:border-white/25' }}"><div class="flex justify-between gap-3"><div><p class="text-[10px] font-bold tracking-[0.18em] text-gray-400">{{ $label }}</p><p class="mt-3 text-3xl font-light">{{ $count }}</p></div><span class="flex h-11 w-11 items-center justify-center rounded-xl border text-xl font-bold {{ $toneClass }}">{{ $icon }}</span></div><p class="mt-2 text-xs text-gray-500">{{ $description }}</p></button>
+                    @endforeach
+                </div>
             @php $todayAttendance = $attendances->first(fn ($item) => $item->attendance_date?->isToday()); @endphp
                 <div class="grid gap-3 sm:grid-cols-2"><article class="rounded-2xl border border-white/10 bg-[#161b21] p-4"><p class="text-[10px] font-bold tracking-[0.18em] text-gray-400">PRÓXIMO TURNO</p><p class="mt-2 font-semibold">{{ $shifts->first()?->shift_date?->format('d/m/Y') ?? 'Sin turno' }} {{ $shifts->first()?->starts_at }}</p></article><button type="button" x-on:click="openAttendance()" @disabled($todayAttendance?->checked_out_at) class="rounded-2xl border border-red-500/20 bg-[#161b21] p-4 text-left disabled:cursor-not-allowed disabled:opacity-50"><p class="text-[10px] font-bold tracking-[0.18em] text-gray-400">REGISTRO</p><p class="mt-2 font-semibold {{ $todayAttendance?->checked_in_at ? 'text-emerald-400' : 'text-red-300' }}">{{ ! $todayAttendance?->checked_in_at ? 'Registrar entrada' : (! $todayAttendance?->checked_out_at ? 'Registrar salida' : 'Jornada cerrada') }}</p></button></div>
                 <section class="rounded-3xl border border-white/15 bg-[#14191f] p-5"><p class="text-center text-lg font-bold">¡Hola, {{ $employee->name }}!</p><p class="mt-1 text-center text-xs text-gray-500">{{ $employee->communityDepartments->pluck('name')->join(' · ') }}</p></section>
@@ -286,7 +287,7 @@
                 </div>
             @elseif ($section === 'incidents')
                 <div class="grid gap-3">
-   
+
                     @forelse ($incidents as $incident)
                         <x-community-record-row wire:key="incident-{{ $incident->id }}" :record="$incident" type="incident" :subtitle="($incident->community?->name ?? 'Comunidad').' · '.($incident->workOrder?->code ?? 'Sin orden')" />
                     @empty
@@ -674,7 +675,7 @@
                         @endif
 
                         @if ($detailAttachment)
-                                                    <img src="{{ asset('storage/'.$detailAttachment) }}"  class="community-button community-button-primary sm:col-span-2"><x-heroicon-o-arrow-top-right-on-square class="h-4 w-4" /> 
+                                                    <img src="{{ asset('storage/'.$detailAttachment) }}"  class="community-button community-button-primary sm:col-span-2"><x-heroicon-o-arrow-top-right-on-square class="h-4 w-4" />
 
                             <a href="{{ asset('storage/'.$detailAttachment) }}" target="_blank" rel="noopener" class="community-button community-button-primary sm:col-span-2"><x-heroicon-o-arrow-top-right-on-square class="h-4 w-4" /> Abrir archivo</a>
                         @endif
@@ -685,7 +686,13 @@
             </section>
         </div>
     @endif
-
+    @if(isset($novaEnabledSections))
+        <x-nova.legacy-home-runtime
+            :enabled-sections="$novaEnabledSections"
+            :runtime-configured="$novaRuntimeConfigured ?? false"
+            :portal-type="$portalType"
+        />
+    @endif
     @include('livewire.community-portal-onboarding', ['portalType' => $portalType])
 
     <style>

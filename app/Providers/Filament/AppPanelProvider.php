@@ -2,6 +2,8 @@
 
 namespace App\Providers\Filament;
 
+use App\Support\Nova\NovaFilamentMenuBuilder;
+
 use Agroezinger\FilamentNavigationEnhanced\NavigationEnhancedPlugin;
 use App\Filament\App\Facturacion\Resources\ClienteResource;
 use App\Filament\App\Facturacion\Resources\FacturaResource;
@@ -53,6 +55,7 @@ class AppPanelProvider extends PanelProvider
         return $panel
             ->id('app')
             ->path('app')
+            ->navigation(fn (\Filament\Navigation\NavigationBuilder $builder) => app(NovaFilamentMenuBuilder::class)->build($builder, 'app', 'manager'))
             ->login()
             ->sidebarCollapsibleOnDesktop()
             ->colors([
@@ -99,7 +102,7 @@ PropertyResource::class,
                 NavigationGroup::make(fn () => 'Nova Properties')
                     ->icon('heroicon-o-pencil')->collapsed(),
                 NavigationGroup::make(fn () => 'NOVA Community')
-                    ->icon('heroicon-o-building-office-2')->collapsed(),                    
+                    ->icon('heroicon-o-building-office-2')->collapsed(),
                 NavigationGroup::make(fn () => 'Nova Access')
                     ->icon('heroicon-o-pencil')->collapsed(),
                 NavigationGroup::make(fn () => 'Nova Hub')
