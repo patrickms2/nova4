@@ -16,7 +16,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             NovaConversationBehaviorSeeder::class,
-            DomoticsSeeder::class,
+            //DomoticsSeeder::class,
         ]);
     }
 }

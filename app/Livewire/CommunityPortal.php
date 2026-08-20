@@ -21,6 +21,8 @@ use App\Models\WorkCategory;
 use App\Models\WorkOrder;
 use App\Support\CommunityAppointmentAvailability;
 use App\Support\CommunityPortalContext;
+use App\Support\CommunityCapabilityRuntime;
+use App\Support\Nova\CommunityPortalPresentation;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
@@ -119,9 +121,8 @@ class CommunityPortal extends Component
 
     public function show(string $section): void
     {
-        $allowed = CommunityPortalContext::portalType() === 'employee'
-            ? ['home', 'plans', 'communities', 'work', 'incidents', 'shifts', 'attendance', 'appointments', 'documents', 'tickets', 'expenses']
-            : ['home', 'properties', 'documents', 'appointments', 'tickets', 'incidents', 'fees'];
+        $portalRole = CommunityPortalContext::portalType() === 'employee' ? 'employee' : 'owner';
+        $allowed = ['home', ...app(CommunityCapabilityRuntime::class)->enabledSections($portalRole)];
 
         if (in_array($section, $allowed, true)) {
             $this->section = $section;
@@ -231,9 +232,18 @@ class CommunityPortal extends Component
 
     public function render(): View
     {
+        $portalRole = CommunityPortalContext::portalType() === 'employee' ? 'employee' : 'owner';
+        $runtime = app(CommunityCapabilityRuntime::class);
+
+        if (! $runtime->sectionEnabled($portalRole, $this->section)) {
+            $this->section = 'home';
+        }
+
         $view = CommunityPortalContext::portalType() === 'employee'
             ? $this->renderEmployee()
             : $this->renderOwner();
+
+        $view->with(app(CommunityPortalPresentation::class)->forRole($portalRole));
 
         return $this->embedded ? $view : $view->layout('layouts.mobile');
     }

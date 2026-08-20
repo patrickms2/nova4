@@ -66,7 +66,8 @@ use App\Models\Transaction;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 use LivewireFilemanager\Filemanager\Http\Controllers\Files\FileController;
-
+use App\Livewire\Nova\CapabilityComposer;
+Route::get('/studio/capabilities', CapabilityComposer::class)->name('nova.studio.capabilities');
 Route::view('/comunigest-front', 'comunigest.front')->name('comunigest.front');
 
 Route::view('/comunigest/login', 'comunigest.login')->name('comunigest.login');

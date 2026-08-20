@@ -1,3 +1,7 @@
+
+@if(isset($novaEnabledSections))
+    <x-nova.legacy-home-runtime :enabled-sections="$novaEnabledSections" :portal-type="$portalType ?? 'owner'" />
+@endif
 @php
     $communityPortalUser = auth()->user();
     $communityUnreadNotifications = $communityPortalUser
